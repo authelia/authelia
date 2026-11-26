@@ -344,6 +344,25 @@ func jwkSigningAlgSupportsKey(alg string, key schema.CryptographicKey) (err erro
 	}
 }
 
+func jwkEncryptionAlgSupportsKey(alg string, key schema.CryptographicKey) (err error) {
+	switch alg {
+	case oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256:
+		if _, ok := key.(*rsa.PublicKey); ok {
+			return nil
+		}
+
+		return fmt.Errorf("the '%s' algorithm requires an RSA key but the key is a %s", alg, jwkKeyDescription(key))
+	case oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW:
+		if _, ok := key.(*ecdsa.PublicKey); ok {
+			return nil
+		}
+
+		return fmt.Errorf("the '%s' algorithm requires an ECDSA key but the key is a %s", alg, jwkKeyDescription(key))
+	default:
+		return nil
+	}
+}
+
 func jwkKeyDescription(key schema.CryptographicKey) string {
 	switch k := key.(type) {
 	case *rsa.PublicKey, *rsa.PrivateKey:

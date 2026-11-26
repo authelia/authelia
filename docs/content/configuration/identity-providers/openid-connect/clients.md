@@ -119,8 +119,6 @@ identity_providers:
         revocation_endpoint_auth_signing_alg: 'RS256'
         introspection_endpoint_auth_method: 'client_secret_basic'
         introspection_endpoint_auth_signing_alg: 'RS256'
-        pushed_authorization_request_endpoint_auth_method: 'client_secret_basic'
-        pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
         jwks_uri: ''
         jwks:
           - key_id: 'example'
@@ -1288,6 +1286,10 @@ including the algorithm column for supported values.
 
 The JWT signing algorithm accepted for request objects.
 
+The `none` value permits unsigned request objects. The `HS256`, `HS384`, and `HS512` values require a plaintext
+[client_secret](#client_secret). All other values require the [jwks_uri](#jwks_uri) or [jwks](#jwks) option, and when
+the [jwks](#jwks) option is used it must contain a signing key with the same algorithm.
+
 See the request object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#request-object) for more information including
 the algorithm column for supported values.
@@ -1316,10 +1318,11 @@ the algorithm column for supported values.
 
 {{< confkey type="string" default="client_secret_basic" required="no" >}}
 
-The registered client authentication mechanism used by this client for the [Token Endpoint]. If no method is defined
-the confidential client type will default to `client_secret_basic` as this is required by the specification. The public
-client type defaults to `none` as this is required by the specification. Supported values are `client_secret_basic`,
-`client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
+The registered client authentication mechanism used by this client for the [Token Endpoint] and the Pushed
+Authorization Request Endpoint. If no method is defined the confidential client type will default to
+`client_secret_basic` as this is required by the specification. The public client type defaults to `none` as this is
+required by the specification. Supported values are `client_secret_basic`, `client_secret_post`, `client_secret_jwt`,
+`private_key_jwt`, and `none`.
 
 See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
 more information.
@@ -1347,9 +1350,12 @@ otherwise we assume the default value:
 {{< confkey type="string" default="client_secret_basic" required="no" >}}
 
 The registered client authentication mechanism used by this client for the [Revocation Endpoint]. If no method is defined
-the confidential client type will default to `client_secret_basic` as this is required by the specification. The public
-client type defaults to `none` as this is required by the specification. Supported values are `client_secret_basic`,
-`client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
+the confidential client type will default to the [token_endpoint_auth_method](#token_endpoint_auth_method) when it's
+configured as `private_key_jwt` or `none`, and to `client_secret_basic` otherwise; the
+[revocation_endpoint_auth_signing_alg](#revocation_endpoint_auth_signing_alg) likewise defaults to the
+[token_endpoint_auth_signing_alg](#token_endpoint_auth_signing_alg) in that case. The public client type defaults to
+`none` as this is required by the specification. Supported values are `client_secret_basic`, `client_secret_post`,
+`client_secret_jwt`, `private_key_jwt`, and `none`.
 
 See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
 more information.
@@ -1377,9 +1383,12 @@ otherwise we assume the default value:
 {{< confkey type="string" default="client_secret_basic" required="no" >}}
 
 The registered client authentication mechanism used by this client for the [Introspection Endpoint]. If no method is
-defined the confidential client type will default to `client_secret_basic` as this is required by the specification. The
-public client type defaults to `none` as this is required by the specification. Supported values are
-`client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
+defined the confidential client type will default to the [token_endpoint_auth_method](#token_endpoint_auth_method) when
+it's configured as `private_key_jwt` or `none`, and to `client_secret_basic` otherwise; the
+[introspection_endpoint_auth_signing_alg](#introspection_endpoint_auth_signing_alg) likewise defaults to the
+[token_endpoint_auth_signing_alg](#token_endpoint_auth_signing_alg) in that case. The public client type defaults to
+`none` as this is required by the specification. Supported values are `client_secret_basic`, `client_secret_post`,
+`client_secret_jwt`, `private_key_jwt`, and `none`.
 
 See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
 more information.
@@ -1401,37 +1410,6 @@ otherwise we assume the default value:
 | :-----------------------------------------------------------------------: | :-----------------: | :-----: |
 | [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
-
-### pushed_authorization_request_endpoint_auth_method
-
-{{< confkey type="string" default="client_secret_basic" required="no" >}}
-
-The registered client authentication mechanism used by this client for the [Pushed Authorization Request Endpoint]. If
-no method is defined the confidential client type will default to `client_secret_basic` as this is required by the
-specification. The public client type defaults to `none` as this is required by the specification. Supported values are
-`client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
-
-See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
-more information.
-
-### pushed_authorization_request_endpoint_auth_signing_alg
-
-{{< confkey type="string" default="RS256" required="no" >}}
-
-The JWT signing algorithm accepted when the
-[pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) is configured as
-`client_secret_jwt` or `private_key_jwt`.
-
-See the request object section of the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
-for more information including the algorithm column for supported values.
-
-It's recommended that you specifically configure this when the following options are configured to specific values
-otherwise we assume the default value:
-
-|                                          Configuration Option                                           |        Value        | Default |
-| :-----------------------------------------------------------------------------------------------------: | :-----------------: | :-----: |
-| [pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
-| [pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
 ### allow_multiple_auth_methods
 
@@ -1514,12 +1492,12 @@ must never be shared with Authelia.
 
 Required when the following options are configured:
 
-- [request_object_signing_alg](#request_object_signing_alg)
 - [token_endpoint_auth_signing_alg](#token_endpoint_auth_signing_alg)
 
 Required when the following options are configured to specific values:
 
 - [token_endpoint_auth_method](#token_endpoint_auth_method): `private_key_jwt`
+- [request_object_signing_alg](#request_object_signing_alg): any value other than `none`, `HS256`, `HS384`, or `HS512`
 
 The following is a contextual example (see below for information regarding each option):
 
@@ -1561,12 +1539,12 @@ must never be shared with Authelia.
 
 Required when the following options are configured:
 
-- [request_object_signing_alg](#request_object_signing_alg)
 - [token_endpoint_auth_signing_alg](#token_endpoint_auth_signing_alg)
 
 Required when the following options are configured to specific values:
 
 - [token_endpoint_auth_method](#token_endpoint_auth_method): `private_key_jwt`
+- [request_object_signing_alg](#request_object_signing_alg): any value other than `none`, `HS256`, `HS384`, or `HS512`
 
 #### key_id
 
@@ -1578,7 +1556,9 @@ The Key ID used to match the request object's JWT header `kid` value against.
 
 {{< confkey type="string" default="sig" required="no" >}}
 
-The key usage. Defaults to `sig` which is the only available option at this time.
+The key usage. Defaults to `sig`. Keys with the `sig` usage are used to validate signed [JWT]'s from the client, and
+keys with the `enc` usage are used to encrypt responses to the client. A key with the `enc` usage is never used to
+validate a signature.
 
 #### algorithm
 
@@ -1586,6 +1566,10 @@ The key usage. Defaults to `sig` which is the only available option at this time
 
 The algorithm for this key. This value typically optional as it can be automatically detected based on the type of key
 in some situations. It is however strongly recommended this is set.
+
+Keys with the `sig` [use](#use) must use a signing algorithm. Keys with the `enc` [use](#use) must use one of the
+`RSA1_5`, `RSA-OAEP`, `RSA-OAEP-256`, `ECDH-ES`, `ECDH-ES+A128KW`, `ECDH-ES+A192KW`, or `ECDH-ES+A256KW` key
+management algorithms, which default to `RSA-OAEP-256` for RSA keys and `ECDH-ES+A256KW` for ECDSA keys.
 
 See the request object table in the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
 for more information. The `Algorithm` column lists supported values, the `Key` column references the required
@@ -1615,6 +1599,9 @@ The key _**MUST**_:
       - P-256.
       - P-384.
       - P-512.
+  - An Ed25519 public key encoded in conformance to the [PKCS#8] specification.
+  - An ML-DSA public key encoded in conformance to the [PKCS#8] specification.
+- Be an RSA or ECDSA public key when the [use](#use) is `enc`.
 - Be usable with the configured [algorithm](#algorithm), for example the `ES384` algorithm requires an ECDSA key using
   the P-384 curve.
 

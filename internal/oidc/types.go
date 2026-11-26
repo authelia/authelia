@@ -132,9 +132,6 @@ type RegisteredClient struct {
 	IntrospectionEndpointAuthMethod     string
 	IntrospectionEndpointAuthSigningAlg string
 
-	PushedAuthorizationRequestEndpointAuthMethod     string
-	PushedAuthorizationRequestEndpointAuthSigningAlg string
-
 	RefreshFlowIgnoreOriginalGrantedScopes  bool
 	AllowMultipleAuthenticationMethods      bool
 	ClientCredentialsFlowAllowImplicitScope bool

@@ -2314,45 +2314,6 @@
           "title": "Introspection Endpoint Auth Signing Algorithm",
           "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
         },
-        "pushed_authorization_request_endpoint_auth_method": {
-          "type": "string",
-          "enum": [
-            "",
-            "none",
-            "client_secret_post",
-            "client_secret_basic",
-            "private_key_jwt",
-            "client_secret_jwt"
-          ],
-          "title": "Pushed Authorization Request Endpoint Auth Method",
-          "description": "The Pushed Authorization Request Endpoint Auth Method enforced by the provider for this client.",
-          "default": "client_secret_basic"
-        },
-        "pushed_authorization_request_endpoint_auth_signing_alg": {
-          "type": "string",
-          "enum": [
-            "",
-            "HS256",
-            "HS384",
-            "HS512",
-            "RS256",
-            "RS384",
-            "RS512",
-            "ES256",
-            "ES384",
-            "ES512",
-            "PS256",
-            "PS384",
-            "PS512",
-            "Ed25519",
-            "EdDSA",
-            "ML-DSA-44",
-            "ML-DSA-65",
-            "ML-DSA-87"
-          ],
-          "title": "Pushed Authorization Request Endpoint Auth Signing Algorithm",
-          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client. The Edwards-curve identifier 'EdDSA' is also accepted for compatibility with RFC 8037, however RFC 9864 deprecates it in favor of 'Ed25519' which is recommended instead."
-        },
         "allow_multiple_auth_methods": {
           "type": "boolean",
           "title": "Allow Multiple Authentication Methods",

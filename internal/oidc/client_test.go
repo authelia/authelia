@@ -286,25 +286,13 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", fclient.IntrospectionEndpointAuthMethod)
 	assert.Equal(t, "", fclient.GetIntrospectionEndpointAuthMethod())
 
-	assert.Equal(t, "", fclient.PushedAuthorizationRequestEndpointAuthMethod)
-	assert.Equal(t, "", fclient.GetPushedAuthorizationRequestEndpointAuthMethod())
-
 	fclient.Public = true
 	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.GetIntrospectionEndpointAuthMethod())
 	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.IntrospectionEndpointAuthMethod)
-
-	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.GetPushedAuthorizationRequestEndpointAuthMethod())
-	assert.Equal(t, oidc.ClientAuthMethodNone, fclient.PushedAuthorizationRequestEndpointAuthMethod)
 	fclient.Public = false
 
 	assert.Equal(t, "", fclient.IntrospectionEndpointAuthSigningAlg)
 	assert.Equal(t, "", fclient.GetIntrospectionEndpointAuthSigningAlg())
-
-	assert.Equal(t, "", fclient.PushedAuthorizationRequestEndpointAuthSigningAlg)
-	assert.Equal(t, "", fclient.GetPushedAuthorizationRequestEndpointAuthSigningAlg())
-
-	fclient.PushedAuthorizationRequestEndpointAuthSigningAlg = oidc.SigningAlgRSAUsingSHA256
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetPushedAuthorizationRequestEndpointAuthSigningAlg())
 
 	assert.Equal(t, "", fclient.RequestObjectSigningAlg)
 	assert.Equal(t, "", fclient.GetRequestObjectSigningAlg())

@@ -63,42 +63,40 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		AudienceStrategy:      NewAudienceStrategy(config.AudienceStrategy),
 		ResourceStrategy:      NewResourceStrategy(config.ResourceStrategy),
 
-		AuthorizationSignedResponseAlg:                   config.AuthorizationSignedResponseAlg,
-		AuthorizationSignedResponseKeyID:                 config.AuthorizationSignedResponseKeyID,
-		AuthorizationEncryptedResponseAlg:                config.AuthorizationEncryptedResponseAlg,
-		AuthorizationEncryptedResponseEnc:                config.AuthorizationEncryptedResponseEnc,
-		AuthorizationEncryptedResponseKeyID:              config.AuthorizationEncryptedResponseKeyID,
-		IDTokenSignedResponseAlg:                         config.IDTokenSignedResponseAlg,
-		IDTokenSignedResponseKeyID:                       config.IDTokenSignedResponseKeyID,
-		IDTokenEncryptedResponseAlg:                      config.IDTokenEncryptedResponseAlg,
-		IDTokenEncryptedResponseEnc:                      config.IDTokenEncryptedResponseEnc,
-		IDTokenEncryptedResponseKeyID:                    config.IDTokenEncryptedResponseKeyID,
-		AccessTokenSignedResponseAlg:                     config.AccessTokenSignedResponseAlg,
-		AccessTokenSignedResponseKeyID:                   config.AccessTokenSignedResponseKeyID,
-		AccessTokenEncryptedResponseAlg:                  config.AccessTokenEncryptedResponseAlg,
-		AccessTokenEncryptedResponseEnc:                  config.AccessTokenEncryptedResponseEnc,
-		AccessTokenEncryptedResponseKeyID:                config.AccessTokenEncryptedResponseKeyID,
-		UserinfoSignedResponseAlg:                        config.UserinfoSignedResponseAlg,
-		UserinfoSignedResponseKeyID:                      config.UserinfoSignedResponseKeyID,
-		UserinfoEncryptedResponseAlg:                     config.UserinfoEncryptedResponseAlg,
-		UserinfoEncryptedResponseEnc:                     config.UserinfoEncryptedResponseEnc,
-		UserinfoEncryptedResponseKeyID:                   config.UserinfoEncryptedResponseKeyID,
-		IntrospectionSignedResponseAlg:                   config.IntrospectionSignedResponseAlg,
-		IntrospectionSignedResponseKeyID:                 config.IntrospectionSignedResponseKeyID,
-		IntrospectionEncryptedResponseAlg:                config.IntrospectionEncryptedResponseAlg,
-		IntrospectionEncryptedResponseEnc:                config.IntrospectionEncryptedResponseEnc,
-		IntrospectionEncryptedResponseKeyID:              config.IntrospectionEncryptedResponseKeyID,
-		RequestObjectSigningAlg:                          config.RequestObjectSigningAlg,
-		RequestObjectEncryptionAlg:                       config.RequestObjectEncryptionAlg,
-		RequestObjectEncryptionEnc:                       config.RequestObjectEncryptionEnc,
-		TokenEndpointAuthMethod:                          config.TokenEndpointAuthMethod,
-		TokenEndpointAuthSigningAlg:                      config.TokenEndpointAuthSigningAlg,
-		RevocationEndpointAuthMethod:                     config.RevocationEndpointAuthMethod,
-		RevocationEndpointAuthSigningAlg:                 config.RevocationEndpointAuthSigningAlg,
-		IntrospectionEndpointAuthMethod:                  config.IntrospectionEndpointAuthMethod,
-		IntrospectionEndpointAuthSigningAlg:              config.IntrospectionEndpointAuthSigningAlg,
-		PushedAuthorizationRequestEndpointAuthMethod:     config.PushedAuthorizationRequestEndpointAuthMethod,
-		PushedAuthorizationRequestEndpointAuthSigningAlg: config.PushedAuthorizationRequestAuthSigningAlg,
+		AuthorizationSignedResponseAlg:      config.AuthorizationSignedResponseAlg,
+		AuthorizationSignedResponseKeyID:    config.AuthorizationSignedResponseKeyID,
+		AuthorizationEncryptedResponseAlg:   config.AuthorizationEncryptedResponseAlg,
+		AuthorizationEncryptedResponseEnc:   config.AuthorizationEncryptedResponseEnc,
+		AuthorizationEncryptedResponseKeyID: config.AuthorizationEncryptedResponseKeyID,
+		IDTokenSignedResponseAlg:            config.IDTokenSignedResponseAlg,
+		IDTokenSignedResponseKeyID:          config.IDTokenSignedResponseKeyID,
+		IDTokenEncryptedResponseAlg:         config.IDTokenEncryptedResponseAlg,
+		IDTokenEncryptedResponseEnc:         config.IDTokenEncryptedResponseEnc,
+		IDTokenEncryptedResponseKeyID:       config.IDTokenEncryptedResponseKeyID,
+		AccessTokenSignedResponseAlg:        config.AccessTokenSignedResponseAlg,
+		AccessTokenSignedResponseKeyID:      config.AccessTokenSignedResponseKeyID,
+		AccessTokenEncryptedResponseAlg:     config.AccessTokenEncryptedResponseAlg,
+		AccessTokenEncryptedResponseEnc:     config.AccessTokenEncryptedResponseEnc,
+		AccessTokenEncryptedResponseKeyID:   config.AccessTokenEncryptedResponseKeyID,
+		UserinfoSignedResponseAlg:           config.UserinfoSignedResponseAlg,
+		UserinfoSignedResponseKeyID:         config.UserinfoSignedResponseKeyID,
+		UserinfoEncryptedResponseAlg:        config.UserinfoEncryptedResponseAlg,
+		UserinfoEncryptedResponseEnc:        config.UserinfoEncryptedResponseEnc,
+		UserinfoEncryptedResponseKeyID:      config.UserinfoEncryptedResponseKeyID,
+		IntrospectionSignedResponseAlg:      config.IntrospectionSignedResponseAlg,
+		IntrospectionSignedResponseKeyID:    config.IntrospectionSignedResponseKeyID,
+		IntrospectionEncryptedResponseAlg:   config.IntrospectionEncryptedResponseAlg,
+		IntrospectionEncryptedResponseEnc:   config.IntrospectionEncryptedResponseEnc,
+		IntrospectionEncryptedResponseKeyID: config.IntrospectionEncryptedResponseKeyID,
+		RequestObjectSigningAlg:             config.RequestObjectSigningAlg,
+		RequestObjectEncryptionAlg:          config.RequestObjectEncryptionAlg,
+		RequestObjectEncryptionEnc:          config.RequestObjectEncryptionEnc,
+		TokenEndpointAuthMethod:             config.TokenEndpointAuthMethod,
+		TokenEndpointAuthSigningAlg:         config.TokenEndpointAuthSigningAlg,
+		RevocationEndpointAuthMethod:        config.RevocationEndpointAuthMethod,
+		RevocationEndpointAuthSigningAlg:    config.RevocationEndpointAuthSigningAlg,
+		IntrospectionEndpointAuthMethod:     config.IntrospectionEndpointAuthMethod,
+		IntrospectionEndpointAuthSigningAlg: config.IntrospectionEndpointAuthSigningAlg,
 
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewJSONWebKeySet(config.JSONWebKeys),
@@ -532,24 +530,6 @@ func (c *RegisteredClient) GetIntrospectionEndpointAuthMethod() (method string) 
 // authentication methods.
 func (c *RegisteredClient) GetIntrospectionEndpointAuthSigningAlg() (alg string) {
 	return c.IntrospectionEndpointAuthSigningAlg
-}
-
-// GetPushedAuthorizationRequestEndpointAuthMethod returns the requested Client Authentication Method for the
-// Pushed Authorization Request Endpoint. The options are client_secret_post, client_secret_basic, client_secret_jwt,
-// private_key_jwt, and none.
-func (c *RegisteredClient) GetPushedAuthorizationRequestEndpointAuthMethod() (method string) {
-	if c.Public && c.PushedAuthorizationRequestEndpointAuthMethod == "" {
-		c.PushedAuthorizationRequestEndpointAuthMethod = ClientAuthMethodNone
-	}
-
-	return c.PushedAuthorizationRequestEndpointAuthMethod
-}
-
-// GetPushedAuthorizationRequestEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for
-// signing the JWT [JWT] used to authenticate the Client at the Pushed Authorization Request Endpoint for the
-// private_key_jwt and client_secret_jwt authentication methods.
-func (c *RegisteredClient) GetPushedAuthorizationRequestEndpointAuthSigningAlg() (alg string) {
-	return c.PushedAuthorizationRequestEndpointAuthSigningAlg
 }
 
 // GetEnableJWTProfileOAuthAccessTokens returns true if this client is configured to return the

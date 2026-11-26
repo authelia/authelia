@@ -2034,7 +2034,8 @@ session:
         # token_endpoint_auth_signing_alg: 'RS256'
 
         ## The permitted client authentication method for the Revocation Endpoint for this client.
-        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## For confidential client types this value defaults to the token_endpoint_auth_method when it's
+        ## 'private_key_jwt' or 'none', otherwise it defaults to 'client_secret_basic'. For the public client types it
         ## defaults to 'none' per the specifications.
         # revocation_endpoint_auth_method: 'client_secret_basic'
 
@@ -2043,23 +2044,14 @@ session:
         # revocation_endpoint_auth_signing_alg: 'RS256'
 
         ## The permitted client authentication method for the Introspection Endpoint for this client.
-        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## For confidential client types this value defaults to the token_endpoint_auth_method when it's
+        ## 'private_key_jwt' or 'none', otherwise it defaults to 'client_secret_basic'. For the public client types it
         ## defaults to 'none' per the specifications.
         # introspection_endpoint_auth_method: 'client_secret_basic'
 
         ## The permitted client authentication signing algorithm for the Introspection Endpoint for this client when
         ## using the 'client_secret_jwt' or 'private_key_jwt' introspection_endpoint_auth_method.
         # introspection_endpoint_auth_signing_alg: 'RS256'
-
-        ## The permitted client authentication method for the Pushed Authorization Request Endpoint for this client.
-        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
-        ## defaults to 'none' per the specifications.
-        # pushed_authorization_request_endpoint_auth_method: 'client_secret_basic'
-
-        ## The permitted client authentication signing algorithm for the Pushed Authorization Request Endpoint for this
-        ## client when using the 'client_secret_jwt' or 'private_key_jwt'
-        ## pushed_authorization_request_endpoint_auth_method.
-        # pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
 
         ## Trusted public keys configuration for request object signing for things such as 'private_key_jwt'.
         ## URL of the HTTPS endpoint which serves the keys. Please note the 'jwks_uri' and the 'jwks' option below

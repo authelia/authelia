@@ -79,6 +79,45 @@ subitems:
 	assert.Equal(t, 1, conf.SubItems[1].AnInt)
 }
 
+func TestSubItemRemapRemovedKey(t *testing.T) {
+	ds := map[string]Deprecation{
+		"subitems[].removed": {
+			Key:     "subitems[].removed",
+			Version: model.SemanticVersion{Major: 4, Minor: 30},
+			AutoMap: false,
+		},
+	}
+
+	val := schema.NewStructValidator()
+
+	ko := koanf.New(".")
+
+	configYAML := []byte(`
+subitems:
+- a_string: example
+  removed: abc
+- an_int: 1
+`)
+
+	require.NoError(t, ko.Load(rawbytes.Provider(configYAML), yaml.Parser()))
+
+	final, err := koanfRemapKeys(val, ko, ds, nil)
+	require.NoError(t, err)
+
+	assert.Len(t, val.Errors(), 0)
+	require.Len(t, val.Warnings(), 1)
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'subitems[].removed' is deprecated in 4.30.0 and has been removed: you are not required to make any configuration changes right now but you may be required to in 5.0.0")
+
+	subitems, ok := final.Get("subitems").([]any)
+	require.True(t, ok)
+	require.Len(t, subitems, 2)
+
+	item, ok := subitems[0].(map[string]any)
+	require.True(t, ok)
+
+	assert.Equal(t, map[string]any{"a_string": "example"}, item)
+}
+
 type testDottedMapKeysConf struct {
 	Scopes          map[string]testDottedScope          `koanf:"scopes"`
 	ClaimsPolicies  map[string]testDottedClaimsPolicy   `koanf:"claims_policies"`

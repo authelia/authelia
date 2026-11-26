@@ -339,6 +339,16 @@ var deprecations = map[string]Deprecation{
 		Key:     "authentication_backend.ldap.permit_feature_detection_failure",
 		AutoMap: false,
 	},
+	"identity_providers.oidc.clients[].pushed_authorization_request_endpoint_auth_method": {
+		Version: model.SemanticVersion{Major: 4, Minor: 40},
+		Key:     "identity_providers.oidc.clients[].pushed_authorization_request_endpoint_auth_method",
+		AutoMap: false,
+	},
+	"identity_providers.oidc.clients[].pushed_authorization_request_endpoint_auth_signing_alg": {
+		Version: model.SemanticVersion{Major: 4, Minor: 40},
+		Key:     "identity_providers.oidc.clients[].pushed_authorization_request_endpoint_auth_signing_alg",
+		AutoMap: false,
+	},
 }
 
 var deprecationSessionRedisKeys = []string{

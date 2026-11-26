@@ -251,6 +251,7 @@ const (
 	errFmtOIDCProviderPrivateKeysRSA15NotEnabled         = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' but the 'enable_rsa1_5_key_management' option is not enabled"
 	errFmtOIDCProviderSigAlgDeprecated                   = "identity_providers: oidc: option '%s' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
 	errFmtOIDCProviderPrivateKeysSigAlgDeprecated        = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'algorithm' is configured as '%s' which RFC 9864 has deprecated in the IANA registry as it does not identify the curve in use, it's recommended to configure it as '%s' instead"
+	errFmtOIDCProviderSigAlgKeyIDMismatch                = "identity_providers: oidc: option '%s' must be '%s' or not configured when option '%s' is configured as '%s' but it's configured as '%s'"
 	errFmtOIDCProviderInvalidValue                       = "identity_providers: oidc: option " +
 		errFmtMustBeOneOf
 
@@ -376,12 +377,16 @@ const (
 		"'%s' must be 'none' when configured as the public client type but it's configured as '%s'"
 	errFmtOIDCClientInvalidEndpointAuthSigAlg = errFmtOIDCClientOption +
 		"'%s' must be one of %s when option '%s' is configured to '%s'"
-	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg = errFmtOIDCClientOption +
-		"'token_endpoint_auth_signing_alg' must be one of the registered public key algorithm values %s when option 'token_endpoint_auth_method' is configured to '%s'"
-	errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT = errFmtOIDCClientOption +
-		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
+	errFmtOIDCClientInvalidEndpointAuthSigAlgReg = errFmtOIDCClientOption +
+		"'%s' must be one of the registered public key algorithm values %s when option '%s' is configured to '%s'"
+	errFmtOIDCClientInvalidEndpointAuthSigAlgMissingPrivateKeyJWT = errFmtOIDCClientOption +
+		"'%s' is required when option '%s' is configured to 'private_key_jwt'"
 	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = errFmtOIDCClientOption +
-		"'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
+		"'jwks_uri' or 'jwks' is required with '%s' set to 'private_key_jwt'"
+	errFmtOIDCClientSigAlgKeyIDMismatch = errFmtOIDCClientOption +
+		"'%s' must be '%s' or not configured when option '%s' is configured as '%s' but it's configured as '%s'"
+	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWTNoSigKeys = errFmtOIDCClientOption +
+		"'jwks' must contain at least one valid key with a 'use' of 'sig' when option '%s' is set to 'private_key_jwt'"
 	errFmtOIDCClientAccessTokenJWTNoAudience = errFmtOIDCClientOption +
 		"'audience' should be configured when option 'access_token_signed_response_alg' is configured to '%s' as " +
 		"RFC9068 requires the 'aud' claim in a JWT Profile Access Token and it is otherwise absent, which will " +
@@ -393,6 +398,8 @@ const (
 		"'sector_identifier_uri' with value '%s': must have the 'https' scheme but has the '%s' scheme"
 	errFmtOIDCClientInvalidSectorIdentifier = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
+	errFmtOIDCClientInvalidSectorIdentifierPassword = errFmtOIDCClientOption +
+		"'sector_identifier_uri' with value '%s': must not have a password"
 	errFmtOIDCClientInvalidSectorIdentifierRedirect = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': must be a json document that contains all of the 'redirect_uris' for the client but had an error validating it: %w"
 	errFmtOIDCClientRefreshTokenRotationPublic = errFmtOIDCClientOption +
@@ -425,10 +432,12 @@ const (
 	errFmtOIDCClientPublicKeysRSAKeyGreaterThanMaximumBits    = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit public key but it must at maximum be a RSA %d bit public key"
 	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits          = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
 	errFmtOIDCClientPublicKeysNotUsable                       = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is not usable: %w"
-	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA                = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
+	errFmtOIDCClientPublicKeysKeyNotSupported                 = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA, ECDSA, Ed25519, or ML-DSA public key but it's type is %T"
+	errFmtOIDCClientPublicKeysEncKeyNotRSAOrECDSA             = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key when option 'use' is 'enc' but it's type is %T"
 	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
 	errFmtOIDCClientPublicKeysCertificateChainInvalid         = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
 	errFmtOIDCClientPublicKeysROSAMissingAlgorithm            = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'jwks'"
+	errFmtOIDCClientRequestObjectSigningAlgNoKeys             = errFmtOIDCClientOption + "'jwks_uri' or 'jwks' must be configured when 'request_object_signing_alg' is set to '%s'"
 	errFmtOIDCClientRequireSignedRequestObjectAlgNone         = errFmtOIDCClientOption + "'request_object_signing_alg' must not be configured as 'none' when the %s option 'require_signed_request_object' is 'true' as an unsigned request object can never satisfy this requirement"
 )
 
@@ -742,8 +751,6 @@ const (
 	attrOIDCRevocationAuthSigningAlg      = "revocation_endpoint_auth_signing_alg"
 	attrOIDCIntrospectionAuthMethod       = "introspection_endpoint_auth_method"
 	attrOIDCIntrospectionAuthSigningAlg   = "introspection_endpoint_auth_signing_alg"
-	attrOIDCPARAuthMethod                 = "pushed_authorization_request_endpoint_auth_method"
-	attrOIDCPARAuthSigningAlg             = "pushed_authorization_request_endpoint_auth_signing_alg"
 	attrOIDCDiscoSigAlg                   = "discovery_signed_response_alg"
 	attrOIDCDiscoSigKID                   = "discovery_signed_response_key_id"
 	attrOIDCAuthorizationPrefix           = "authorization"
@@ -791,7 +798,8 @@ var (
 	validOIDCClientJWKEncryptionKeyAlgs                    = []string{oidc.EncryptionAlgNone, oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
 	validOIDCClientJWKContentEncryptionAlgs                = []string{oidc.EncryptionEncA128GCM, oidc.EncryptionEncA192GCM, oidc.EncryptionEncA256GCM, oidc.EncryptionEncA128CBCHS256, oidc.EncryptionEncA192CBCHS384, oidc.EncryptionEncA256CBCHS512}
 
-	validOIDCJWKEncryptionAlgs = []string{oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgDirect, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
+	validOIDCClientJWKPublicKeyEncryptionAlgs = []string{oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW}
+	validOIDCJWKEncryptionAlgs                = []string{oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgDirect, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
 
 	validOIDCClientScopesBearerAuthz        = []string{oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
 	validOIDCClientResponseModesBearerAuthz = []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT}
