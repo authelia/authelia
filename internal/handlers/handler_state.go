@@ -12,6 +12,7 @@ import (
 // StateGET is the handler serving the user state.
 func StateGET(ctx *middlewares.AutheliaCtx) {
 	var (
+		provider    session.Strategy
 		userSession session.UserSession
 		err         error
 	)
@@ -21,6 +22,12 @@ func StateGET(ctx *middlewares.AutheliaCtx) {
 		ctx.ReplyForbidden()
 
 		return
+	}
+
+	if provider, err = ctx.GetSessionProvider(); err == nil {
+		if err = provider.SetCSRFCookie(ctx); err != nil {
+			ctx.Logger.WithError(err).Error("Error occurred delivering the CSRF token")
+		}
 	}
 
 	stateResponse := StateResponse{

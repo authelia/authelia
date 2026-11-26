@@ -89,8 +89,9 @@ const WebAuthnMethod = function (props: Props) {
                 flow,
                 subflow,
                 userCode,
-                signal,
             );
+
+            if (signal.aborted) return;
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccess(response.data.data ? response.data.data.redirect : undefined);
@@ -100,7 +101,7 @@ const WebAuthnMethod = function (props: Props) {
             onSignInError(new Error(translate("The server rejected the security key")));
             dispatch({ type: WebAuthnTouchState.Failure });
         } catch (err) {
-            if (axios.isCancel(err)) return;
+            if (signal.aborted || axios.isCancel(err)) return;
             console.error(err);
             onSignInError(new Error(translate("Failed to initiate security key sign in process")));
             dispatch({ type: WebAuthnTouchState.Failure });

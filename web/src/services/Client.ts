@@ -4,8 +4,13 @@
 
 import axios from "axios";
 
+import { CSRFHeaderName } from "@constants/constants";
 import { ServiceResponse, hasServiceError, toData } from "@services/Api";
 import { ServiceError } from "@services/ServiceError";
+import { getCSRFCookieName } from "@utils/Configuration";
+
+axios.defaults.xsrfCookieName = getCSRFCookieName();
+axios.defaults.xsrfHeaderName = CSRFHeaderName;
 
 export async function PutWithOptionalResponse<T = undefined>(
     path: string,

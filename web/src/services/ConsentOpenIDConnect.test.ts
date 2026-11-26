@@ -14,23 +14,18 @@ vi.mock("@components/OpenIDConnect", () => ({
 }));
 vi.mock("@constants/SearchParams", () => ({
     FlowID: "flow_id",
+    SubFlow: "subflow",
     UserCode: "user_code",
 }));
 vi.mock("@services/Api", () => ({
     OpenIDConnectConsentPath: "/consent",
+    OpenIDConnectConsentUserCodePath: "/consent/user-code",
     OpenIDConnectDeviceAuthorizationPath: "/device",
 }));
 vi.mock("@services/Client", () => ({
     Get: vi.fn(),
     Post: vi.fn(),
 }));
-
-it("gets consent response without params", async () => {
-    (Get as any).mockResolvedValue("response");
-    const result = await Consent.getConsentResponse();
-    expect(Get).toHaveBeenCalledWith("/consent?");
-    expect(result).toBe("response");
-});
 
 it("gets consent response with flow id", async () => {
     (Get as any).mockResolvedValue("response");
@@ -39,23 +34,23 @@ it("gets consent response with flow id", async () => {
     expect(result).toBe("response");
 });
 
-it("gets consent response with user code", async () => {
+it("gets consent response with flow id and subflow", async () => {
     (Get as any).mockResolvedValue("response");
-    const result = await Consent.getConsentResponse(undefined, "code123");
-    expect(Get).toHaveBeenCalledWith("/consent?user_code=code123");
+    const result = await Consent.getConsentResponse("flow123", "device_authorization");
+    expect(Get).toHaveBeenCalledWith("/consent?flow_id=flow123&subflow=device_authorization");
     expect(result).toBe("response");
 });
 
-it("gets consent response with both params", async () => {
-    (Get as any).mockResolvedValue("response");
-    const result = await Consent.getConsentResponse("flow123", "code123");
-    expect(Get).toHaveBeenCalledWith("/consent?flow_id=flow123&user_code=code123");
+it("posts the user code", async () => {
+    (Post as any).mockResolvedValue("response");
+    const result = await Consent.postConsentUserCode("code123");
+    expect(Post).toHaveBeenCalledWith("/consent/user-code", { user_code: "code123" });
     expect(result).toBe("response");
 });
 
 it("posts consent response accept", async () => {
     (Post as any).mockResolvedValue("response");
-    const result = await Consent.postConsentResponseAccept(true, "client", ["claim1"], "flow", "sub", "code");
+    const result = await Consent.postConsentResponseAccept(true, "client", ["claim1"], "flow", "sub");
     expect(Post).toHaveBeenCalledWith("/consent", {
         claims: ["claim1"],
         client_id: "client",
@@ -63,7 +58,6 @@ it("posts consent response accept", async () => {
         flow_id: "flow",
         pre_configure: true,
         subflow: "sub",
-        user_code: "code",
     });
     expect(result).toBe("response");
 });
@@ -77,14 +71,13 @@ it("puts device code flow user code", async () => {
 
 it("posts consent response reject", async () => {
     (Post as any).mockResolvedValue("response");
-    const result = await Consent.postConsentResponseReject("client", "flow", "sub", "code");
+    const result = await Consent.postConsentResponseReject("client", "flow", "sub");
     expect(Post).toHaveBeenCalledWith("/consent", {
         client_id: "client",
         consent: false,
         flow_id: "flow",
         pre_configure: false,
         subflow: "sub",
-        user_code: "code",
     });
     expect(result).toBe("response");
 });

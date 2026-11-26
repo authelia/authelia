@@ -17,7 +17,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-rod/rod"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -198,65 +200,12 @@ func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
 	}()
 
 	c := NewHTTPClient()
-	clientID := "device-code"
-	clientSecret := "foobar"
-	scope := "openid profile email groups"
 
-	metadataURL := fmt.Sprintf("%s/.well-known/openid-configuration", LoginBaseURL)
-	resp, err := c.Get(metadataURL)
-	assert.NoError(s.T(), err)
+	endpoints := s.getOIDCEndpoints(s.T(), c)
 
-	defer resp.Body.Close()
+	device := s.doRequestDeviceAuthorization(s.T(), c, endpoints)
 
-	assert.Equal(s.T(), http.StatusOK, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	assert.NoError(s.T(), err)
-
-	var metadata map[string]interface{}
-
-	err = json.Unmarshal(body, &metadata)
-	assert.NoError(s.T(), err)
-
-	deviceAuthEndpoint, ok := metadata["device_authorization_endpoint"].(string)
-	assert.True(s.T(), ok)
-
-	tokenEndpoint, ok := metadata["token_endpoint"].(string)
-	assert.True(s.T(), ok)
-
-	data := url.Values{}
-	data.Set("client_id", clientID)
-	data.Set("client_secret", clientSecret)
-	data.Set("scope", scope)
-
-	deviceResp, err := c.PostForm(deviceAuthEndpoint, data)
-	assert.NoError(s.T(), err)
-
-	defer deviceResp.Body.Close()
-
-	assert.Equal(s.T(), http.StatusOK, deviceResp.StatusCode)
-
-	deviceBody, err := io.ReadAll(deviceResp.Body)
-	assert.NoError(s.T(), err)
-
-	var deviceData map[string]interface{}
-
-	err = json.Unmarshal(deviceBody, &deviceData)
-	assert.NoError(s.T(), err)
-
-	deviceCode, ok := deviceData["device_code"].(string)
-	assert.True(s.T(), ok)
-
-	_, ok = deviceData["user_code"].(string)
-	assert.True(s.T(), ok)
-
-	_, ok = deviceData["verification_uri"].(string)
-	assert.True(s.T(), ok)
-
-	verificationURIComplete, ok := deviceData["verification_uri_complete"].(string)
-	assert.True(s.T(), ok)
-
-	s.doVisit(s.T(), s.Context(ctx), verificationURIComplete)
+	s.doVisit(s.T(), s.Context(ctx), device.VerificationURIComplete)
 
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
@@ -268,44 +217,256 @@ func (s *OIDCScenario) TestShouldIssueDeviceAuthorizationBearerToken() {
 
 	s.verifyBodyContains(s.T(), s.Context(ctx), "Consent has been accepted and processed")
 
-	var token map[string]interface{}
+	s.verifyDeviceAuthorizationBearerToken(s.T(), s.doPollDeviceAuthorizationToken(s.T(), c, endpoints, device))
+}
 
-	for i := 0; i < 30; i++ {
-		time.Sleep(1 * time.Second)
+func (s *OIDCScenario) TestShouldAuthorizeConcurrentDeviceAuthorizationsInSeparateTabs() {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 
-		tokenData := url.Values{}
-		tokenData.Set("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
-		tokenData.Set("device_code", deviceCode)
-		tokenData.Set("client_id", clientID)
-		tokenData.Set("client_secret", clientSecret)
+	var page *rod.Page
 
-		tokenResp, err := c.PostForm(tokenEndpoint, tokenData)
-		if err != nil {
-			continue
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+
+		if page != nil {
+			s.collectScreenshot(ctx.Err(), page)
+			page.MustClose()
 		}
+	}()
 
-		tokenBody, err := io.ReadAll(tokenResp.Body)
-		tokenResp.Body.Close()
+	c := NewHTTPClient()
 
-		if err != nil {
-			continue
+	endpoints := s.getOIDCEndpoints(s.T(), c)
+
+	first := s.doRequestDeviceAuthorization(s.T(), c, endpoints)
+	second := s.doRequestDeviceAuthorization(s.T(), c, endpoints)
+
+	require.NotEqual(s.T(), first.UserCode, second.UserCode)
+
+	s.doVisit(s.T(), s.Context(ctx), first.VerificationURI)
+
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
+
+	page = s.Browser().MustPage(second.VerificationURI)
+
+	s.MustActivate()
+	s.doEnterDeviceAuthorizationUserCode(s.T(), s.Context(ctx), first.UserCode)
+
+	page.MustActivate()
+	s.doEnterDeviceAuthorizationUserCode(s.T(), page.Context(ctx), second.UserCode)
+
+	s.MustActivate()
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept")
+	s.verifyBodyContains(s.T(), s.Context(ctx), "Consent has been accepted and processed")
+
+	s.verifyDeviceAuthorizationBearerToken(s.T(), s.doPollDeviceAuthorizationToken(s.T(), c, endpoints, first))
+
+	status, pending := s.doRequestDeviceAuthorizationToken(s.T(), c, endpoints, second)
+
+	assert.Equal(s.T(), http.StatusBadRequest, status)
+	assert.Equal(s.T(), "authorization_pending", pending["error"])
+
+	page.MustActivate()
+	s.ClickElementLocatedByID(s.T(), page.Context(ctx), "openid-consent-accept")
+	s.verifyBodyContains(s.T(), page.Context(ctx), "Consent has been accepted and processed")
+
+	s.verifyDeviceAuthorizationBearerToken(s.T(), s.doPollDeviceAuthorizationToken(s.T(), c, endpoints, second))
+}
+
+func (s *OIDCScenario) TestShouldAuthorizeConcurrentAuthorizationRequestsInSeparateTabs() {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+
+	var page *rod.Page
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+
+		if page != nil {
+			s.collectScreenshot(ctx.Err(), page)
+			page.MustClose()
 		}
+	}()
 
-		if tokenResp.StatusCode == http.StatusOK {
-			err = json.Unmarshal(tokenBody, &token)
-			if err != nil {
-				continue
-			}
+	s.doVisit(s.T(), s.Context(ctx), OIDCBaseURL)
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), testUsername, "password", false)
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	s.doValidateTOTP(s.T(), s.Context(ctx), testUsername)
 
-			break
-		}
+	s.waitBodyContains(s.T(), s.Context(ctx), "Not logged yet...")
+
+	page = s.Browser().MustPage(OIDCBaseURL)
+
+	s.waitBodyContains(s.T(), page.Context(ctx), "Not logged yet...")
+
+	s.MustActivate()
+	require.NoError(s.T(), s.Page.MustSearch("Log in").Click("left", 1))
+	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
+
+	page.MustActivate()
+	require.NoError(s.T(), page.MustSearch("Log in").Click("left", 1))
+	s.verifyIsOpenIDConsentDecisionStage(s.T(), page.Context(ctx))
+
+	s.MustActivate()
+	s.ClickElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept")
+
+	first := s.verifyOIDCAppAuthorized(s.T(), s.Context(ctx))
+
+	page.MustActivate()
+	s.ClickElementLocatedByID(s.T(), page.Context(ctx), "openid-consent-accept")
+
+	second := s.verifyOIDCAppAuthorized(s.T(), page.Context(ctx))
+
+	assert.NotEqual(s.T(), first, second)
+}
+
+type oidcEndpoints struct {
+	DeviceAuthorization string
+	Token               string
+}
+
+type oidcDeviceAuthorization struct {
+	DeviceCode              string `json:"device_code"`
+	UserCode                string `json:"user_code"`
+	VerificationURI         string `json:"verification_uri"`
+	VerificationURIComplete string `json:"verification_uri_complete"`
+	Interval                int    `json:"interval"`
+}
+
+const (
+	oidcDeviceCodeClientID     = "device-code"
+	oidcDeviceCodeClientSecret = "foobar"
+	oidcDeviceCodeScope        = "openid profile email groups"
+	oidcDeviceCodePollTimeout  = 45 * time.Second
+)
+
+func (s *OIDCScenario) getOIDCEndpoints(t *testing.T, c *http.Client) (endpoints oidcEndpoints) {
+	resp, err := c.Get(fmt.Sprintf("%s/.well-known/openid-configuration", LoginBaseURL))
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var metadata struct {
+		DeviceAuthorization string `json:"device_authorization_endpoint"`
+		Token               string `json:"token_endpoint"`
 	}
 
-	assert.NotEmpty(s.T(), token, "Failed to obtain token after polling device authorization endpoint.")
-	assert.Equal(s.T(), "bearer", token["token_type"])
-	assert.True(s.T(), strings.HasPrefix(token["access_token"].(string), "authelia_at_"))
-	assert.Equal(s.T(), scope, token["scope"])
-	assert.NotEmpty(s.T(), token["id_token"])
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&metadata))
+	require.NotEmpty(t, metadata.DeviceAuthorization)
+	require.NotEmpty(t, metadata.Token)
+
+	return oidcEndpoints{DeviceAuthorization: metadata.DeviceAuthorization, Token: metadata.Token}
+}
+
+func (s *OIDCScenario) doRequestDeviceAuthorization(t *testing.T, c *http.Client, endpoints oidcEndpoints) (device oidcDeviceAuthorization) {
+	data := url.Values{}
+	data.Set("client_id", oidcDeviceCodeClientID)
+	data.Set("client_secret", oidcDeviceCodeClientSecret)
+	data.Set("scope", oidcDeviceCodeScope)
+
+	resp, err := c.PostForm(endpoints.DeviceAuthorization, data)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&device))
+
+	require.NotEmpty(t, device.DeviceCode)
+	require.NotEmpty(t, device.UserCode)
+	require.NotEmpty(t, device.VerificationURI)
+	require.NotEmpty(t, device.VerificationURIComplete)
+
+	return device
+}
+
+func (s *OIDCScenario) doRequestDeviceAuthorizationToken(t *testing.T, c *http.Client, endpoints oidcEndpoints, device oidcDeviceAuthorization) (status int, body map[string]any) {
+	data := url.Values{}
+	data.Set("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+	data.Set("device_code", device.DeviceCode)
+	data.Set("client_id", oidcDeviceCodeClientID)
+	data.Set("client_secret", oidcDeviceCodeClientSecret)
+
+	resp, err := c.PostForm(endpoints.Token, data)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.NoError(t, json.Unmarshal(raw, &body))
+
+	return resp.StatusCode, body
+}
+
+func (s *OIDCScenario) doPollDeviceAuthorizationToken(t *testing.T, c *http.Client, endpoints oidcEndpoints, device oidcDeviceAuthorization) (token map[string]any) {
+	interval := time.Duration(device.Interval) * time.Second
+
+	if interval <= 0 {
+		interval = 5 * time.Second
+	}
+
+	deadline := time.Now().Add(oidcDeviceCodePollTimeout)
+
+	for {
+		status, body := s.doRequestDeviceAuthorizationToken(t, c, endpoints, device)
+		if status == http.StatusOK {
+			return body
+		}
+
+		switch body["error"] {
+		case "authorization_pending":
+		case "slow_down":
+			interval += 5 * time.Second
+		default:
+			require.Failf(t, "Failed to obtain token after polling device authorization endpoint.", "status %d with body %v", status, body)
+		}
+
+		if time.Now().Add(interval).After(deadline) {
+			require.Failf(t, "Failed to obtain token after polling device authorization endpoint.", "timed out with the last status %d and body %v", status, body)
+		}
+
+		time.Sleep(interval)
+	}
+}
+
+func (s *OIDCScenario) doEnterDeviceAuthorizationUserCode(t *testing.T, page *rod.Page, userCode string) {
+	s.WaitElementLocatedByID(t, page, "openid-consent-device-auth-stage")
+	s.doFillFieldUntilSet(t, s.WaitElementLocatedByID(t, page, "user-code"), userCode)
+	s.ClickElementLocatedByID(t, page, "confirm-button")
+	s.verifyIsOpenIDConsentDecisionStage(t, page)
+}
+
+func (s *OIDCScenario) verifyDeviceAuthorizationBearerToken(t *testing.T, token map[string]any) {
+	require.NotEmpty(t, token)
+	assert.Equal(t, "bearer", token["token_type"])
+
+	accessToken, ok := token["access_token"].(string)
+	require.True(t, ok)
+
+	assert.True(t, strings.HasPrefix(accessToken, "authelia_at_"))
+	assert.Equal(t, oidcDeviceCodeScope, token["scope"])
+	assert.NotEmpty(t, token["id_token"])
+}
+
+func (s *OIDCScenario) verifyOIDCAppAuthorized(t *testing.T, page *rod.Page) (authCodeURL string) {
+	welcome, err := s.WaitElementLocatedByID(t, page, "welcome").Text()
+	require.NoError(t, err)
+	assert.Equal(t, "Logged in as john!", welcome)
+
+	authCodeURL, err = s.WaitElementLocatedByID(t, page, "auth-code-url").Text()
+	require.NoError(t, err)
+	assert.Regexp(t, regexp.MustCompile(`/oauth2/callback\?code=authelia_ac_([^&=]+)&`), authCodeURL)
+
+	return authCodeURL
 }
 
 func TestRunOIDCScenario(t *testing.T) {

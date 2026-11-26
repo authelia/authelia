@@ -344,6 +344,16 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 			expectErr: "error updating oauth2 consent session (granted) with id '7': boom",
 		},
 		{
+			name: "ShouldReturnErrSaveOAuth2ConsentSessionBinding",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "digest", 7).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.SaveOAuth2ConsentSessionBinding(context.Background(), &model.OAuth2ConsentSession{ID: 7, ChallengeID: uuid.Nil, Binding: "digest"})
+			},
+			expectErr: "error updating oauth2 consent session (binding) with id '7' and challenge id '00000000-0000-0000-0000-000000000000': boom",
+		},
+		{
 			name: "ShouldReturnErrRevokeOAuth2PARContext",
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig").Return(nil, errors.New("boom"))
@@ -1670,7 +1680,7 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(
 					gomock.Any(), gomock.Any(),
-					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 					gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
@@ -1778,6 +1788,16 @@ func TestSQLProviderRemainingExecErrors(t *testing.T) {
 				return p.UpdateOAuth2DeviceCodeSessionData(context.Background(), &model.OAuth2DeviceCodeSession{Signature: "sig"})
 			},
 			expectErr: "error updating oauth2 device code session data with signature 'sig': boom",
+		},
+		{
+			name: "ShouldReturnErrUpdateOAuth2DeviceCodeSessionPolling",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), gomock.Any(), "sig").Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				return p.UpdateOAuth2DeviceCodeSessionPolling(context.Background(), "sig", time.Unix(0, 0))
+			},
+			expectErr: "error updating oauth2 device code session polling state with signature 'sig': boom",
 		},
 		{
 			name: "ShouldReturnErrDeactivateOAuth2DeviceCodeSession",
@@ -2214,6 +2234,44 @@ func TestSQLProviderSchemaEncryptionRotateHMACKey(t *testing.T) {
 				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_rc", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM recovery_codes;").Return(nil, nil)
 				tx.EXPECT().ExecContext(gomock.Any(), "DELETE FROM sqlite_sequence WHERE name = ?;", "recovery_codes").Return(nil, nil)
+				tx.EXPECT().Commit().Return(nil)
+			},
+		},
+		{
+			name:     "ShouldSucceedForSessionAuthzWithoutTruncating",
+			hmacName: "session_authz",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session_authz", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().Commit().Return(nil)
+			},
+		},
+		{
+			name:     "ShouldErrSetCryptographyKeyForSessionCSRFAndRollback",
+			hmacName: "session_csrf",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session_csrf", gomock.Any()).Return(nil, errors.New("upsert failed"))
+				tx.EXPECT().Rollback().Return(nil)
+			},
+			expectErr: "error setting the hmac key: upsert failed",
+		},
+		{
+			name:     "ShouldErrCommitForSessionCSRF",
+			hmacName: "session_csrf",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session_csrf", gomock.Any()).Return(nil, nil)
+				tx.EXPECT().Commit().Return(errors.New("commit failed"))
+			},
+			expectErr: "error committing transaction to rotate hmac key: commit failed",
+		},
+		{
+			name:     "ShouldSucceedForSessionCSRFWithoutTruncating",
+			hmacName: "session_csrf",
+			setup: func(db *mocks.MockSQLXDB, tx *mocks.MockSQLXTx) {
+				db.EXPECT().Beginx().Return(tx, nil)
+				tx.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "hmac_key_session_csrf", gomock.Any()).Return(nil, nil)
 				tx.EXPECT().Commit().Return(nil)
 			},
 		},

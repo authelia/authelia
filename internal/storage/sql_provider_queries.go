@@ -515,7 +515,7 @@ const (
 			WHERE LENGTH(%[1]s.data) > 0;`
 
 	queryFmtSelectSession = `
-		SELECT signature, data
+		SELECT signature, expiration, data
 		FROM %s
 		WHERE issuer = ? AND signature = ? AND expiration > ? AND LENGTH(data) > 0;`
 
@@ -523,6 +523,11 @@ const (
 		SELECT signature, data
 		FROM %s
 		WHERE issuer = ? AND public_id = ? AND expiration > ? AND LENGTH(data) > 0;`
+
+	queryFmtSelectSessionLive = `
+		SELECT COUNT(*)
+		FROM %s
+		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
 
 	queryFmtSelectSessionSignatureByPublicID = `
 		SELECT signature
@@ -538,6 +543,16 @@ const (
 		UPDATE %s
 		SET expiration = ?, data = ?
 		WHERE issuer = ? AND signature = ? AND LENGTH(data) > 0;`
+
+	queryFmtUpdateSessionDataIfUnchanged = `
+		UPDATE %s
+		SET expiration = ?, data = ?
+		WHERE issuer = ? AND signature = ? AND data = ? AND LENGTH(data) > 0;`
+
+	queryFmtUpdateSessionExpiration = `
+		UPDATE %s
+		SET expiration = ?
+		WHERE issuer = ? AND signature = ? AND expiration > ? AND expiration < ? AND LENGTH(data) > 0;`
 
 	queryFmtUpdateSessionSignature = `
 		UPDATE %s
@@ -632,15 +647,15 @@ const (
 		RETURNING id;`
 
 	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
-		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, expires_at, responded_at,
+		SELECT id, challenge_id, client_id, subject, binding, authorized, granted, requested_at, expires_at, responded_at,
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, requested_resource, granted_resource, granted_claims, preconfiguration
 		FROM %s
 		WHERE challenge_id = ?;`
 
 	queryFmtInsertOAuth2ConsentSession = `
-		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, expires_at, responded_at,
+		INSERT INTO %s (challenge_id, client_id, subject, binding, authorized, granted, requested_at, expires_at, responded_at,
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, requested_resource, granted_resource, granted_claims, preconfiguration)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtUpdateOAuth2ConsentSessionResponseByID = `
 		UPDATE %s
@@ -672,6 +687,11 @@ const (
 		UPDATE %s
 		SET granted = TRUE
 		WHERE id = ? AND responded_at IS NOT NULL AND granted = FALSE;`
+
+	queryFmtUpdateOAuth2ConsentSessionBinding = `
+		UPDATE %s
+		SET binding = ?
+		WHERE id = ? AND binding = '' AND responded_at IS NULL;`
 
 	queryFmtSelectOAuth2Session = `
 		SELECT id, challenge_id, request_id, client_id, signature, subject, requested_at,
@@ -745,6 +765,14 @@ const (
 		FROM %s
 		WHERE user_code_signature = ? AND revoked = FALSE;`
 
+	queryFmtSelectOAuth2DeviceCodeSessionByChallengeID = `
+		SELECT id, challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
+		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
+		requested_resource, granted_resource,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE challenge_id = ? AND revoked = FALSE;`
+
 	queryFmtInsertOAuth2DeviceCodeSession = `
 		INSERT INTO %s (challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
 		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
@@ -791,6 +819,11 @@ const (
 			session_data = ?
 		WHERE signature = ?;`
 
+	queryFmtUpdateOAuth2DeviceCodeSessionPolling = `
+		UPDATE %s
+		SET checked_at = ?
+		WHERE signature = ? AND revoked = FALSE;`
+
 	queryFmtDecideOAuth2DeviceCodeSession = `
 		UPDATE %s
 		SET
@@ -806,7 +839,20 @@ const (
 			granted_resource = ?,
 			form_data = ?,
 			session_data = ?
-		WHERE signature = ? AND status IN (?, ?);`
+		WHERE signature = ? AND status = ? AND challenge_id = ? AND active = TRUE AND revoked = FALSE;`
+
+	queryFmtClaimOAuth2DeviceCodeSession = `
+		UPDATE %s
+		SET
+			challenge_id = ?,
+			status = ?,
+			active = ?
+		WHERE signature = ? AND status = ? AND challenge_id IS NULL AND active = TRUE AND revoked = FALSE;`
+
+	queryFmtDenyOAuth2DeviceCodeSession = `
+		UPDATE %s
+		SET status = ?
+		WHERE signature = ? AND status = ? AND challenge_id = ? AND active = TRUE AND revoked = FALSE;`
 
 	queryFmtSelectOAuth2PARContext = `
 		SELECT id, signature, request_id, client_id, requested_at, scopes, audience, resource,

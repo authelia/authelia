@@ -1133,6 +1133,24 @@ func TestSQLProviderOAuth2ConsentSession(t *testing.T) {
 		assert.Equal(t, "test-client", loaded.ClientID)
 	})
 
+	t.Run("ShouldClaimUnboundConsentSessionOnce", func(t *testing.T) {
+		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
+		require.NoError(t, err)
+		require.Empty(t, loaded.Binding)
+
+		loaded.Binding = "first"
+
+		require.NoError(t, provider.SaveOAuth2ConsentSessionBinding(ctx, loaded))
+
+		loaded.Binding = "second"
+
+		assert.ErrorIs(t, provider.SaveOAuth2ConsentSessionBinding(ctx, loaded), ErrNoRowsAffected)
+
+		reloaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
+		require.NoError(t, err)
+		assert.Equal(t, "first", reloaded.Binding)
+	})
+
 	t.Run("ShouldSaveConsentResponse", func(t *testing.T) {
 		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
 		require.NoError(t, err)
@@ -1149,6 +1167,29 @@ func TestSQLProviderOAuth2ConsentSession(t *testing.T) {
 		assert.Equal(t, model.StringSlicePipeDelimited{"openid", "profile"}, reloaded.GrantedScopes)
 		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, reloaded.GrantedAudience)
 		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, reloaded.GrantedResource)
+	})
+
+	t.Run("ShouldNotClaimRespondedConsentSession", func(t *testing.T) {
+		unbound, err := uuid.NewRandom()
+		require.NoError(t, err)
+
+		consent := &model.OAuth2ConsentSession{
+			ChallengeID: unbound,
+			ClientID:    "test-client",
+			RequestedAt: time.Now().Truncate(time.Second),
+			ExpiresAt:   time.Now().Add(time.Hour).Truncate(time.Second),
+		}
+
+		require.NoError(t, provider.SaveOAuth2ConsentSession(ctx, consent))
+
+		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, unbound)
+		require.NoError(t, err)
+
+		require.NoError(t, provider.SaveOAuth2ConsentSessionResponse(ctx, loaded, false))
+
+		loaded.Binding = "late"
+
+		assert.ErrorIs(t, provider.SaveOAuth2ConsentSessionBinding(ctx, loaded), ErrNoRowsAffected)
 	})
 
 	t.Run("ShouldSaveConsentGranted", func(t *testing.T) {

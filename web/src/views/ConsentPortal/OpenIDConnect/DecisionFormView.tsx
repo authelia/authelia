@@ -89,8 +89,8 @@ function DecisionFormView({ state, userInfo }: Props) {
     useEffect(() => {
         if (state.authentication_level === AuthenticationLevel.Unauthenticated) {
             navigate(IndexRoute);
-        } else if (flowID || userCode) {
-            getConsentResponse(flowID, userCode)
+        } else if (flowID && (subflow !== SubFlowNameDeviceAuthorization || userCode)) {
+            getConsentResponse(flowID, subflow)
                 .then((r) => {
                     setResponse(r);
                     setClaims(r.claims || []);
@@ -101,7 +101,7 @@ function DecisionFormView({ state, userInfo }: Props) {
         } else {
             navigate(IndexRoute);
         }
-    }, [flowID, navigate, state.authentication_level, userCode]);
+    }, [flowID, navigate, state.authentication_level, subflow, userCode]);
 
     useEffect(() => {
         if (error) {
@@ -150,14 +150,7 @@ function DecisionFormView({ state, userInfo }: Props) {
             return;
         }
 
-        const res = await postConsentResponseAccept(
-            preConfigure,
-            response.client_id,
-            claims,
-            flowID,
-            subflow,
-            userCode,
-        );
+        const res = await postConsentResponseAccept(preConfigure, response.client_id, claims, flowID, subflow);
 
         if (subflow === SubFlowNameDeviceAuthorization) {
             if (res.flow_id && userCode) {
@@ -232,7 +225,11 @@ function DecisionFormView({ state, userInfo }: Props) {
             return;
         }
 
-        const r = await getConsentResponse(flowID, userCode);
+        if (!flowID) {
+            return;
+        }
+
+        const r = await getConsentResponse(flowID, subflow);
 
         setResponse(r);
 
@@ -259,7 +256,7 @@ function DecisionFormView({ state, userInfo }: Props) {
             return;
         }
 
-        const res = await postConsentResponseReject(response.client_id, flowID, subflow, userCode);
+        const res = await postConsentResponseReject(response.client_id, flowID, subflow);
 
         if (subflow === SubFlowNameDeviceAuthorization) {
             navigateCompletion(DecisionRejected);
@@ -268,7 +265,7 @@ function DecisionFormView({ state, userInfo }: Props) {
         } else {
             createErrorNotification(translate("Failed to redirect you", { ns: "portal" }));
         }
-    }, [createErrorNotification, flowID, navigateCompletion, redirect, subflow, translate, userCode]);
+    }, [createErrorNotification, flowID, navigateCompletion, redirect, subflow, translate]);
 
     const handlePasswordChange = useCallback((value: string) => {
         setErrorPassword(false);

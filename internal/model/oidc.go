@@ -292,6 +292,7 @@ type OAuth2ConsentSession struct {
 	ChallengeID uuid.UUID     `db:"challenge_id"`
 	ClientID    string        `db:"client_id"`
 	Subject     uuid.NullUUID `db:"subject"`
+	Binding     string        `db:"binding"`
 
 	Authorized bool `db:"authorized"`
 	Granted    bool `db:"granted"`
@@ -500,6 +501,9 @@ const (
 	// OAuth2DeviceCodeStatusClaimed is the stored status of a device code session whose user code an end user has
 	// entered but not yet approved or denied.
 	OAuth2DeviceCodeStatusClaimed = int(oauthelia2.DeviceAuthorizeStatusClaimed)
+
+	// OAuth2DeviceCodeStatusDenied is the stored status of a device code session an end user has denied.
+	OAuth2DeviceCodeStatusDenied = int(oauthelia2.DeviceAuthorizeStatusDenied)
 )
 
 // OAuth2RequestReplayType is the type of value an OAuth2RequestReplay records.

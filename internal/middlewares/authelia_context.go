@@ -148,6 +148,10 @@ func (ctx *AutheliaCtx) XForwardedMethod() (method []byte) {
 
 // XForwardedProto returns the content of the X-Forwarded-Proto header.
 func (ctx *AutheliaCtx) XForwardedProto() (proto []byte) {
+	return getXForwardedProto(ctx.RequestCtx)
+}
+
+func getXForwardedProto(ctx *fasthttp.RequestCtx) (proto []byte) {
 	proto = ctx.Request.Header.PeekBytes(headerXForwardedProto)
 
 	if len(proto) == 0 {
@@ -168,7 +172,11 @@ func (ctx *AutheliaCtx) XForwardedHost() (host []byte) {
 
 // GetXForwardedHost returns the content of the X-Forwarded-Host header falling back to the Host header.
 func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
-	host = ctx.XForwardedHost()
+	return getXForwardedHost(ctx.RequestCtx)
+}
+
+func getXForwardedHost(ctx *fasthttp.RequestCtx) (host []byte) {
+	host = ctx.Request.Header.PeekBytes(headerXForwardedHost)
 
 	if len(host) == 0 {
 		return ctx.Host()
@@ -350,6 +358,17 @@ func (ctx *AutheliaCtx) GetSessionManagerByTargetURI(targetURL *url.URL) (provid
 	}
 
 	return session.NewEncapsulatedSession(base, ctx), nil
+}
+
+// GetAuthzSessionManagerByTargetURI returns the authz session manager for the target URL, which resolves the session
+// from the authz cookie alone and can only update its activity or destroy it.
+func (ctx *AutheliaCtx) GetAuthzSessionManagerByTargetURI(targetURL *url.URL) (manager session.AuthzManager, err error) {
+	base, err := ctx.GetSessionProviderByTargetURI(targetURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return session.NewEncapsulatedAuthzSession(base.Authz(), ctx), nil
 }
 
 // GetSessionProvider returns the session provider for the Request's domain.
@@ -813,6 +832,14 @@ func (ctx *AutheliaCtx) GetCookie(name string) string {
 	return string(ctx.Request.Header.Cookie(name))
 }
 
+// IsAuthzEndpointRequest returns true when the request is being handled by an authz endpoint, which is the case when
+// the route which matched it was registered with the AuthzEndpoint middleware.
+func (ctx *AutheliaCtx) IsAuthzEndpointRequest() bool {
+	value, ok := ctx.UserValue(UserValueKeyAuthzEndpoint).(bool)
+
+	return ok && value
+}
+
 // SetCookie sets the given cookie on the response.
 func (ctx *AutheliaCtx) SetCookie(cookie *http.Cookie) {
 	setCookie := fasthttp.AcquireCookie()
@@ -885,4 +912,5 @@ func (ctx *AutheliaCtx) CacheSession(domain string, userSession *session.UserSes
 
 var (
 	_ session.CachingContext = (*AutheliaCtx)(nil)
+	_ session.LoggingContext = (*AutheliaCtx)(nil)
 )

@@ -111,6 +111,7 @@ type ServerEndpointRateLimits struct {
 	OpenIDConnectRevocation                 ServerEndpointRateLimit `koanf:"openid_connect_revocation" yaml:"openid_connect_revocation,omitempty" toml:"openid_connect_revocation,omitempty" json:"openid_connect_revocation,omitempty" jsonschema:"title=OpenID Connect Revocation" jsonschema_description:"Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."`
 	ExternalIdentityStart                   ServerEndpointRateLimit `koanf:"external_identity_start" yaml:"external_identity_start,omitempty" toml:"external_identity_start,omitempty" json:"external_identity_start,omitempty" jsonschema:"title=External Identity Start" jsonschema_description:"Configures the rate limiter which applies to the endpoint that initializes an external identity login."`
 	ExternalIdentityCallback                ServerEndpointRateLimit `koanf:"external_identity_callback" yaml:"external_identity_callback,omitempty" toml:"external_identity_callback,omitempty" json:"external_identity_callback,omitempty" jsonschema:"title=External Identity Callback" jsonschema_description:"Configures the rate limiter which applies to the redirect URI endpoint for external identity logins."`
+	OpenIDConnectUserCode                   ServerEndpointRateLimit `koanf:"openid_connect_user_code" yaml:"openid_connect_user_code,omitempty" toml:"openid_connect_user_code,omitempty" json:"openid_connect_user_code,omitempty" jsonschema:"title=OpenID Connect User Code" jsonschema_description:"Configures the rate limiter which applies to the endpoint which exchanges a Device Authorization Flow user code for a consent session. Only requests which fail to exchange a user code count towards the limit."`
 }
 
 // Endpoints returns a ServerEndpointRateLimitEndpoint for every configurable rate limiter in field order.
@@ -132,6 +133,7 @@ func (r *ServerEndpointRateLimits) Endpoints() []ServerEndpointRateLimitEndpoint
 		{Name: "openid_connect_revocation", Config: &r.OpenIDConnectRevocation},
 		{Name: "external_identity_start", Config: &r.ExternalIdentityStart},
 		{Name: "external_identity_callback", Config: &r.ExternalIdentityCallback},
+		{Name: "openid_connect_user_code", Config: &r.OpenIDConnectUserCode},
 	}
 }
 
@@ -400,6 +402,13 @@ var DefaultServerConfiguration = Server{
 					{Period: 1 * time.Minute, Requests: 10},
 					{Period: 10 * time.Minute, Requests: 30},
 					{Period: time.Hour, Requests: 60},
+				},
+			},
+			OpenIDConnectUserCode: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 5},
+					{Period: 10 * time.Minute, Requests: 10},
+					{Period: time.Hour, Requests: 20},
 				},
 			},
 		},

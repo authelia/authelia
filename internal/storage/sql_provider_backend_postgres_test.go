@@ -289,12 +289,51 @@ func TestPostgreSQLProviderSessionQueriesShouldUseOrdinalPlaceholders(t *testing
 	}{
 		{"ShouldUseOrdinalPlaceholdersForUpsertSession", provider.sqlUpsertSession},
 		{"ShouldUseOrdinalPlaceholdersForSelectSession", provider.sqlSelectSession},
+		{"ShouldUseOrdinalPlaceholdersForSelectSessionLive", provider.sqlSelectSessionLive},
 		{"ShouldUseOrdinalPlaceholdersForSelectSessionByPublicID", provider.sqlSelectSessionByPublicID},
 		{"ShouldUseOrdinalPlaceholdersForSelectSessionSignaturesByUsername", provider.sqlSelectSessionSignaturesByUsername},
 		{"ShouldUseOrdinalPlaceholdersForUpdateSessionData", provider.sqlUpdateSessionData},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionDataIfUnchanged", provider.sqlUpdateSessionDataIfUnchanged},
+		{"ShouldUseOrdinalPlaceholdersForUpdateSessionExpiration", provider.sqlUpdateSessionExpiration},
 		{"ShouldUseOrdinalPlaceholdersForUpdateSessionSignature", provider.sqlUpdateSessionSignature},
 		{"ShouldUseOrdinalPlaceholdersForUpdateSessionDestroyed", provider.sqlUpdateSessionDestroyed},
 		{"ShouldUseOrdinalPlaceholdersForDeleteSessionExpired", provider.sqlDeleteSessionExpired},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.NotContains(t, tc.query, "?")
+			assert.Contains(t, tc.query, "$1")
+		})
+	}
+}
+
+func TestPostgreSQLProviderDeviceCodeQueriesShouldUseOrdinalPlaceholders(t *testing.T) {
+	address, err := schema.NewAddress("tcp://localhost:5432")
+	require.NoError(t, err)
+
+	provider, err := NewPostgreSQLProvider(&schema.Configuration{
+		Storage: schema.Storage{
+			EncryptionKey: "testing-key-only",
+			PostgreSQL: &schema.StoragePostgreSQL{
+				StorageSQL: schema.StorageSQL{
+					Address: &schema.AddressTCP{Address: *address},
+				},
+			},
+		},
+	}, x509.NewCertPool())
+	require.NoError(t, err)
+	require.NotNil(t, provider)
+
+	testCases := []struct {
+		name  string
+		query string
+	}{
+		{"ShouldUseOrdinalPlaceholdersForSelectOAuth2DeviceCodeSessionByChallengeID", provider.sqlSelectOAuth2DeviceCodeSessionByChallengeID},
+		{"ShouldUseOrdinalPlaceholdersForClaimOAuth2DeviceCodeSession", provider.sqlClaimOAuth2DeviceCodeSession},
+		{"ShouldUseOrdinalPlaceholdersForDenyOAuth2DeviceCodeSession", provider.sqlDenyOAuth2DeviceCodeSession},
+		{"ShouldUseOrdinalPlaceholdersForDecideOAuth2DeviceCodeSession", provider.sqlDecideOAuth2DeviceCodeSession},
+		{"ShouldUseOrdinalPlaceholdersForUpdateOAuth2DeviceCodeSessionPolling", provider.sqlUpdateOAuth2DeviceCodeSessionPolling},
 	}
 
 	for _, tc := range testCases {

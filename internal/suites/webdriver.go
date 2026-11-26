@@ -696,6 +696,7 @@ func (rs *RodSession) DoAndWaitForNavigation(ctx context.Context, page *rod.Page
 	return destURL
 }
 
+//nolint:unparam
 func (rs *RodSession) waitBodyContains(t *testing.T, page *rod.Page, pattern string) {
 	text, err := page.MustElementR("body", pattern).Text()
 	require.NoError(t, err)

@@ -80,30 +80,17 @@ func TestOAuth2ConsentShouldHandleUserDetailsErrors(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as an error occurred retrieving user details", "failed to lookup user")
 	})
 
-	t.Run("ShouldHandleDeviceAuthorizationFlowGET", func(t *testing.T) {
+	t.Run("ShouldHandleDeviceAuthorizationFlowUserCode", func(t *testing.T) {
 		mock, userCode := setupDevice(t)
 		defer mock.Close()
 
-		mock.Ctx.Request.SetRequestURI("/api/oidc/consent?user_code=" + userCode)
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"user_code":"%s"}`, userCode))
 
-		OAuth2ConsentGET(mock.Ctx)
-
-		mock.Assert200KO(t, messageOperationFailed)
-
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Device Authorization Flow failed to retrieve user details", "failed to lookup user")
-	})
-
-	t.Run("ShouldHandleDeviceAuthorizationFlowPOST", func(t *testing.T) {
-		mock, userCode := setupDevice(t)
-		defer mock.Close()
-
-		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"subflow":"device_authorization","client_id":"%s","consent":true,"user_code":"%s"}`, testOIDCDeviceCodeID, userCode))
-
-		OAuth2ConsentPOST(mock.Ctx)
+		OAuth2ConsentUserCodePOST(mock.Ctx)
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred fetching user details during the Consent Flow stage of the Device Authorization Flow", "failed to lookup user")
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred authorizing the user to enter the user code during the Consent Flow stage of the Device Authorization Flow", "error occurred fetching the user details: failed to lookup user")
 	})
 }
 
@@ -123,13 +110,13 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithIDShouldRedirect(t *tes
 		{
 			"ShouldRedirectWhenConsentSessionHasNoSubject",
 			func(mock *mocks.MockAutheliaCtx) *model.OAuth2ConsentSession {
-				return &model.OAuth2ConsentSession{ID: 44, ChallengeID: challenge, ClientID: testValue}
+				return &model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: testValue}
 			},
 		},
 		{
 			"ShouldRedirectWhenConsentSessionIsNotAuthorized",
 			func(mock *mocks.MockAutheliaCtx) *model.OAuth2ConsentSession {
-				return &model.OAuth2ConsentSession{ID: 44, ChallengeID: challenge, ClientID: testValue, Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}
+				return &model.OAuth2ConsentSession{Binding: mocks.UserAgentBindingDigest, ID: 44, ChallengeID: challenge, ClientID: testValue, Subject: uuid.NullUUID{UUID: sub, Valid: true}, ExpiresAt: mock.Ctx.Providers.Clock.Now().Add(time.Second * 10)}
 			},
 		},
 	}
@@ -199,16 +186,16 @@ func TestHandleOAuth2AuthorizationConsentSessionUpdates(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		elapsed   time.Duration
+		username  string
 		errSave   []error
 		handled   bool
 		anonymous bool
 		expected  *regexp.Regexp
 	}{
-		{"ShouldResetInactiveSession", time.Hour, nil, false, true, nil},
-		{"ShouldNotSaveResetInactiveSession", time.Hour, []error{errTestSessionBackend}, false, true, nil},
-		{"ShouldHandleRefreshedSessionSaveError", time.Minute, []error{errTestSessionBackend}, true, false, regexp.MustCompile(`had an error while saving updated session$`)},
-		{"ShouldNotSaveCurrentSession", 0, []error{errTestSessionBackend}, false, false, nil},
+		{"ShouldResetInvalidSession", "harry", nil, false, true, regexp.MustCompile(`could be a sign of a cookie hijack$`)},
+		{"ShouldNotSaveResetInvalidSession", "harry", []error{errTestSessionBackend}, false, true, nil},
+		{"ShouldNotSaveValidSession", testUsername, []error{errTestSessionBackend}, false, false, nil},
+		{"ShouldNotSaveSessionWithoutHeader", "", []error{errTestSessionBackend}, false, false, nil},
 	}
 
 	for _, tc := range testCases {
@@ -245,7 +232,10 @@ func TestHandleOAuth2AuthorizationConsentSessionUpdates(t *testing.T) {
 			userSession := session.NewUserSession(testUsername)
 			userSession.CookieDomain = "example.com"
 			userSession.SetOneFactorPassword(mock.Clock.Now(), false)
-			userSession.LastActivity = mock.Clock.Now().Add(-tc.elapsed).Unix()
+
+			if tc.username != "" {
+				mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, tc.username)
+			}
 
 			repository.errSave = tc.errSave
 

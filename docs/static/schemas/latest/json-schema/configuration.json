@@ -3632,6 +3632,11 @@
           "$ref": "#/$defs/ServerEndpointRateLimit",
           "title": "OpenID Connect Revocation",
           "description": "Configures the rate limiter which applies to the OpenID Connect 1.0 Revocation Endpoint."
+        },
+        "openid_connect_user_code": {
+          "$ref": "#/$defs/ServerEndpointRateLimit",
+          "title": "OpenID Connect User Code",
+          "description": "Configures the rate limiter which applies to the endpoint which exchanges a Device Authorization Flow user code for a consent session. Only requests which fail to exchange a user code count towards the limit."
         }
       },
       "additionalProperties": false,
@@ -3855,7 +3860,7 @@
         "name": {
           "type": "string",
           "title": "Name",
-          "description": "The session cookie name.",
+          "description": "The name the session cookies are derived from. Authelia adds a prefix, and a suffix for every cookie except the session cookie, so it must not start with a cookie name prefix.",
           "default": "authelia_session"
         },
         "same_site": {
@@ -3866,7 +3871,7 @@
             "none"
           ],
           "title": "Same Site",
-          "description": "The session cookie same site value.",
+          "description": "The same site value of the authorization cookie. The session cookie and CSRF token cookie always use strict.",
           "default": "lax"
         },
         "expiration": {
@@ -3881,7 +3886,7 @@
             }
           ],
           "title": "Expiration",
-          "description": "The session cookie expiration when remember me is not checked."
+          "description": "The session expiration when remember me is not checked."
         },
         "inactivity": {
           "oneOf": [
@@ -3909,7 +3914,7 @@
             }
           ],
           "title": "Remember Me",
-          "description": "The session cookie expiration when remember me is checked."
+          "description": "The session expiration when remember me is checked."
         },
         "secret": {
           "type": "string",
@@ -3945,7 +3950,7 @@
         "name": {
           "type": "string",
           "title": "Name",
-          "description": "The session cookie name.",
+          "description": "The name the session cookies are derived from. Authelia adds a prefix, and a suffix for every cookie except the session cookie, so it must not start with a cookie name prefix.",
           "default": "authelia_session"
         },
         "same_site": {
@@ -3956,7 +3961,7 @@
             "none"
           ],
           "title": "Same Site",
-          "description": "The session cookie same site value.",
+          "description": "The same site value of the authorization cookie. The session cookie and CSRF token cookie always use strict.",
           "default": "lax"
         },
         "expiration": {
@@ -3971,7 +3976,7 @@
             }
           ],
           "title": "Expiration",
-          "description": "The session cookie expiration when remember me is not checked."
+          "description": "The session expiration when remember me is not checked."
         },
         "inactivity": {
           "oneOf": [
@@ -3999,7 +4004,7 @@
             }
           ],
           "title": "Remember Me",
-          "description": "The session cookie expiration when remember me is checked."
+          "description": "The session expiration when remember me is checked."
         },
         "domain": {
           "type": "string",

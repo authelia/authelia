@@ -286,6 +286,11 @@ type Provider interface {
 	// has been granted by the authorization endpoint.
 	SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error)
 
+	// SaveOAuth2ConsentSessionBinding binds an OAuth2.0 consent session in the storage provider to a user agent by
+	// saving its binding, but only when the consent session is unbound and is not yet responded to, so only one user
+	// agent can ever claim it.
+	SaveOAuth2ConsentSessionBinding(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
+
 	// LoadOAuth2ConsentSessionByChallengeID returns an OAuth2.0 consent session in the storage provider given the
 	// challenge ID.
 	LoadOAuth2ConsentSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error)
@@ -336,9 +341,24 @@ type Provider interface {
 	// UpdateOAuth2DeviceCodeSessionData updates an OAuth2.0 device code session data in the storage provider.
 	UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
+	// UpdateOAuth2DeviceCodeSessionPolling updates only the polling state of an OAuth2.0 device code session in the
+	// storage provider.
+	UpdateOAuth2DeviceCodeSessionPolling(ctx context.Context, signature string, checked time.Time) (err error)
+
 	// DecideOAuth2DeviceCodeSession updates an OAuth2.0 device code session data in the storage provider only while it
-	// is undecided. It returns ErrNoRowsAffected when no undecided session exists for the signature.
+	// is undecided and claimed by the consent session with the challenge id of the given session. It returns
+	// ErrNoRowsAffected when no such session exists for the signature.
 	DecideOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
+	// ClaimOAuth2DeviceCodeSession records the consent session and new status of an OAuth2.0 device code session in the
+	// storage provider only while it is new, active, not revoked, and unclaimed. It returns ErrNoRowsAffected when no
+	// such session exists for the signature.
+	ClaimOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
+	// DenyOAuth2DeviceCodeSession records the denial of an OAuth2.0 device code session in the storage provider only
+	// while it is claimed by the consent session with the given challenge id, active, and not revoked. It returns
+	// ErrNoRowsAffected when no such session exists for the signature.
+	DenyOAuth2DeviceCodeSession(ctx context.Context, signature string, challengeID uuid.UUID) (err error)
 
 	// DeactivateOAuth2DeviceCodeSession marks an OAuth2.0 device code session as inactive in the storage provider.
 	DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error)
@@ -350,6 +370,10 @@ type Provider interface {
 	// LoadOAuth2DeviceCodeSessionByUserCode loads an OAuth2.0 device code session from the storage provider given the
 	// signature of a user code.
 	LoadOAuth2DeviceCodeSessionByUserCode(ctx context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error)
+
+	// LoadOAuth2DeviceCodeSessionByChallengeID loads an OAuth2.0 device code session from the storage provider given the
+	// challenge id of the consent session which claimed it.
+	LoadOAuth2DeviceCodeSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (session *model.OAuth2DeviceCodeSession, err error)
 
 	/*
 		Implementation for OAuth2.0 PAR Contexts.

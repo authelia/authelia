@@ -366,6 +366,9 @@ func TestHandleFlowResponseOpenIDConnectNoSubflow(t *testing.T) {
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
 			Return(consent, nil)
 
+		_, err := mock.Ctx.GetSessionProvider()
+		require.NoError(t, err)
+
 		clearForwardedHeaders(mock)
 
 		userSession := newTestOIDCUserSession(1)

@@ -37,7 +37,7 @@ func TestFirstFactorPasswordPOSTSessionErrors(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx, repository *failingSessionRepository) {
 				fixated = newTestSessionCookie("an-identifier-which-was-never-saved")
 
-				mock.Ctx.Request.Header.SetCookie("authelia_session", fixated)
+				mock.Ctx.Request.Header.SetCookie("__Host-Http-authelia_session", fixated)
 
 				repository.errDelete = errTestSessionBackend
 			},
@@ -45,7 +45,7 @@ func TestFirstFactorPasswordPOSTSessionErrors(t *testing.T) {
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				assert.Equal(t, `{"status":"OK"}`, string(mock.Ctx.Response.Body()))
 
-				cookie := string(mock.Ctx.Request.Header.Cookie("authelia_session"))
+				cookie := string(mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session"))
 
 				assert.NotEmpty(t, cookie)
 				assert.NotEqual(t, fixated, cookie)
@@ -82,7 +82,7 @@ func TestFirstFactorPasswordPOSTSessionErrors(t *testing.T) {
 			},
 			fasthttp.StatusUnauthorized,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), fmt.Sprintf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, testValue), "error occurred saving session to registry: backend unavailable")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), fmt.Sprintf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, testValue), "error occurred saving session authz index: backend unavailable")
 			},
 		},
 	}
@@ -192,7 +192,7 @@ func TestFirstFactorPasskeyPOSTSessionErrors(t *testing.T) {
 		repository := setupTestFailingSessionRepository(t, mock)
 		repository.errGet = errTestSessionBackend
 
-		mock.Ctx.Request.Header.SetCookie("authelia_session", newTestSessionCookie("an-identifier-which-cannot-be-retrieved"))
+		mock.Ctx.Request.Header.SetCookie("__Host-Http-authelia_session", newTestSessionCookie("an-identifier-which-cannot-be-retrieved"))
 
 		FirstFactorPasskeyPOST(mock.Ctx)
 
@@ -264,7 +264,7 @@ func TestFirstFactorPasskeyPOSTSessionErrors(t *testing.T) {
 
 		assert.Equal(t, fasthttp.StatusBadRequest, mock.Ctx.Response.StatusCode())
 		assert.Empty(t, repository.saved)
-		assert.Empty(t, mock.Ctx.Request.Header.Cookie("authelia_session"))
+		assert.Empty(t, mock.Ctx.Request.Header.Cookie("__Host-Http-authelia_session"))
 
 		actual, err := mock.Ctx.GetSession()
 

@@ -21,7 +21,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// SchemaEncryptionRotateHMACKey rotates the HMAC key with the given name, truncating the table it protects.
+// SchemaEncryptionRotateHMACKey rotates the HMAC key with the given name, truncating the table it protects. A key which
+// protects no table, such as the ones which derive the authz cookie and the CSRF token of a session, is rotated without
+// truncating anything.
 func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name string) (err error) {
 	var (
 		size  int
@@ -40,6 +42,10 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		size, table, desc = sha256.BlockSize, tableSession, "sessions"
 	case hmacNameExternalIdentityLink:
 		return p.schemaEncryptionRotateHMACKeyExternalIdentityLink(ctx)
+	case hmacNameSessionAuthz:
+		size = sha256.BlockSize
+	case hmacNameSessionCSRF:
+		size = sha256.BlockSize
 	default:
 		return fmt.Errorf("unknown key name '%s'", name)
 	}
@@ -58,12 +64,14 @@ func (p *SQLProvider) SchemaEncryptionRotateHMACKey(ctx context.Context, name st
 		return fmt.Errorf("error setting the hmac key: %w", err)
 	}
 
-	if err = p.truncate(ctx, tx, table); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
-		}
+	if table != "" {
+		if err = p.truncate(ctx, tx, table); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return fmt.Errorf("error rolling back transaction to rotate hmac key: %w", rollbackErr)
+			}
 
-		return fmt.Errorf("error truncating %s: %w", desc, err)
+			return fmt.Errorf("error truncating %s: %w", desc, err)
+		}
 	}
 
 	if err = tx.Commit(); err != nil {

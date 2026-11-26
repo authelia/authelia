@@ -324,7 +324,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldNotRegenerateSessionBefore
 
 			require.NoError(t, s.mock.Ctx.SaveSession(&userSession))
 
-			before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+			before := string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session"))
 
 			require.NotEmpty(t, before)
 
@@ -332,7 +332,7 @@ func (s *IdentityVerificationFinishProcess) TestShouldNotRegenerateSessionBefore
 
 			middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
-			assert.Equal(t, before, string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+			assert.Equal(t, before, string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")))
 		})
 	}
 }
@@ -354,14 +354,14 @@ func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionBeforeCon
 
 	require.NoError(s.T(), s.mock.Ctx.SaveSession(&userSession))
 
-	before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+	before := string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session"))
 
 	require.NotEmpty(s.T(), before)
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), middlewares.ErrorMessageOperationFailed)
-	assert.NotEqual(s.T(), before, string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+	assert.NotEqual(s.T(), before, string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")))
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionForPreventingSessionFixation() {
@@ -381,14 +381,14 @@ func (s *IdentityVerificationFinishProcess) TestShouldRegenerateSessionForPreven
 
 	require.NoError(s.T(), s.mock.Ctx.SaveSession(&userSession))
 
-	before := string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session"))
+	before := string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session"))
 
 	require.NotEmpty(s.T(), before)
 
 	middlewares.IdentityVerificationFinish(newFinishArgs(), next)(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
-	assert.NotEqual(s.T(), before, string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")))
+	assert.NotEqual(s.T(), before, string(s.mock.Ctx.Response.Header.PeekCookie("__Host-Http-authelia_session")))
 }
 
 func (s *IdentityVerificationFinishProcess) TestShouldFailIfTokenIsNotValidYet() {

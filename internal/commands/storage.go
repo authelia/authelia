@@ -213,6 +213,8 @@ func newStorageEncryptRotateHMACCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageEncryptRotateHMACRecoveryCodeCmd(ctx),
 		newStorageEncryptRotateHMACSessionCmd(ctx),
 		newStorageEncryptRotateHMACExternalIdentityLinkCmd(ctx),
+		newStorageEncryptRotateHMACSessionAuthzCmd(ctx),
+		newStorageEncryptRotateHMACSessionCSRFCmd(ctx),
 	)
 
 	return cmd
@@ -275,6 +277,40 @@ func newStorageEncryptRotateHMACSessionCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaStorageEncryptionRotateHMACSessionShort,
 		Long:    cmdAutheliaStorageEncryptionRotateHMACSessionLong,
 		Example: cmdAutheliaStorageEncryptionRotateHMACSessionExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACSessionAuthzCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "session-authz",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACSessionAuthzShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACSessionAuthzLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACSessionAuthzExample,
+		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "force the rotation without confirmation")
+
+	return cmd
+}
+
+func newStorageEncryptRotateHMACSessionCSRFCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "session-csrf",
+		Short:   cmdAutheliaStorageEncryptionRotateHMACSessionCSRFShort,
+		Long:    cmdAutheliaStorageEncryptionRotateHMACSessionCSRFLong,
+		Example: cmdAutheliaStorageEncryptionRotateHMACSessionCSRFExample,
 		RunE:    ctx.StorageSchemaEncryptionRotateRunE,
 		Args:    cobra.NoArgs,
 

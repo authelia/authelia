@@ -5,10 +5,12 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -28,9 +30,7 @@ func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 	var raw []byte
 
 	if raw = ctx.RequestCtx.QueryArgs().PeekBytes(qryArgFlowID); len(raw) != 0 {
-		handleOAuth2ConsentFlowIDGET(ctx, raw)
-	} else if raw = ctx.RequestCtx.QueryArgs().PeekBytes(qryArgUserCode); len(raw) != 0 {
-		handleOAuth2ConsentUseCodeGET(ctx, raw)
+		handleOAuth2ConsentFlowIDGET(ctx, raw, string(ctx.RequestCtx.QueryArgs().PeekBytes(qryArgSubflow)) == flowOpenIDConnectSubFlowNameDeviceAuthorization)
 	} else {
 		ctx.GetLogger().Error("Error determining the type of consent request to handle")
 
@@ -38,7 +38,7 @@ func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
+func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte, deviceAuthorization bool) {
 	var (
 		flowID uuid.UUID
 		err    error
@@ -77,6 +77,19 @@ func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 		return
 	}
 
+	if deviceAuthorization {
+		if _, err = handleOAuth2ConsentDeviceAuthorizationLoad(ctx, consent); err != nil {
+			ctx.GetLogger().
+				WithError(err).
+				WithFields(map[string]any{logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username}).
+				Error("Failed providing consent flow information as the consent session has not claimed a device code session which is pending a decision")
+
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+	}
+
 	if form, err = handleGetFormFromSession(ctx, consent); err != nil {
 		ctx.GetLogger().
 			WithError(err).
@@ -88,52 +101,10 @@ func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form, userSession.LastAuthenticatedTime(), false)); err != nil {
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form, userSession.LastAuthenticatedTime(), deviceAuthorization)); err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
-			Error("Error occurred trying to set JSON body in response")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-}
-
-func handleOAuth2ConsentUseCodeGET(ctx *middlewares.AutheliaCtx, raw []byte) {
-	var (
-		err error
-	)
-
-	userCode := string(raw)
-
-	var (
-		userSession session.UserSession
-		device      *model.OAuth2DeviceCodeSession
-		form        url.Values
-		client      oidc.Client
-		handled     bool
-	)
-
-	if userSession, device, client, handled = handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx, userCode); handled {
-		return
-	}
-
-	if form, err = handleGetFormFromSession(ctx, device); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username}).
-			Error("Error occurred getting form from device code session")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(device, form, userSession.LastAuthenticatedTime(), true)); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username}).
 			Error("Error occurred trying to set JSON body in response")
 
 		ctx.SetJSONError(messageOperationFailed)
@@ -215,6 +186,26 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, "body_client_id": bodyJSON.ClientID, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 			Error("The client id of the form and the client id of the consent session do not match")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	switch _, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByChallengeID(ctx, consent.ChallengeID); {
+	case err == nil:
+		ctx.GetLogger().
+			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
+			Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session belongs to the Device Authorization Flow")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	case !errors.Is(err, sql.ErrNoRows):
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
+			Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as an error occurred determining if the consent session belongs to the Device Authorization Flow")
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -330,10 +321,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		return
 	}
 
-	query.Set(queryArgConsentID, consent.ChallengeID.String())
-
-	redirectURI.RawQuery = query.Encode()
-	redirectURI = redirectURI.JoinPath(oidc.EndpointPathAuthorization)
+	redirectURI = handleOAuth2AuthorizationConsentReferenceURL(redirectURI, consent)
 
 	response := oidc.ConsentPostResponseBody{RedirectURI: redirectURI.String()}
 
@@ -405,15 +393,26 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 		Debug("Saved consent pre-configuration with expiration")
 }
 
-//nolint:gocyclo
 func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
 	var (
-		err error
+		flowID uuid.UUID
+		err    error
 	)
 
-	if bodyJSON.UserCode == nil {
+	if bodyJSON.FlowID == nil {
 		ctx.GetLogger().
-			Error("Request is missing the required field 'user_code' from the JSON body")
+			Error("Request is missing the required field 'flow_id' from the JSON body during the Consent Flow stage of the Device Authorization Flow")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if flowID, err = uuid.Parse(*bodyJSON.FlowID); err != nil {
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(map[string]any{logging.FieldFlowID: *bodyJSON.FlowID}).
+			Error("Error occurred parsing flow ID as a UUID during the Consent Flow stage of the Device Authorization Flow")
 
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -421,227 +420,72 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 	}
 
 	var (
-		signature   string
 		userSession session.UserSession
-		details     authentication.UserDetails
-		device      *model.OAuth2DeviceCodeSession
 		consent     *model.OAuth2ConsentSession
-		client      oidc.Client
+		device      *model.OAuth2DeviceCodeSession
+		handled     bool
 	)
 
-	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.GetLogger().
+	if userSession, _, consent, _, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
+		return
+	}
+
+	log := ctx.GetLogger().WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID})
+
+	if consent.ClientID != bodyJSON.ClientID {
+		log.
+			WithFields(map[string]any{"body_client_id": bodyJSON.ClientID}).
+			Error("Error occurred during the Consent Flow stage of the Device Authorization Flow as the client id of the form and the client id of the consent session do not match")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if device, err = handleOAuth2ConsentDeviceAuthorizationLoad(ctx, consent); err != nil {
+		log.
 			WithError(err).
-			Error("Error occurred fetching user session during the Consent Flow stage of the Device Authorization Flow")
+			Error("Error occurred during the Consent Flow stage of the Device Authorization Flow as the consent session has not claimed a device code session which is pending a decision")
 
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if userSession.IsAnonymous() {
-		ctx.GetLogger().
-			Error("Error occurred fetching user session during the Consent Flow stage of the Device Authorization Flow as the user is anonymous")
+	if !consent.Subject.Valid {
+		log.
+			Error("Error occurred during the Consent Flow stage of the Device Authorization Flow as the consent session does not have a subject")
 
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	code := *bodyJSON.UserCode
+	if !handleOAuth2ConsentDeviceAuthorizationSave(ctx, userSession.Username, bodyJSON, consent, device) {
+		ctx.SetJSONError(messageOperationFailed)
 
-	if signature, err = ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, code); err != nil {
-		ctx.GetLogger().
+		return
+	}
+
+	if err = ctx.SetJSONBody(oidc.ConsentPostResponseBody{FlowID: consent.ChallengeID.String()}); err != nil {
+		log.
 			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID}).
-			Error("Error occurred determining the signature of the user code session during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if device, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID, "signature": signature}).
-			Error("Error occurred using the signature of the user code session to retrieve the device code session during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if !device.Active || device.Revoked {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to determine if the device code session is active during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if device.ChallengeID.Valid {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the device code session already has a challenge id")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if device.ClientID != bodyJSON.ClientID {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, "body_client_id": bodyJSON.ClientID, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred matching the user code to the device code session during the Consent Flow stage of the Device Authorization Flow as the client id of the form and the client id of the consent session do not match")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, device.ClientID); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred fetching client configuration during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
-
-	if details, err = authentication.MustGetUserDetailsSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred fetching user details during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldGroups: details.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
-			Error("User is not sufficiently authenticated to provide consent given the client authorization policy during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	var (
-		subject uuid.UUID
-		r       *oauth2.DeviceAuthorizeRequest
-	)
-
-	if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to determine the subject during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if device.Subject.Valid && device.Subject.String != subject.String() {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to determine the subject during the Consent Flow stage of the Device Authorization Flow as the subject of the device code session does not match the subject of the user session")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if r, err = device.ToRequest(ctx, oidc.NewSession(), ctx.Providers.OpenIDConnect.Store); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to restore the requester during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if consent, err = model.NewOAuth2ConsentSession(ctx.GetClock().Now().Add(10*time.Second), subject, r); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to create the consent session during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred saving the consent session to the database during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	if bodyJSON.Consent {
-		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
-	}
-
-	consent.SetRespondedAt(ctx.GetClock().Now(), 0)
-
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred saving the consent session response to the database during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
-
-	if !bodyJSON.Consent {
-		device.Active = false
-		device.Status = int(oauth2.DeviceAuthorizeStatusDenied)
-	}
-
-	if err = ctx.Providers.StorageProvider.UpdateOAuth2DeviceCodeSession(ctx, device); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred saving the device code session challenge id to the database during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
-	response := oidc.ConsentPostResponseBody{FlowID: consent.ChallengeID.String()}
-
-	if err = ctx.SetJSONBody(response); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 			Error("Error occurred marshaling JSON response body")
 
 		ctx.SetJSONError(messageOperationFailed)
-
-		return
 	}
+}
+
+func handleOAuth2ConsentDeviceAuthorizationLoad(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (device *model.OAuth2DeviceCodeSession, err error) {
+	if device, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByChallengeID(ctx, consent.ChallengeID); err != nil {
+		return nil, fmt.Errorf("error occurred loading the device code session: %w", err)
+	}
+
+	if err = validateOAuth2DeviceCodeSessionClaimed(ctx, device); err != nil {
+		return nil, err
+	}
+
+	return device, nil
 }
 
 func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowID uuid.UUID) (userSession session.UserSession, details authentication.UserDetails, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
@@ -657,7 +501,7 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 		return userSession, details, nil, nil, true
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+	if consent, err = handleOAuth2ConsentSessionLoadBound(ctx, flowID); err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldUsername: userSession.Username}).
@@ -721,92 +565,32 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 		return userSession, details, nil, nil, true
 	}
 
+	if consent.Subject.Valid {
+		var subject uuid.UUID
+
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.GetLogger().
+				WithError(err).
+				WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
+				Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as an error occurred determining the subject of the user")
+
+			ctx.SetJSONError(messageOperationFailed)
+
+			return userSession, details, nil, nil, true
+		}
+
+		if consent.Subject.UUID != subject {
+			ctx.GetLogger().
+				WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldSubject: consent.Subject.UUID.String()}).
+				Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the subject of the consent session does not match the subject of the user")
+
+			ctx.SetJSONError(messageOperationFailed)
+
+			return userSession, details, nil, nil, true
+		}
+	}
+
 	return userSession, details, consent, client, false
-}
-
-func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares.AutheliaCtx, userCode string) (userSession session.UserSession, device *model.OAuth2DeviceCodeSession, client oidc.Client, handled bool) {
-	var (
-		signature string
-		err       error
-	)
-	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			Error("Error occurred fetching user session during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return userSession, nil, nil, true
-	}
-
-	if signature, err = ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, userCode); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username}).
-			Error("Error occurred deriving device code session signature using user code during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return userSession, nil, nil, true
-	}
-
-	if device, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username}).
-			Error("Error occurred loading device code session using user code signature during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return userSession, nil, nil, true
-	}
-
-	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, device.ClientID); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username}).
-			Error("Error occurred loading registered client using client id during the Consent Flow stage of the Device Authorization Flow")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return userSession, device, nil, true
-	}
-
-	if device.Status != int(oauth2.DeviceAuthorizeStatusNew) || device.Revoked || !device.Active {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username}).
-			Error("Device Authorization Flow failed to retrieve Consent Flow data as device code session is not active or has been revoked")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return userSession, nil, nil, true
-	}
-
-	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
-
-	var details authentication.UserDetails
-	if details, err = authentication.MustGetUserDetailsSafe(userSession.Username, ctx.GetUserProvider()); err != nil {
-		ctx.GetLogger().
-			WithError(err).
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Device Authorization Flow failed to retrieve user details")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return userSession, nil, nil, true
-	}
-
-	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: details.Groups, IP: ctx.RemoteIP()}) {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username, logging.FieldGroups: details.Groups, logging.FieldAuthenticationLevel: level.String(), logging.FieldAuthorizationPolicy: client.GetAuthorizationPolicy().Name}).
-			Error("Device Authorization Flow failed to retrieve Consent Flow data as the user is not sufficiently authenticated")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return userSession, nil, nil, true
-	}
-
-	return userSession, device, client, false
 }
 
 func handleGetFormFromSession(ctx *middlewares.AutheliaCtx, session oidc.FormSession) (form url.Values, err error) {
@@ -839,4 +623,74 @@ func handleGetConsentFormFromPushedAuthorizeRequestRedirectURI(ctx *middlewares.
 	}
 
 	return nil, nil
+}
+
+func handleOAuth2ConsentDeviceAuthorizationSave(ctx *middlewares.AutheliaCtx, username string, bodyJSON oidc.ConsentPostRequestBody, consent *model.OAuth2ConsentSession, device *model.OAuth2DeviceCodeSession) (ok bool) {
+	var (
+		tx  context.Context
+		err error
+	)
+
+	fields := func() map[string]any {
+		return map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}
+	}
+
+	if tx, err = ctx.Providers.StorageProvider.BeginTX(ctx); err != nil {
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(fields()).
+			Error("Error occurred starting the database transaction during the Consent Flow stage of the Device Authorization Flow")
+
+		return false
+	}
+
+	defer func() {
+		if ok {
+			return
+		}
+
+		if err = ctx.Providers.StorageProvider.Rollback(tx); err != nil {
+			ctx.GetLogger().
+				WithError(err).
+				WithFields(fields()).
+				Error("Error occurred rolling back the database transaction during the Consent Flow stage of the Device Authorization Flow")
+		}
+	}()
+
+	if bodyJSON.Consent {
+		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
+	}
+
+	consent.SetRespondedAt(ctx.GetClock().Now(), 0)
+
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(tx, consent, bodyJSON.Consent); err != nil {
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(fields()).
+			Error("Error occurred saving the consent session response to the database during the Consent Flow stage of the Device Authorization Flow")
+
+		return false
+	}
+
+	if !bodyJSON.Consent {
+		if err = ctx.Providers.StorageProvider.DenyOAuth2DeviceCodeSession(tx, device.Signature, consent.ChallengeID); err != nil {
+			ctx.GetLogger().
+				WithError(err).
+				WithFields(fields()).
+				Error("Error occurred denying the device code session during the Consent Flow stage of the Device Authorization Flow as it is no longer pending a decision")
+
+			return false
+		}
+	}
+
+	if err = ctx.Providers.StorageProvider.Commit(tx); err != nil {
+		ctx.GetLogger().
+			WithError(err).
+			WithFields(fields()).
+			Error("Error occurred committing the database transaction during the Consent Flow stage of the Device Authorization Flow")
+
+		return false
+	}
+
+	return true
 }

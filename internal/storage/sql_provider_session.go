@@ -25,7 +25,9 @@ func NewSessionRepository(provider Provider) session.Repository {
 func (p *SQLProvider) SessionGet(ctx context.Context, issuer, id string) (record session.Record, err error) {
 	var row sessionRow
 
-	if err = p.db.GetContext(ctx, &row, p.sqlSelectSession, issuer, id, time.Now()); err != nil {
+	now := time.Now()
+
+	if err = p.db.GetContext(ctx, &row, p.sqlSelectSession, issuer, id, now); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -33,7 +35,7 @@ func (p *SQLProvider) SessionGet(ctx context.Context, issuer, id string) (record
 		return nil, fmt.Errorf("error selecting session: %w", err)
 	}
 
-	return session.NewRecord(row.Signature, row.Data), nil
+	return session.NewRecordWithTTL(row.Signature, row.Data, row.ttl(now)), nil
 }
 
 // SessionGetByPublicID returns the session for the given public id and issuer.
@@ -77,15 +79,30 @@ func (p *SQLProvider) SessionSave(ctx context.Context, issuer, id, pid, username
 		return fmt.Errorf("error upserting session: %w", err)
 	}
 
+	return p.sessionSaved(ctx, result, issuer, id)
+}
+
+// sessionSaved determines if a write to a session applied. A write which affected no rows either found no live session,
+// in which case it's reported as superseded, or found one but didn't change it, as MySQL reports the rows changed rather
+// than the rows matched.
+func (p *SQLProvider) sessionSaved(ctx context.Context, result sql.Result, issuer, id string) (err error) {
 	var affected int64
 
-	// This is not safe if encryption is changed to be deterministic i.e. no AAD due to how MySQL treats the
-	// ON DUPLICATE KEY UPDATE statements.
 	if affected, err = result.RowsAffected(); err != nil {
 		return fmt.Errorf("error determining whether the session was saved: %w", err)
 	}
 
-	if affected == 0 {
+	if affected != 0 {
+		return nil
+	}
+
+	var live int
+
+	if err = p.db.GetContext(ctx, &live, p.sqlSelectSessionLive, issuer, id); err != nil {
+		return fmt.Errorf("error determining whether the session was saved: %w", err)
+	}
+
+	if live == 0 {
 		return session.ErrSessionSuperseded
 	}
 
@@ -103,10 +120,54 @@ func (p *SQLProvider) sessionPublicIDMoved(ctx context.Context, issuer, id, pid 
 }
 
 // SessionSaveData updates the data and expiration of an existing session. The public id and username are unused as
-// they are columns of the session row itself rather than separate records with their own expiry.
-func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, data []byte) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionData, p.sessionExpires(expiration), data, issuer, id); err != nil {
+// they are columns of the session row itself rather than separate records with their own expiry. When previous isn't
+// nil the session is only updated if its data is still exactly previous, and otherwise session.ErrSessionSuperseded is
+// returned. The data written then always differs from previous as sealing it uses a random nonce, so the row is
+// reported as affected by every backend when the update applies. When previous is nil the data written may be
+// unchanged, so a session which is missing or destroyed is distinguished from an unchanged one before it's reported as
+// superseded.
+func (p *SQLProvider) SessionSaveData(ctx context.Context, issuer, id, _, _ string, expiration time.Duration, previous, data []byte) (err error) {
+	var (
+		result   sql.Result
+		affected int64
+	)
+
+	if previous == nil {
+		if result, err = p.db.ExecContext(ctx, p.sqlUpdateSessionData, p.sessionExpires(expiration), data, issuer, id); err != nil {
+			return fmt.Errorf("error updating session data: %w", err)
+		}
+
+		return p.sessionSaved(ctx, result, issuer, id)
+	}
+
+	if result, err = p.db.ExecContext(ctx, p.sqlUpdateSessionDataIfUnchanged, p.sessionExpires(expiration), data, issuer, id, previous); err != nil {
 		return fmt.Errorf("error updating session data: %w", err)
+	}
+
+	if affected, err = result.RowsAffected(); err != nil {
+		return fmt.Errorf("error updating session data: %w", err)
+	}
+
+	if affected == 0 {
+		return session.ErrSessionSuperseded
+	}
+
+	return nil
+}
+
+// SessionTouch extends the expiration of an existing session which hasn't expired or been destroyed. The public id and
+// username are unused as they are columns of the session row itself. The expiration is only ever extended, so a touch
+// which raced a save which set a later expiration leaves it as it is.
+func (p *SQLProvider) SessionTouch(ctx context.Context, issuer, id, _, _ string, expiration time.Duration) (err error) {
+	if expiration <= 0 {
+		return nil
+	}
+
+	now := time.Now()
+	expires := now.Add(expiration)
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionExpiration, expires, issuer, id, now, expires); err != nil {
+		return fmt.Errorf("error updating session expiration: %w", err)
 	}
 
 	return nil
@@ -124,10 +185,24 @@ func (p *SQLProvider) SessionDelete(ctx context.Context, issuer, id, _, _ string
 
 // SessionChangeID changes the signature of an existing session, which is used to regenerate the session identifier
 // without discarding the session itself. The data is updated alongside the signature as the caller reseals the session
-// against the signature it is stored under, and the two must never disagree.
+// against the signature it is stored under, and the two must never disagree. It returns session.ErrSessionSuperseded
+// when no live session exists for the old signature.
 func (p *SQLProvider) SessionChangeID(ctx context.Context, issuer, oldID, id, _, _ string, expiration time.Duration, data []byte) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateSessionSignature, id, p.sessionExpires(expiration), data, issuer, oldID); err != nil {
+	var (
+		result   sql.Result
+		affected int64
+	)
+
+	if result, err = p.db.ExecContext(ctx, p.sqlUpdateSessionSignature, id, p.sessionExpires(expiration), data, issuer, oldID); err != nil {
 		return fmt.Errorf("error updating session signature: %w", err)
+	}
+
+	if affected, err = result.RowsAffected(); err != nil {
+		return fmt.Errorf("error updating session signature: error determining the number of affected rows: %w", err)
+	}
+
+	if affected == 0 {
+		return session.ErrSessionSuperseded
 	}
 
 	return nil

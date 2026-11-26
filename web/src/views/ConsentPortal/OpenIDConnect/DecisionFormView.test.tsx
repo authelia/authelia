@@ -194,7 +194,7 @@ it("navigates to the index route when unauthenticated", () => {
     expect(getConsentResponse).not.toHaveBeenCalled();
 });
 
-it("navigates to the index route when there is no flow id or user code", () => {
+it("navigates to the index route when there is no flow id", () => {
     mocks.flow.id = null;
 
     renderView();
@@ -203,12 +203,28 @@ it("navigates to the index route when there is no flow id or user code", () => {
     expect(getConsentResponse).not.toHaveBeenCalled();
 });
 
-it("requests the consent response with the flow id and user code", async () => {
+it("requests the consent response with the flow id", async () => {
+    await renderLoaded();
+
+    expect(getConsentResponse).toHaveBeenCalledWith("flow-1", null);
+});
+
+it("requests the consent response with the flow id and subflow during a device authorization", async () => {
+    mocks.flow.subflow = "device_authorization";
     mocks.userCode.current = "ABCD-1234";
 
     await renderLoaded();
 
-    expect(getConsentResponse).toHaveBeenCalledWith("flow-1", "ABCD-1234");
+    expect(getConsentResponse).toHaveBeenCalledWith("flow-1", "device_authorization");
+});
+
+it("navigates to the index route during a device authorization without a user code", () => {
+    mocks.flow.subflow = "device_authorization";
+
+    renderView();
+
+    expect(mocks.navigate).toHaveBeenCalledWith("/");
+    expect(getConsentResponse).not.toHaveBeenCalled();
 });
 
 it("navigates to the index route when the consent response fails", async () => {
@@ -303,7 +319,7 @@ it("accepts the consent request and redirects", async () => {
         fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
     });
 
-    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", [], "flow-1", null, null);
+    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", [], "flow-1", null);
     expect(mocks.redirect).toHaveBeenCalledWith("https://app.example.com/callback");
 });
 
@@ -318,7 +334,7 @@ it("accepts the consent request with the selected claims", async () => {
         fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
     });
 
-    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", ["name"], "flow-1", null, null);
+    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", ["name"], "flow-1", null);
 });
 
 it("accepts the consent request with pre-configuration when requested", async () => {
@@ -332,7 +348,7 @@ it("accepts the consent request with pre-configuration when requested", async ()
         fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
     });
 
-    expect(postConsentResponseAccept).toHaveBeenCalledWith(true, "test-client", [], "flow-1", null, null);
+    expect(postConsentResponseAccept).toHaveBeenCalledWith(true, "test-client", [], "flow-1", null);
 });
 
 it("rejects the consent request and redirects", async () => {
@@ -342,7 +358,7 @@ it("rejects the consent request and redirects", async () => {
         fireEvent.click(screen.getByRole("button", { name: /Deny/ }));
     });
 
-    expect(postConsentResponseReject).toHaveBeenCalledWith("test-client", "flow-1", null, null);
+    expect(postConsentResponseReject).toHaveBeenCalledWith("test-client", "flow-1", null);
     expect(mocks.redirect).toHaveBeenCalledWith("https://app.example.com/denied");
 });
 
@@ -580,7 +596,7 @@ it("reauthenticates and then accepts when the password is submitted", async () =
         null,
         null,
     );
-    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", [], "flow-1", null, null);
+    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", [], "flow-1", null);
     expect(mocks.redirect).toHaveBeenCalledWith("https://app.example.com/callback");
 });
 
@@ -654,7 +670,7 @@ it("accepts on a second attempt after an incorrect password", async () => {
         fireEvent.click(screen.getByRole("button", { name: /Submit/ }));
     });
 
-    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", [], "flow-1", null, null);
+    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", [], "flow-1", null);
 });
 
 it("clears the failure once a new password is typed", async () => {
@@ -805,6 +821,7 @@ it("submits the user code and navigates to completion when accepting a device au
         fireEvent.click(screen.getByRole("button", { name: /Accept/ }));
     });
 
+    expect(postConsentResponseAccept).toHaveBeenCalledWith(false, "test-client", [], "flow-1", "device_authorization");
     expect(putDeviceCodeFlowUserCode).toHaveBeenCalledWith("flow-2", "ABCD-1234");
     expect(mocks.navigate).toHaveBeenCalledWith(
         "/consent/completion",
@@ -825,6 +842,7 @@ it("navigates to completion when denying a device authorization", async () => {
         fireEvent.click(screen.getByRole("button", { name: /Deny/ }));
     });
 
+    expect(postConsentResponseReject).toHaveBeenCalledWith("test-client", "flow-1", "device_authorization");
     expect(mocks.navigate).toHaveBeenCalledWith(
         "/consent/completion",
         false,

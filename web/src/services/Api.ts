@@ -10,6 +10,7 @@ import { getBasePath } from "@utils/BasePath";
 const basePath = getBasePath();
 
 export const OpenIDConnectConsentPath = basePath + "/api/oidc/consent";
+export const OpenIDConnectConsentUserCodePath = basePath + "/api/oidc/consent/user-code";
 export const OpenIDConnectDeviceAuthorizationPath = basePath + "/api/oidc/device-authorization";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";

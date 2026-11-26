@@ -75,11 +75,12 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		}
 
 		var (
-			rememberMe string
-			baseURL    string
-			domain     string
-			provider   session.Strategy
-			origin     *url.URL
+			rememberMe     string
+			csrfCookieName string
+			baseURL        string
+			domain         string
+			provider       session.Strategy
+			origin         *url.URL
 		)
 
 		baseURL = ctx.TemplateRootURL().String()
@@ -87,6 +88,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		if provider, err = ctx.GetSessionProvider(); err == nil {
 			domain = provider.GetConfig().Domain
 			rememberMe = strconv.FormatBool(!provider.GetConfig().DisableRememberMe)
+			csrfCookieName = session.CSRFCookieName(provider.GetConfig().Name)
 		}
 
 		origin, err = ctx.GetOrigin()
@@ -95,7 +97,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 
 		data := &bytes.Buffer{}
 
-		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe, passkeyLogin)); err != nil {
+		if err = t.Execute(data, opts.CommonData(ctx.BasePath(), baseURL, domain, nonce, lang, logoOverride, rememberMe, passkeyLogin, csrfCookieName)); err != nil {
 			ctx.Error(errMessageServerGeneric, fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occurred rendering template")
 
@@ -227,6 +229,8 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileOptions) {
 	opts = &TemplatedFileOptions{
 		AssetPath:               config.Server.AssetPath,
+		CSRFCookieName:          session.CSRFCookieName(config.Session.Name),
+		SessionName:             config.Session.Name,
 		DuoSelfEnrollment:       strFalse,
 		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
 		ExternalIdentityLogin:   strconv.FormatBool(config.AuthenticationBackend.ExternalIdentity != nil && len(config.AuthenticationBackend.ExternalIdentity.Providers) != 0),
@@ -277,6 +281,7 @@ func totpAppStoreLink(store schema.TOTPAppsStore) string {
 // TemplatedFileOptions is a struct which is used for many templated files.
 type TemplatedFileOptions struct {
 	AssetPath              string
+	CSRFCookieName         string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
 	ExternalIdentityLogin  string
@@ -290,6 +295,7 @@ type TemplatedFileOptions struct {
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
 	Session                string
+	SessionName            string
 	Theme                  string
 
 	EndpointsPasswordReset  bool
@@ -305,9 +311,10 @@ type TemplatedFileOptions struct {
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }
 
-// CommonData returns a TemplatedFileCommonData with the dynamic options. The rememberMe and passkeyLogin values
-// override the static options when they're not empty.
-func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, rememberMe, passkeyLogin string) TemplatedFileCommonData {
+// CommonData returns a TemplatedFileCommonData with the dynamic options. The rememberMe, passkeyLogin, and
+// csrfCookieName values override the static options when they're not empty, i.e. when the request resolved to a
+// session cookie domain.
+func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, language, logoOverride, rememberMe, passkeyLogin, csrfCookieName string) TemplatedFileCommonData {
 	data := TemplatedFileCommonData{
 		Base:                   base,
 		BaseURL:                baseURL,
@@ -315,6 +322,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		CSPNonce:               nonce,
 		Language:               language,
 		LogoOverride:           logoOverride,
+		CSRFCookieName:         options.CSRFCookieName,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
 		ExternalIdentityLogin:  options.ExternalIdentityLogin,
@@ -338,12 +346,21 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		data.PasskeyLogin = passkeyLogin
 	}
 
+	if csrfCookieName != "" {
+		data.CSRFCookieName = csrfCookieName
+	}
+
 	return data
 }
 
 // OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options. The cookie is the name of the session cookie
-// for the domain of the request, and the default session cookie name is used when it's empty.
+// for the domain of the request, and the configured session cookie name is used when it's empty, falling back to the
+// default session cookie name.
 func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, cookie, nonce string) TemplatedFileOpenAPIData {
+	if cookie == "" {
+		cookie = options.SessionName
+	}
+
 	if cookie == "" {
 		cookie = schema.DefaultSessionConfiguration.Name
 	}
@@ -353,7 +370,10 @@ func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, cookie, 
 		BaseURL:        baseURL,
 		Domain:         domain,
 		CSPNonce:       nonce,
-		Session:        cookie,
+		Session:        session.SessionCookieName(cookie),
+		SessionAuthz:   session.AuthzCookieName(cookie),
+		SessionBinding: session.UserAgentBindingCookieName(cookie),
+		CSRFCookieName: session.CSRFCookieName(cookie),
 		PasswordReset:  options.EndpointsPasswordReset,
 		PasswordChange: options.EndpointsPasswordChange,
 		WebAuthn:       options.EndpointsWebAuthn,
@@ -375,6 +395,7 @@ type TemplatedFileCommonData struct {
 	CSPNonce               string
 	Language               string
 	LogoOverride           string
+	CSRFCookieName         string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
 	ExternalIdentityLogin  string
@@ -397,6 +418,9 @@ type TemplatedFileOpenAPIData struct {
 	Domain         string
 	CSPNonce       string
 	Session        string
+	SessionAuthz   string
+	SessionBinding string
+	CSRFCookieName string
 	PasswordReset  bool
 	PasswordChange bool
 	WebAuthn       bool

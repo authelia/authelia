@@ -186,6 +186,14 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 						{Period: time.Hour, Requests: 60},
 					},
 				},
+				OpenIDConnectUserCode: schema.ServerEndpointRateLimit{
+					IPv6Mask: 64,
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 5},
+						{Period: 10 * time.Minute, Requests: 10},
+						{Period: time.Hour, Requests: 20},
+					},
+				},
 			},
 		},
 	}
@@ -320,6 +328,9 @@ func TestValidateRateLimitIPv6Mask(t *testing.T) {
 		}},
 		{"openid_connect_revocation", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
 			return &limits.OpenIDConnectRevocation
+		}},
+		{"openid_connect_user_code", func(limits *schema.ServerEndpointRateLimits) *schema.ServerEndpointRateLimit {
+			return &limits.OpenIDConnectUserCode
 		}},
 	}
 

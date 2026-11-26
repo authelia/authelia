@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+import { StrictMode } from "react";
+
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import {
@@ -598,6 +600,59 @@ describe("self enrollment", () => {
         fireEvent.click(screen.getByTestId("method-register"));
 
         expect(open).toHaveBeenCalledWith("https://enroll.example.com", "_blank", "noopener,noreferrer");
+    });
+});
+
+describe("sign in request lifetime", () => {
+    it("fires the push sign-in once under StrictMode", async () => {
+        const props = { ...defaultProps, onSignInSuccess: vi.fn() };
+
+        completeSignInMock.mockResolvedValue({ redirect: "https://example.com" } as any);
+
+        render(
+            <StrictMode>
+                <PushNotificationMethod {...props} />
+            </StrictMode>,
+        );
+
+        await waitFor(() => expect(screen.getByTestId("success-icon")).toBeInTheDocument());
+
+        expect(completeSignInMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not abort the push sign-in on unmount", async () => {
+        completeSignInMock.mockReturnValue(new Promise(() => {}));
+
+        const { unmount } = renderMethod();
+
+        await waitFor(() => expect(completeSignInMock).toHaveBeenCalledTimes(1));
+
+        const signal = completeSignInMock.mock.calls[0][5];
+
+        unmount();
+
+        expect(signal?.aborted).not.toBe(true);
+    });
+
+    it("ignores the push sign-in response after unmount", async () => {
+        vi.useFakeTimers();
+
+        let resolve: (value: unknown) => void = () => {};
+        completeSignInMock.mockReturnValue(new Promise((r) => (resolve = r)) as any);
+
+        const { props, unmount } = renderMethod();
+
+        await vi.waitFor(() => expect(completeSignInMock).toHaveBeenCalledTimes(1));
+
+        unmount();
+
+        await act(async () => {
+            resolve({ redirect: "https://example.com" });
+            await vi.advanceTimersByTimeAsync(1500);
+        });
+
+        expect(props.onSignInSuccess).not.toHaveBeenCalled();
+        expect(props.onSignInError).not.toHaveBeenCalled();
     });
 });
 

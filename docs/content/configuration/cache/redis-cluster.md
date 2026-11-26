@@ -116,6 +116,10 @@ cache:
 
 Enables routing read-only commands to replica nodes rather than sending every command to the master which owns the slot.
 
+Session lookups are always sent to the master which owns the slot regardless of this option and the options which
+imply it, as a replica which lags behind the master could report a session which was just saved as missing or out of
+date.
+
 ### route_by_latency
 
 {{< confkey type="boolean" default="false" required="no" >}}

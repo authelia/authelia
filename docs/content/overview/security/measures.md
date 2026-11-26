@@ -109,13 +109,25 @@ Go:
 **Measure Types:** In-built, Customizable
 
 Authelia sets several
-[cookie attributes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes) to help prevent
-cookie theft:
+[cookie attributes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes) and cookie name
+prefixes to help prevent cookie theft:
 
-1. `HttpOnly` is set, forbidding client-side code like javascript from access to the cookie.
-2. `Secure` is set, forbidding the browser from sending the cookie to sites which do not use the [HTTPS] scheme.
-3. `SameSite` is set to `Lax`, which prevents it being sent over cross-origin requests. An option to adjust this value
-   exists but is not recommended.
+1. `Secure` is set on every cookie, forbidding the browser from sending them to sites which do not use the [HTTPS]
+   scheme.
+2. `HttpOnly` is set on every cookie which identifies the session or the browser, forbidding client-side code like
+   javascript from accessing them. The only exception is the CSRF token cookie, which the portal must read to include
+   the token in its requests, and which can't be used to identify the session on its own.
+3. `SameSite` is set to `Strict` on the session cookie and the CSRF token cookie, so the browser never sends them with a
+   request initiated by another site. The authorization cookie uses the configured
+   [same_site](../../configuration/session/introduction.md#same_site-1) value, which defaults to `Lax`, and the user
+   agent binding cookie always uses `Lax` so it's sent when a relying party returns the browser to Authelia.
+4. The session cookie, the CSRF token cookie, and the user agent binding cookie are host only and named with the
+   `__Host-` prefix, or the `__Host-Http-` prefix for those which are also `HttpOnly`, which instructs the browser to
+   reject them unless they meet those requirements, so neither another host such as a sibling subdomain nor a script
+   can set a cookie which takes their place. The authorization cookie is named with the `__Secure-` prefix as it must
+   be sent to the protected applications.
+
+See [Session Security](#session-security) for what each cookie is used for.
 
 Read about these attributes in detail on the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie).
@@ -124,8 +136,10 @@ Read about these attributes in detail on the
 
 **Measure Types:** In-built, Manual
 
-Since Authelia uses multi-domain cookies to perform single sign-on, an attacker who poisoned a user's DNS cache can
-easily retrieve the user's cookies by making the user send a request to one of the attacker's IPs.
+Since Authelia uses a cookie scoped to the cookie domain to perform single sign-on, the authorization cookie, an
+attacker who poisoned a user's DNS cache can retrieve that cookie by making the user send a request to one of the
+attacker's IPs. The session cookie is host only so it is never sent to another host, and the authorization cookie can
+only be used against the authorization endpoints, but it still grants access to the protected applications.
 
 This is technically mitigated by the `Secure` attribute set in cookies by Authelia, however it's still advisable to
 only use [HTTPS] connections with valid certificates and enforce it with HTTP Strict Transport Security ([HSTS]) which
@@ -424,6 +438,44 @@ We have a few options to configure the security of a session. The main and most 
 This is used to encrypt the session data when it is stored in the [Redis](../../configuration/cache/redis.md) key value
 database. The value of this option should be long and as random as possible. See more in the
 [documentation](../../configuration/session/introduction.md#secret) for this option.
+
+Every session is represented by two cookies, alongside the CSRF token cookie and the user agent binding cookie
+described below. The session cookie, named with the `__Host-Http-` prefix such as
+`__Host-Http-authelia_session`, is always issued with a SameSite value of Strict and is the only cookie accepted by the
+portal and the API, which means a request initiated by another site never carries it. It is host only, so it is only
+sent to the Authelia host and never to the protected applications, and the prefix instructs the browser to reject it
+unless it is host only, HTTP only, and set by the server, so neither another host such as a sibling subdomain nor a
+script can set a cookie which takes its place. A separate authorization cookie, named with the `__Secure-` prefix and
+the `_authz` suffix such as `__Secure-authelia_session_authz`, is scoped to the cookie domain, uses the configured
+[same_site](../../configuration/session/introduction.md#same_site-1) value, and is accepted only by the authorization
+endpoints and can only be used to check access, to record activity, and to end the session. The authorization cookie is
+derived from the session identifier using a key known only to Authelia, so it changes whenever the session cookie does,
+and neither cookie can be derived from the other without that key. Which cookie is honored is decided by the endpoint
+which handles the request, so the session cookie is ignored by the authorization endpoints and the authorization cookie
+is ignored everywhere else, with one exception: when the session cookie is absent, signing in or signing out ends the
+session the authorization cookie belongs to so that it can't outlive the user's intent. A sign out request which the
+browser reports as cross-site is refused so this can't be triggered by another site.
+
+Requests to the portal API which change state are refused when the browser reports that they originated from another
+origin, including other subdomains of the same site, using the `Sec-Fetch-Site` header or the `Origin` header when the
+former is unavailable. Every such request made with a session additionally requires the CSRF token of the session,
+which is derived from a secret held within the session using a key known only to Authelia, is delivered to the portal
+in a separate cookie named with the `__Host-` prefix and the `_csrf` suffix such as `__Host-authelia_session_csrf`, and
+changes whenever the session cookie does. A forged request can't include the token as another origin can't read
+it. Clients other than the portal which interact with the API on behalf of a user, such as the [PAM
+module](../../integration/guides/pam-authelia/index.md), must include the token in the same way, which they read from
+the cookie Authelia issues alongside the session cookie.
+
+Every OpenID Connect 1.0 authorization request is stored in a consent session which is bound to the browser which made
+it, using a random value delivered in the user agent binding cookie, which is named with the `__Host-Http-` prefix and
+the `_ua` suffix such as `__Host-Http-authelia_session_ua`. A consent session is only accepted from a browser which
+presents the same value, and a consent session which is created for a signed in user is only accepted from that user,
+so a consent session identifier which is disclosed or injected can't be used to complete the authorization request in
+another browser or by another user. Authorization requests which use the HTTP POST method are stored in a consent session before any
+redirection, so their parameters never appear in a URL. The browser doesn't send the user agent binding cookie with a
+cross-site POST, so rather than replacing the value the browser already holds, which would invalidate any other
+authorization request it has in progress, these consent sessions are bound to the first browser which follows the
+redirection.
 
 The validity period of session is highly configurable. For example, in a highly security conscious domain you could
 set the session [remember_me](../../configuration/session/introduction.md#remember_me) to 0 to disable this

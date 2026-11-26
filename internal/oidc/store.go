@@ -425,6 +425,13 @@ func (s *Store) UpdateDeviceCodeSession(ctx context.Context, signature string, r
 	return errStorage(s.provider.UpdateOAuth2DeviceCodeSessionData(ctx, session))
 }
 
+// UpdateDeviceCodeSessionPolling records a poll of the token endpoint by writing only the polling state of the device
+// code session, so a poll never overwrites the claim or decision recorded since the session was loaded. This implements
+// rfc8628.PollStorage.
+func (s *Store) UpdateDeviceCodeSessionPolling(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
+	return errStorage(s.provider.UpdateOAuth2DeviceCodeSessionPolling(ctx, signature, request.GetLastChecked()))
+}
+
 // DecideDeviceCodeSession stores the device code session only while the stored session is undecided, checking and
 // writing it in one atomic operation. It returns the oauthelia2.ErrDeviceAuthorizeDecided error when the stored
 // session was already decided, and the oauthelia2.ErrNotFound error when no session is stored for the device code.
@@ -659,5 +666,6 @@ var (
 	_ openid.OpenIDConnectRequestStorage = (*Store)(nil)
 	_ rfc8628.Storage                    = (*Store)(nil)
 	_ rfc8628.DecisionStorage            = (*Store)(nil)
+	_ rfc8628.PollStorage                = (*Store)(nil)
 	_ pkce.Storage                       = (*Store)(nil)
 )
