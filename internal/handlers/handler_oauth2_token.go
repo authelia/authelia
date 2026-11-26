@@ -144,8 +144,14 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return true
 	}
 
+	if handled = handleOAuth2TokenRefreshIDTokenClaims(ctx, rw, requester, client, session, detailer); handled {
+		return true
+	}
+
 	if client.GetEnableJWTProfileOAuthAccessTokens() {
-		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetRequestedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
+		scopes := handleOAuth2TokenGrantedScopes(requester, session)
+
+		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": scopes}).Debug("Hydrate JWT Profile Access Token claims")
 
 		if detailer == nil {
 			ctx.GetLogger().
@@ -157,7 +163,7 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		extra := map[string]any{}
 
-		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetRequestedScopes(), nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
+		if err = client.GetClaimsStrategy().HydrateAccessTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, scopes, nil, nil, detailer, requester.GetRequestedAt(), ctx.GetClock().Now(), nil, extra); err != nil {
 			ctx.GetLogger().
 				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
 				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
@@ -181,6 +187,42 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 			}
 		}
 	}
+
+	return false
+}
+
+func handleOAuth2TokenGrantedScopes(requester oauthelia2.AccessRequester, session *oidc.Session) oauthelia2.Arguments {
+	if scopes := requester.GetGrantedScopes(); len(scopes) != 0 {
+		return scopes
+	}
+
+	if session.GrantedScopes != nil {
+		return session.GrantedScopes
+	}
+
+	return requester.GetRequestedScopes()
+}
+
+func handleOAuth2TokenRefreshIDTokenClaims(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, requester oauthelia2.AccessRequester, client oidc.Client, session *oidc.Session, detailer oidc.UserDetailer) (handled bool) {
+	if detailer == nil || session.DefaultSession == nil || session.Claims == nil ||
+		!requester.GetGrantTypes().ExactOne(oidc.GrantTypeRefreshToken) || !requester.GetGrantedScopes().Has(oidc.ScopeOpenID) {
+		return false
+	}
+
+	extra := map[string]any{}
+
+	if err := client.GetClaimsStrategy().HydrateIDTokenClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), session.GrantedClaims, session.ClaimRequests.GetIDTokenRequests(), detailer, session.GetRequestedAt(), ctx.GetClock().Now(), nil, extra, false); err != nil {
+		ctx.GetLogger().
+			WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+			Error("Access Request encountered an error while trying to hydrate the refreshed ID Token claims")
+
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+		return true
+	}
+
+	session.Claims.Extra = extra
 
 	return false
 }

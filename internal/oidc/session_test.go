@@ -58,6 +58,7 @@ func TestSession_Clone(t *testing.T) {
 			UserInfo: map[string]*oidc.ClaimRequest{"name": {Value: "john"}},
 		},
 		GrantedClaims:       []string{"email"},
+		GrantedScopes:       []string{"openid"},
 		Extra:               map[string]any{"x": "y"},
 		AuthenticationLevel: authentication.TwoFactor,
 	}
@@ -75,6 +76,7 @@ func TestSession_Clone(t *testing.T) {
 	clone.ClaimRequests.IDToken["email"].Values[0] = "changed"
 	clone.ClaimRequests.UserInfo["name"].Value = "changed"
 	clone.GrantedClaims[0] = "changed"
+	clone.GrantedScopes[0] = "changed"
 	clone.Extra["x"] = "changed"
 
 	assert.Equal(t, "b", session.Claims.Extra["a"])
@@ -85,6 +87,7 @@ func TestSession_Clone(t *testing.T) {
 	assert.Equal(t, "a", session.ClaimRequests.IDToken["email"].Values[0])
 	assert.Equal(t, "john", session.ClaimRequests.UserInfo["name"].Value)
 	assert.Equal(t, "email", session.GrantedClaims[0])
+	assert.Equal(t, "openid", session.GrantedScopes[0])
 	assert.Equal(t, "y", session.Extra["x"])
 
 	clone, ok = (&oidc.Session{}).Clone().(*oidc.Session)
@@ -600,4 +603,17 @@ func TestSession_GetStorageSubject(t *testing.T) {
 			assert.Equal(t, tc.expected, tc.have.GetStorageSubject())
 		})
 	}
+}
+
+func TestSession_SetValuesFromConsentSessionGrantedScopes(t *testing.T) {
+	session := oidc.NewSession()
+
+	session.SetValuesFromConsentSession(&model.OAuth2ConsentSession{GrantedScopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID, oidc.ScopeProfile}})
+
+	assert.Equal(t, []string{oidc.ScopeOpenID, oidc.ScopeProfile}, session.GrantedScopes)
+
+	session.SetValuesFromConsentSession(&model.OAuth2ConsentSession{})
+
+	assert.NotNil(t, session.GrantedScopes)
+	assert.Empty(t, session.GrantedScopes)
 }

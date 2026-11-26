@@ -41,12 +41,40 @@ func TestOAuth2DeviceAuthorizationPOST(t *testing.T) {
 		OAuth2DeviceAuthorizationPOST(mock.Ctx, rw, r)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		assert.Equal(t, "no-store", rw.Header().Get(fasthttp.HeaderCacheControl))
+		assert.Equal(t, "no-cache", rw.Header().Get(fasthttp.HeaderPragma))
 
 		response := getTestOAuth2ErrorResponse(t, rw)
 
 		assert.Equal(t, "invalid_request", response["error"])
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpDeviceAuthorizationIssuerError, "missing required X-Forwarded-Host header")
+	})
+
+	t.Run("ShouldHandleInvalidClientBasicAuthWithChallenge", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCDeviceCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCDeviceAuthorizationEndpoint, url.Values{
+			oidc.FormParameterScope: []string{oidc.ScopeOpenID},
+		})
+
+		r.SetBasicAuth(testOIDCDeviceCodeID, "not-the-secret")
+
+		OAuth2DeviceAuthorizationPOST(mock.Ctx, rw, r)
+
+		assert.Equal(t, http.StatusUnauthorized, rw.Code)
+		assert.NotEmpty(t, rw.Header().Get(fasthttp.HeaderWWWAuthenticate))
+		assert.Equal(t, "no-store", rw.Header().Get(fasthttp.HeaderCacheControl))
+
+		response := getTestOAuth2ErrorResponse(t, rw)
+
+		assert.Equal(t, "invalid_client", response["error"])
 	})
 
 	t.Run("ShouldHandleUnknownClient", func(t *testing.T) {

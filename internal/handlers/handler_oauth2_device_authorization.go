@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -38,7 +37,7 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 		ctx.GetLogger().WithError(err).Errorf("Device Authorization Request could not be processed: %s", oauthelia2.ErrorToDebugRFC6749Error(rfc))
 
-		errorsx.WriteJSONError(rw, r, rfc)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, nil, rfc)
 
 		return
 	}
@@ -48,7 +47,7 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request failed with error during the Device Authorization Flow")
 
-		errorsx.WriteJSONError(rw, r, err)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, nil, err)
 
 		return
 	}
@@ -60,7 +59,7 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, requester, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
 		log.WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Error("Device Authorization Request had an error while trying to create a response during the Device Authorization Flow")
 
-		errorsx.WriteJSONError(rw, r, err)
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, nil, err)
 
 		return
 	}

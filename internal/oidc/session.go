@@ -76,7 +76,12 @@ type Session struct {
 	AllowedTopLevelClaims []string        `json:"allowed_top_level_claims"`
 	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
 	GrantedClaims         []string        `json:"granted_claims,omitempty"`
-	Extra                 map[string]any  `json:"extra"`
+
+	// GrantedScopes is the scopes the user consented to when the grant was authorized. It is nil for a grant without
+	// a consent and for a grant stored before it was recorded.
+	GrantedScopes []string `json:"granted_scopes"`
+
+	Extra map[string]any `json:"extra"`
 
 	// AuthenticationLevel is the authentication level of the user when the grant was authorized. It is
 	// authentication.NotAuthenticated for a grant without a user and for a grant stored before it was recorded.
@@ -211,6 +216,7 @@ func (s *Session) SetValuesFromConsentSession(consent *model.OAuth2ConsentSessio
 
 	s.ChallengeID = model.NullUUID(consent.ChallengeID)
 	s.GrantedClaims = consent.GrantedClaims
+	s.GrantedScopes = append([]string{}, consent.GrantedScopes...)
 	s.Subject = consent.Subject.UUID.String()
 	s.Claims.Subject = consent.Subject.UUID.String()
 }
@@ -290,6 +296,7 @@ func (s *Session) Clone() oauthelia2.Session {
 		ExcludeNotBeforeClaim: s.ExcludeNotBeforeClaim,
 		AllowedTopLevelClaims: slices.Clone(s.AllowedTopLevelClaims),
 		GrantedClaims:         slices.Clone(s.GrantedClaims),
+		GrantedScopes:         slices.Clone(s.GrantedScopes),
 		Extra:                 maps.Clone(s.Extra),
 		AuthenticationLevel:   s.AuthenticationLevel,
 	}
