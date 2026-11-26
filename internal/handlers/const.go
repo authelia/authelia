@@ -109,6 +109,39 @@ var (
 	messageExternalIdentityLinkNonePending       = middlewares.ErrorMessageExternalIdentityLinkNonePending
 	messageExternalIdentityLinkConflict          = middlewares.ErrorMessageExternalIdentityLinkConflict
 	messageExternalIdentityUnlinkFailed          = middlewares.ErrorMessageExternalIdentityUnlinkFailed
+	messageInvalidRequest                        = middlewares.ErrorMessageInvalidRequest
+	messageUserNotFound                          = middlewares.ErrorMessageUserNotFound
+	messageUserAlreadyExists                     = middlewares.ErrorMessageUserAlreadyExists
+	messageUsernameRequired                      = middlewares.ErrorMessageUserUsernameRequired
+	messageFamilyNameRequired                    = middlewares.ErrorMessageUserFamilyNameRequired
+	messageInvalidEmailAddress                   = middlewares.ErrorMessageUserEmailInvalid
+	messageIncompleteUserCreation                = middlewares.ErrorMessageUserCreateIncomplete
+	messageUnableToUpdateUser                    = middlewares.ErrorMessageUserModifyFailed
+	messageUnableToDeleteUser                    = middlewares.ErrorMessageUserDeleteFailed
+	messageUpdateMaskInvalid                     = middlewares.ErrorMessageUserUpdateMaskInvalid
+	messagePasswordModifyUnsupported             = middlewares.ErrorMessageUserPasswordModifyUnsupported
+	messageUnableToSendPasswordResetEmail        = middlewares.ErrorMessageUserPasswordResetEmailFailed
+	messageGroupNotFound                         = middlewares.ErrorMessageGroupNotFound
+	messageGroupAlreadyExists                    = middlewares.ErrorMessageGroupAlreadyExists
+	messageGroupNameRequired                     = middlewares.ErrorMessageGroupNameRequired
+	messageUnableToCreateGroup                   = middlewares.ErrorMessageGroupCreateFailed
+)
+
+const (
+	messageUnableToModifyUser         = "Unable to modify specified user"
+	messageUnableToDeleteUserMetadata = "Unable to delete specified user metadata"
+	messageInvalidEmail               = "invalid email address"
+)
+
+const (
+	//nolint:unused
+	messageUsernameWrongFormat = "Username must be either a valid email address or contain only: letters, numbers, hyphens(-), commas(,), and underscores(_)."
+	//nolint:unused
+	messageGroupsWrongFormat = "Groups must only contain: letters, numbers, hyphens(-), commas(,), and underscores(_)."
+	//nolint:unused
+	messageDisplayNameWrongFormat = "Display Name must contain only printable unicode characters (no invisible or control characters)."
+	//nolint:unused
+	messageEmailWrongFormat = "Username must be a valid email address."
 )
 
 const (
@@ -127,6 +160,7 @@ const (
 	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
+	logFmtErrUserNotAdmin         = "user '%s' is not an admin"
 
 	logFmtErrExternalIdentityCallback = "Error occurred handling an external identity callback"
 )

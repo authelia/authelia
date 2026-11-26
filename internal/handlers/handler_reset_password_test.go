@@ -553,6 +553,10 @@ func TestResetPasswordPOST(t *testing.T) {
 						EXPECT().
 						GetDetails(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
+					mock.StorageMock.
+						EXPECT().
+						UpdatePasswordChangedDateByUsername(mock.Ctx, testUsername).
+						Return(nil),
 					mock.NotifierMock.
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, "Password changed successfully", gomock.Any(), gomock.Any()).
@@ -581,6 +585,10 @@ func TestResetPasswordPOST(t *testing.T) {
 						EXPECT().
 						GetDetails(testUsername).
 						Return(&authentication.UserDetails{Username: testUsername, DisplayName: testDisplayName, Emails: []string{testEmail}}, nil),
+					mock.StorageMock.
+						EXPECT().
+						UpdatePasswordChangedDateByUsername(mock.Ctx, testUsername).
+						Return(nil),
 					mock.NotifierMock.
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, "Password changed successfully", gomock.Any(), templates.EmailEventValues{

@@ -32,6 +32,22 @@ var (
 	ErrorMessageIdentityTokenNotYetValid        = ErrorMessage{Code: "identity_token_not_yet_valid", Message: "The identity verification token is only valid in the future"}
 	ErrorMessageIdentityTokenInvalidSignature   = ErrorMessage{Code: "identity_token_invalid_signature", Message: "The identity verification token has an invalid signature"}
 	ErrorMessageIdentityTokenUsed               = ErrorMessage{Code: "identity_token_used", Message: "The identity verification token has already been used"}
+	ErrorMessageInvalidRequest                  = ErrorMessage{Code: "invalid_request", Message: "The request is invalid."}
+	ErrorMessageUserNotFound                    = ErrorMessage{Code: "user_not_found", Message: "User not found."}
+	ErrorMessageUserAlreadyExists               = ErrorMessage{Code: "user_already_exists", Message: "User already exists."}
+	ErrorMessageUserUsernameRequired            = ErrorMessage{Code: "user_username_required", Message: "Username is required."}
+	ErrorMessageUserFamilyNameRequired          = ErrorMessage{Code: "user_family_name_required", Message: "Last name is required."}
+	ErrorMessageUserEmailInvalid                = ErrorMessage{Code: "user_email_invalid", Message: "Invalid email address."}
+	ErrorMessageUserCreateIncomplete            = ErrorMessage{Code: "user_create_incomplete", Message: "The user has been created but metadata creation failed."}
+	ErrorMessageUserModifyFailed                = ErrorMessage{Code: "user_modify_failed", Message: "Unable to modify specified user."}
+	ErrorMessageUserDeleteFailed                = ErrorMessage{Code: "user_delete_failed", Message: "Unable to delete specified user."}
+	ErrorMessageUserUpdateMaskInvalid           = ErrorMessage{Code: "user_update_mask_invalid", Message: "The update mask is missing or contains an unsupported field."}
+	ErrorMessageUserPasswordModifyUnsupported   = ErrorMessage{Code: "user_password_modify_unsupported", Message: "Password modification is not supported. Use the password change endpoint."}
+	ErrorMessageUserPasswordResetEmailFailed    = ErrorMessage{Code: "user_password_reset_email_failed", Message: "Unable to send password reset email."}
+	ErrorMessageGroupNotFound                   = ErrorMessage{Code: "group_not_found", Message: "Group not found."}
+	ErrorMessageGroupAlreadyExists              = ErrorMessage{Code: "group_already_exists", Message: "Group already exists."}
+	ErrorMessageGroupNameRequired               = ErrorMessage{Code: "group_name_required", Message: "Group name is required."}
+	ErrorMessageGroupCreateFailed               = ErrorMessage{Code: "group_create_failed", Message: "Unable to create the group."}
 	ErrorMessageExternalIdentityLoginFailed     = ErrorMessage{Code: "external_identity_login_failed", Message: "Could not start the external login."}
 	ErrorMessageExternalIdentityLinkFailed      = ErrorMessage{Code: "external_identity_link_failed", Message: "Unable to link the external account."}
 	ErrorMessageExternalIdentityLinkNonePending = ErrorMessage{Code: "external_identity_link_none_pending", Message: "There is no external account awaiting a decision."}
@@ -61,6 +77,22 @@ var ErrorMessages = []ErrorMessage{
 	ErrorMessageIdentityTokenNotYetValid,
 	ErrorMessageIdentityTokenInvalidSignature,
 	ErrorMessageIdentityTokenUsed,
+	ErrorMessageInvalidRequest,
+	ErrorMessageUserNotFound,
+	ErrorMessageUserAlreadyExists,
+	ErrorMessageUserUsernameRequired,
+	ErrorMessageUserFamilyNameRequired,
+	ErrorMessageUserEmailInvalid,
+	ErrorMessageUserCreateIncomplete,
+	ErrorMessageUserModifyFailed,
+	ErrorMessageUserDeleteFailed,
+	ErrorMessageUserUpdateMaskInvalid,
+	ErrorMessageUserPasswordModifyUnsupported,
+	ErrorMessageUserPasswordResetEmailFailed,
+	ErrorMessageGroupNotFound,
+	ErrorMessageGroupAlreadyExists,
+	ErrorMessageGroupNameRequired,
+	ErrorMessageGroupCreateFailed,
 	ErrorMessageExternalIdentityLoginFailed,
 	ErrorMessageExternalIdentityLinkFailed,
 	ErrorMessageExternalIdentityLinkNonePending,

@@ -5,6 +5,8 @@
 package middlewares
 
 import (
+	"slices"
+
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -16,6 +18,38 @@ import (
 func Require1FA(next RequestHandler) RequestHandler {
 	return func(ctx *AutheliaCtx) {
 		if s, err := ctx.GetSession(); err != nil || s.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) < authentication.OneFactor {
+			ctx.ReplyForbidden()
+			return
+		}
+
+		next(ctx)
+	}
+}
+
+// RequireAdminUser checks if user has the correct admin group to execute the next handler.
+func RequireAdminUser(next RequestHandler) RequestHandler {
+	return func(ctx *AutheliaCtx) {
+		adminGroup := ctx.Configuration.Administration.AdminGroup
+
+		s, err := ctx.GetSession()
+		if err != nil {
+			ctx.ReplyForbidden()
+			return
+		}
+
+		if s.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) < authentication.OneFactor {
+			ctx.ReplyForbidden()
+			return
+		}
+
+		var details *authentication.UserDetails
+
+		if details, err = ctx.GetUserProvider().GetDetailsCached(s.Username); err != nil || details == nil {
+			ctx.ReplyForbidden()
+			return
+		}
+
+		if !slices.Contains(details.Groups, adminGroup) {
 			ctx.ReplyForbidden()
 			return
 		}

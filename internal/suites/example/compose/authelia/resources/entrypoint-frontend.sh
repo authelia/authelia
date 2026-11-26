@@ -10,4 +10,5 @@ if [ -f "${PNPM_MODULE}" ]; then
   rm "${PNPM_MODULE}"
 fi
 
+#TODO: REMOVE 'ignore-scripts' before merge
 pnpm install --ignore-scripts --frozen-lockfile && pnpm start

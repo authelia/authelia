@@ -38,6 +38,24 @@ type UserProvider interface {
 	// ChangePassword is used to change a user's password but requires their old password to be successfully verified.
 	ChangePassword(username string, oldPassword string, newPassword string) (err error)
 
+	GetUser(username string) (details *UserDetailsExtended, err error)
+
+	ListUsers() (userList []UserDetailsExtended, err error)
+
+	AddUser(userData *UserDetailsExtended) (err error)
+	UpdateUserWithMask(username string, userData *UserDetailsExtended, updateMask []string) error
+	DeleteUser(username string) (err error)
+
+	AddGroup(newGroup string) (err error)
+	DeleteGroup(group string) (err error)
+	ListGroups() ([]string, error)
+
+	IsExtraAttribute(fieldName string) bool
+	GetRequiredAttributes() []string
+	GetSupportedAttributes() map[string]UserManagementAttributeMetadata
+	ValidateUserData(userData *UserDetailsExtended) error
+	ValidatePartialUpdate(userData *UserDetailsExtended, updateMask []string) error
+
 	// Close is used to close the provider and clean up any resources.
 	Close() (err error)
 }

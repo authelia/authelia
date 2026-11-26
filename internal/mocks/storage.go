@@ -209,6 +209,34 @@ func (mr *MockStorageMockRecorder) CountUsersWithRecoveryCodes(ctx any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountUsersWithRecoveryCodes", reflect.TypeOf((*MockStorage)(nil).CountUsersWithRecoveryCodes), ctx)
 }
 
+// CreateExistingUserMetadata mocks base method.
+func (m *MockStorage) CreateExistingUserMetadata(ctx context.Context, username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateExistingUserMetadata", ctx, username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateExistingUserMetadata indicates an expected call of CreateExistingUserMetadata.
+func (mr *MockStorageMockRecorder) CreateExistingUserMetadata(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateExistingUserMetadata", reflect.TypeOf((*MockStorage)(nil).CreateExistingUserMetadata), ctx, username)
+}
+
+// CreateNewUserMetadata mocks base method.
+func (m *MockStorage) CreateNewUserMetadata(ctx context.Context, username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateNewUserMetadata", ctx, username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateNewUserMetadata indicates an expected call of CreateNewUserMetadata.
+func (mr *MockStorageMockRecorder) CreateNewUserMetadata(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNewUserMetadata", reflect.TypeOf((*MockStorage)(nil).CreateNewUserMetadata), ctx, username)
+}
+
 // DeactivateOAuth2DeviceCodeSession mocks base method.
 func (m *MockStorage) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) error {
 	m.ctrl.T.Helper()
@@ -321,6 +349,20 @@ func (mr *MockStorageMockRecorder) DeleteTOTPConfiguration(ctx, username any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTOTPConfiguration", reflect.TypeOf((*MockStorage)(nil).DeleteTOTPConfiguration), ctx, username)
 }
 
+// DeleteUserByUsername mocks base method.
+func (m *MockStorage) DeleteUserByUsername(ctx context.Context, username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUserByUsername", ctx, username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUserByUsername indicates an expected call of DeleteUserByUsername.
+func (mr *MockStorageMockRecorder) DeleteUserByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUserByUsername", reflect.TypeOf((*MockStorage)(nil).DeleteUserByUsername), ctx, username)
+}
+
 // DeleteWebAuthnCredential mocks base method.
 func (m *MockStorage) DeleteWebAuthnCredential(ctx context.Context, kid string) error {
 	m.ctrl.T.Helper()
@@ -407,6 +449,51 @@ func (m *MockStorage) GetAuthenticationLogsStats(ctx context.Context) (*storage.
 func (mr *MockStorageMockRecorder) GetAuthenticationLogsStats(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthenticationLogsStats", reflect.TypeOf((*MockStorage)(nil).GetAuthenticationLogsStats), ctx)
+}
+
+// LoadAllUserInfo mocks base method.
+func (m *MockStorage) LoadAllUserInfo(ctx context.Context) ([]model.UserInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAllUserInfo", ctx)
+	ret0, _ := ret[0].([]model.UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAllUserInfo indicates an expected call of LoadAllUserInfo.
+func (mr *MockStorageMockRecorder) LoadAllUserInfo(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAllUserInfo", reflect.TypeOf((*MockStorage)(nil).LoadAllUserInfo), ctx)
+}
+
+// LoadAllUserInfoAndMetadata mocks base method.
+func (m *MockStorage) LoadAllUserInfoAndMetadata(ctx context.Context) ([]model.UserInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAllUserInfoAndMetadata", ctx)
+	ret0, _ := ret[0].([]model.UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAllUserInfoAndMetadata indicates an expected call of LoadAllUserInfoAndMetadata.
+func (mr *MockStorageMockRecorder) LoadAllUserInfoAndMetadata(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAllUserInfoAndMetadata", reflect.TypeOf((*MockStorage)(nil).LoadAllUserInfoAndMetadata), ctx)
+}
+
+// LoadAllUsersMetadata mocks base method.
+func (m *MockStorage) LoadAllUsersMetadata(ctx context.Context) ([]model.UserInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadAllUsersMetadata", ctx)
+	ret0, _ := ret[0].([]model.UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadAllUsersMetadata indicates an expected call of LoadAllUsersMetadata.
+func (mr *MockStorageMockRecorder) LoadAllUsersMetadata(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAllUsersMetadata", reflect.TypeOf((*MockStorage)(nil).LoadAllUsersMetadata), ctx)
 }
 
 // LoadBannedIP mocks base method.
@@ -916,6 +1003,21 @@ func (m *MockStorage) LoadUserInfo(ctx context.Context, username string) (model.
 func (mr *MockStorageMockRecorder) LoadUserInfo(ctx, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserInfo", reflect.TypeOf((*MockStorage)(nil).LoadUserInfo), ctx, username)
+}
+
+// LoadUserMetadataByUsername mocks base method.
+func (m *MockStorage) LoadUserMetadataByUsername(ctx context.Context, username string) (model.UserInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUserMetadataByUsername", ctx, username)
+	ret0, _ := ret[0].(model.UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUserMetadataByUsername indicates an expected call of LoadUserMetadataByUsername.
+func (mr *MockStorageMockRecorder) LoadUserMetadataByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserMetadataByUsername", reflect.TypeOf((*MockStorage)(nil).LoadUserMetadataByUsername), ctx, username)
 }
 
 // LoadUserOpaqueIdentifier mocks base method.
@@ -1892,6 +1994,20 @@ func (mr *MockStorageMockRecorder) UpdateOAuth2RefreshTokenSessionRequest(ctx, a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2RefreshTokenSessionRequest", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2RefreshTokenSessionRequest), ctx, arg1)
 }
 
+// UpdatePasswordChangedDateByUsername mocks base method.
+func (m *MockStorage) UpdatePasswordChangedDateByUsername(ctx context.Context, username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePasswordChangedDateByUsername", ctx, username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePasswordChangedDateByUsername indicates an expected call of UpdatePasswordChangedDateByUsername.
+func (mr *MockStorageMockRecorder) UpdatePasswordChangedDateByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePasswordChangedDateByUsername", reflect.TypeOf((*MockStorage)(nil).UpdatePasswordChangedDateByUsername), ctx, username)
+}
+
 // UpdateTOTPConfigurationSignIn mocks base method.
 func (m *MockStorage) UpdateTOTPConfigurationSignIn(ctx context.Context, id int, lastUsedAt sql.NullTime) error {
 	m.ctrl.T.Helper()
@@ -1904,6 +2020,20 @@ func (m *MockStorage) UpdateTOTPConfigurationSignIn(ctx context.Context, id int,
 func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSignIn(ctx, id, lastUsedAt any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSignIn), ctx, id, lastUsedAt)
+}
+
+// UpdateUserSignInDateByUsername mocks base method.
+func (m *MockStorage) UpdateUserSignInDateByUsername(ctx context.Context, username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserSignInDateByUsername", ctx, username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserSignInDateByUsername indicates an expected call of UpdateUserSignInDateByUsername.
+func (mr *MockStorageMockRecorder) UpdateUserSignInDateByUsername(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserSignInDateByUsername", reflect.TypeOf((*MockStorage)(nil).UpdateUserSignInDateByUsername), ctx, username)
 }
 
 // UpdateWebAuthnCredentialDescription mocks base method.

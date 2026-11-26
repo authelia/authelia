@@ -12,6 +12,7 @@ users:
     groups:
       - admins
       - dev
+      - authelia-admin
     extra:
       employee_id: 1001
 

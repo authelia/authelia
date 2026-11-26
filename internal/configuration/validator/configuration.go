@@ -39,6 +39,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	validateDefault2FAMethod(config, validator)
 
+	ValidateAdministration(config, validator)
+
 	ValidateTheme(config, validator)
 
 	ValidateLog(config, validator)
@@ -51,7 +53,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateIdentityValidation(config, validator)
 
-	ValidateAuthenticationBackend(&config.AuthenticationBackend, validator)
+	ValidateAuthenticationBackend(config, validator)
 
 	ValidateDefinitions(config, validator)
 

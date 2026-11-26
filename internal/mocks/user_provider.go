@@ -44,6 +44,34 @@ func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
 	return m.recorder
 }
 
+// AddGroup mocks base method.
+func (m *MockUserProvider) AddGroup(newGroup string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddGroup", newGroup)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddGroup indicates an expected call of AddGroup.
+func (mr *MockUserProviderMockRecorder) AddGroup(newGroup any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddGroup", reflect.TypeOf((*MockUserProvider)(nil).AddGroup), newGroup)
+}
+
+// AddUser mocks base method.
+func (m *MockUserProvider) AddUser(userData *authentication.UserDetailsExtended) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddUser", userData)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddUser indicates an expected call of AddUser.
+func (mr *MockUserProviderMockRecorder) AddUser(userData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockUserProvider)(nil).AddUser), userData)
+}
+
 // ChangePassword mocks base method.
 func (m *MockUserProvider) ChangePassword(username, oldPassword, newPassword string) error {
 	m.ctrl.T.Helper()
@@ -85,6 +113,34 @@ func (m *MockUserProvider) Close() error {
 func (mr *MockUserProviderMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockUserProvider)(nil).Close))
+}
+
+// DeleteGroup mocks base method.
+func (m *MockUserProvider) DeleteGroup(group string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", group)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockUserProviderMockRecorder) DeleteGroup(group any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockUserProvider)(nil).DeleteGroup), group)
+}
+
+// DeleteUser mocks base method.
+func (m *MockUserProvider) DeleteUser(username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockUserProviderMockRecorder) DeleteUser(username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUserProvider)(nil).DeleteUser), username)
 }
 
 // GetDetails mocks base method.
@@ -147,6 +203,93 @@ func (mr *MockUserProviderMockRecorder) GetDetailsExtendedCached(username any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsExtendedCached", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsExtendedCached), username)
 }
 
+// GetRequiredAttributes mocks base method.
+func (m *MockUserProvider) GetRequiredAttributes() []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRequiredAttributes")
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// GetRequiredAttributes indicates an expected call of GetRequiredAttributes.
+func (mr *MockUserProviderMockRecorder) GetRequiredAttributes() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRequiredAttributes", reflect.TypeOf((*MockUserProvider)(nil).GetRequiredAttributes))
+}
+
+// GetSupportedAttributes mocks base method.
+func (m *MockUserProvider) GetSupportedAttributes() map[string]authentication.UserManagementAttributeMetadata {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSupportedAttributes")
+	ret0, _ := ret[0].(map[string]authentication.UserManagementAttributeMetadata)
+	return ret0
+}
+
+// GetSupportedAttributes indicates an expected call of GetSupportedAttributes.
+func (mr *MockUserProviderMockRecorder) GetSupportedAttributes() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSupportedAttributes", reflect.TypeOf((*MockUserProvider)(nil).GetSupportedAttributes))
+}
+
+// GetUser mocks base method.
+func (m *MockUserProvider) GetUser(username string) (*authentication.UserDetailsExtended, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser", username)
+	ret0, _ := ret[0].(*authentication.UserDetailsExtended)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser indicates an expected call of GetUser.
+func (mr *MockUserProviderMockRecorder) GetUser(username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserProvider)(nil).GetUser), username)
+}
+
+// IsExtraAttribute mocks base method.
+func (m *MockUserProvider) IsExtraAttribute(fieldName string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsExtraAttribute", fieldName)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsExtraAttribute indicates an expected call of IsExtraAttribute.
+func (mr *MockUserProviderMockRecorder) IsExtraAttribute(fieldName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsExtraAttribute", reflect.TypeOf((*MockUserProvider)(nil).IsExtraAttribute), fieldName)
+}
+
+// ListGroups mocks base method.
+func (m *MockUserProvider) ListGroups() ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListGroups")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListGroups indicates an expected call of ListGroups.
+func (mr *MockUserProviderMockRecorder) ListGroups() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroups", reflect.TypeOf((*MockUserProvider)(nil).ListGroups))
+}
+
+// ListUsers mocks base method.
+func (m *MockUserProvider) ListUsers() ([]authentication.UserDetailsExtended, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUsers")
+	ret0, _ := ret[0].([]authentication.UserDetailsExtended)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUsers indicates an expected call of ListUsers.
+func (mr *MockUserProviderMockRecorder) ListUsers() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockUserProvider)(nil).ListUsers))
+}
+
 // StartupCheck mocks base method.
 func (m *MockUserProvider) StartupCheck() error {
 	m.ctrl.T.Helper()
@@ -173,4 +316,46 @@ func (m *MockUserProvider) UpdatePassword(username, newPassword string) error {
 func (mr *MockUserProviderMockRecorder) UpdatePassword(username, newPassword any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserProvider)(nil).UpdatePassword), username, newPassword)
+}
+
+// UpdateUserWithMask mocks base method.
+func (m *MockUserProvider) UpdateUserWithMask(username string, userData *authentication.UserDetailsExtended, updateMask []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserWithMask", username, userData, updateMask)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserWithMask indicates an expected call of UpdateUserWithMask.
+func (mr *MockUserProviderMockRecorder) UpdateUserWithMask(username, userData, updateMask any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserWithMask", reflect.TypeOf((*MockUserProvider)(nil).UpdateUserWithMask), username, userData, updateMask)
+}
+
+// ValidatePartialUpdate mocks base method.
+func (m *MockUserProvider) ValidatePartialUpdate(userData *authentication.UserDetailsExtended, updateMask []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidatePartialUpdate", userData, updateMask)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidatePartialUpdate indicates an expected call of ValidatePartialUpdate.
+func (mr *MockUserProviderMockRecorder) ValidatePartialUpdate(userData, updateMask any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidatePartialUpdate", reflect.TypeOf((*MockUserProvider)(nil).ValidatePartialUpdate), userData, updateMask)
+}
+
+// ValidateUserData mocks base method.
+func (m *MockUserProvider) ValidateUserData(userData *authentication.UserDetailsExtended) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateUserData", userData)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidateUserData indicates an expected call of ValidateUserData.
+func (mr *MockUserProviderMockRecorder) ValidateUserData(userData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateUserData", reflect.TypeOf((*MockUserProvider)(nil).ValidateUserData), userData)
 }

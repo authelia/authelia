@@ -5,16 +5,33 @@
 package model
 
 import (
+	"time"
+
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // UserInfo represents the user information required by the web UI.
 type UserInfo struct {
+
+	// The user's username.
+	Username string `db:"-" json:"username"`
+
 	// The users display name.
 	DisplayName string `db:"-" json:"display_name"`
 
 	// The users email address.
 	Emails []string `db:"-" json:"emails"`
+
+	Groups []string `db:"-" json:"groups"`
+
+	// The last time the user logged in successfully.
+	LastLoggedIn *time.Time `db:"last_logged_in" json:"last_logged_in"`
+
+	// The last time the user changed their password.
+	LastPasswordChange *time.Time `db:"last_password_change" json:"last_password_change"`
+
+	// The time when the user was created.
+	UserCreatedAt *time.Time `db:"user_created_at" json:"user_created_at"`
 
 	// The preferred 2FA method.
 	Method string `db:"second_factor_method" json:"method" valid:"required"`
@@ -33,6 +50,17 @@ type UserInfo struct {
 
 	// True if the user has 2 or fewer unused recovery codes (used by the frontend to show a low-codes nudge).
 	LowRecoveryCodes bool `db:"-" json:"low_recovery_codes"`
+}
+
+// UserInfoChanges represents the fields of a user's info that can change.
+type UserInfoChanges struct {
+	Username               string   `json:"username"`
+	DisplayName            string   `json:"display_name"`
+	Emails                 []string `json:"emails"`
+	Groups                 []string `json:"groups"`
+	PasswordChangeRequired bool     `json:"password_change_required"`
+	LogoutRequired         bool     `json:"logout_required"`
+	Disabled               bool     `json:"disabled"`
 }
 
 // SetDefaultPreferred2FAMethod configures the default method based on what is configured as available and the users available methods.

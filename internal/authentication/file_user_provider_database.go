@@ -30,7 +30,10 @@ type FileUserProviderDatabase interface {
 	Save() (err error)
 	Load() (err error)
 	GetUserDetails(username string) (user FileUserDatabaseUserDetails, err error)
+	GetAllUserDetails() (users []UserDetails, err error)
 	SetUserDetails(username string, details *FileUserDatabaseUserDetails)
+	DeleteUserDetails(username string)
+	GetAllUsers() map[string]FileUserDatabaseUserDetails
 }
 
 // NewFileUserDatabase creates a new FileUserDatabase.
@@ -203,6 +206,47 @@ func (m *FileUserDatabase) GetUserDetails(username string) (user FileUserDatabas
 	return user, ErrUserNotFound
 }
 
+// GetAllUsers returns a copy of the map of all users keyed by username.
+func (m *FileUserDatabase) GetAllUsers() map[string]FileUserDatabaseUserDetails {
+	m.RLock()
+
+	defer m.RUnlock()
+
+	// Create a copy of the users map to avoid concurrent access issues.
+	usersCopy := make(map[string]FileUserDatabaseUserDetails, len(m.Users))
+	for username, details := range m.Users {
+		usersCopy[username] = details
+	}
+
+	return usersCopy
+}
+
+// GetAllUserDetails get a FileUserDatabaseUserDetails given a username as a value type where the username must be the users actual
+// username.
+func (m *FileUserDatabase) GetAllUserDetails() ([]UserDetails, error) {
+	m.RLock()
+
+	defer m.RUnlock()
+
+	allUsers := make([]UserDetails, 0, len(m.Users))
+
+	for username, details := range m.Users {
+		publicDetails := UserDetails{
+			Username:    username,
+			DisplayName: details.DisplayName,
+			Emails:      []string{details.Email},
+			Groups:      details.Groups,
+		}
+		allUsers = append(allUsers, publicDetails)
+	}
+
+	if len(allUsers) == 0 {
+		return []UserDetails{}, nil
+	}
+
+	return allUsers, nil
+}
+
 // SetUserDetails sets the FileUserDatabaseUserDetails for a given user.
 func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserDatabaseUserDetails) {
 	if details == nil {
@@ -213,7 +257,58 @@ func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserData
 
 	defer m.Unlock()
 
+	m.setUserDetails(username, details)
+}
+
+// AddUserDetails adds the FileUserDatabaseUserDetails for a given user.
+func (m *FileUserDatabase) AddUserDetails(username string, details *FileUserDatabaseUserDetails) {
+	if details == nil {
+		return
+	}
+
+	m.Lock()
+
+	defer m.Unlock()
+
+	m.setUserDetails(username, details)
+}
+
+// setUserDetails updates the user record along with the Emails and Aliases indexes. Callers must hold the write lock.
+func (m *FileUserDatabase) setUserDetails(username string, details *FileUserDatabaseUserDetails) {
+	if m.SearchEmail {
+		if existing, ok := m.Users[username]; ok && existing.Email != "" {
+			delete(m.Emails, strings.ToLower(existing.Email))
+		}
+
+		if details.Email != "" {
+			m.Emails[strings.ToLower(details.Email)] = username
+		}
+	}
+
+	if m.SearchCI {
+		m.Aliases[strings.ToLower(username)] = username
+	}
+
 	m.Users[username] = *details
+}
+
+// DeleteUserDetails deletes a user from the database.
+func (m *FileUserDatabase) DeleteUserDetails(username string) {
+	m.Lock()
+	defer m.Unlock()
+
+	email := strings.ToLower(m.Users[username].Email)
+
+	delete(m.Users, username)
+
+	if m.SearchEmail {
+		delete(m.Emails, email)
+	}
+
+	if m.SearchCI {
+		alias := strings.ToLower(username)
+		delete(m.Aliases, alias)
+	}
 }
 
 // ToDatabaseModel converts the FileUserDatabase into the FileDatabaseModel for saving.
@@ -259,7 +354,7 @@ type FileUserDatabaseUserDetails struct {
 
 	Address *FileUserDatabaseUserDetailsAddressModel `json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address for the user."`
 
-	Extra map[string]any `json:"extra" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
+	Extra map[string]any `json:"extra,omitempty" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
 }
 
 // FileUserDatabaseUserDetailsAddressModel represents the address of a user in the file user database.
@@ -360,7 +455,7 @@ func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUse
 	return model
 }
 
-// FileDatabaseModel is the model of users file database.
+// FileDatabaseModel is the model of the users file database.
 type FileDatabaseModel struct {
 	// Schema is the JSON Schema reference which is only relevant to the JSON format and is retained when saving.
 	Schema string `yaml:"-" toml:"-" json:"$schema,omitempty"`

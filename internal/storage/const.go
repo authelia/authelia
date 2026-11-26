@@ -23,6 +23,7 @@ const (
 	tableTOTPConfigurations        = "totp_configurations"
 	tableTOTPHistory               = "totp_history"
 	tableUserOpaqueIdentifier      = "user_opaque_identifier"
+	tableUserMetadata              = "user_metadata"
 	tableUserExternalIdentityLinks = "user_external_identity_links"
 	tableUserPreferences           = "user_preferences"
 	tableWebAuthnCredentials       = "webauthn_credentials" //nolint:gosec // This is a table name, not a credential.

@@ -40,6 +40,11 @@ func TestFirstFactorPasswordPOSTSessionErrors(t *testing.T) {
 				mock.Ctx.Request.Header.SetCookie("authelia_session", fixated)
 
 				repository.errDelete = errTestSessionBackend
+
+				mock.StorageMock.
+					EXPECT().
+					UpdateUserSignInDateByUsername(mock.Ctx, gomock.Eq(testValue)).
+					Return(nil)
 			},
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -173,6 +178,11 @@ func TestFirstFactorReauthenticatePOSTShouldHandleFlow(t *testing.T) {
 		EXPECT().
 		GetDetails(gomock.Eq(testUsername)).
 		Return(&authentication.UserDetails{Username: testUsername, Emails: []string{testEmail}}, nil)
+
+	mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(mock.Ctx, gomock.Eq(testUsername)).
+		Return(nil)
 
 	mock.Ctx.Request.SetBodyString(`{"password":"hello","flow":"not-a-flow"}`)
 
