@@ -16,6 +16,7 @@ import (
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/token/jwt"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
@@ -56,8 +57,9 @@ func TestSession_Clone(t *testing.T) {
 			IDToken:  map[string]*oidc.ClaimRequest{"email": {Essential: true, Values: []any{"a"}}, "nil": nil},
 			UserInfo: map[string]*oidc.ClaimRequest{"name": {Value: "john"}},
 		},
-		GrantedClaims: []string{"email"},
-		Extra:         map[string]any{"x": "y"},
+		GrantedClaims:       []string{"email"},
+		Extra:               map[string]any{"x": "y"},
+		AuthenticationLevel: authentication.TwoFactor,
 	}
 
 	clone, ok := session.Clone().(*oidc.Session)

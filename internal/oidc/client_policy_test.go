@@ -344,3 +344,109 @@ func TestMatchesSubjects(t *testing.T) {
 		})
 	}
 }
+
+func TestClientAuthorizationPolicyGetRequiredLevelWithoutNetwork(t *testing.T) {
+	_, lan, err := net.ParseCIDR("192.168.2.1/24")
+
+	require.NoError(t, err)
+
+	groupA := []authorization.AccessControlSubjects{
+		{
+			Subjects: []authorization.SubjectMatcher{authorization.AccessControlGroup{Name: "a"}},
+		},
+	}
+
+	subjectGroupA := authorization.Subject{Username: "user-group-a", Groups: []string{"a"}}
+	subjectGroupB := authorization.Subject{Username: "user-group-b", Groups: []string{"b"}}
+
+	testCases := []struct {
+		name       string
+		policy     oidc.ClientAuthorizationPolicy
+		subject    authorization.Subject
+		expected   authorization.Level
+		determined bool
+	}{
+		{
+			"ShouldReturnDefaultWithoutRules",
+			oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor},
+			subjectGroupA,
+			authorization.TwoFactor,
+			true,
+		},
+		{
+			"ShouldReturnSubjectRule",
+			oidc.ClientAuthorizationPolicy{
+				DefaultPolicy: authorization.TwoFactor,
+				Rules:         []oidc.ClientAuthorizationPolicyRule{{Subjects: groupA, Policy: authorization.Denied}},
+			},
+			subjectGroupA,
+			authorization.Denied,
+			true,
+		},
+		{
+			"ShouldReturnDefaultWhenSubjectRuleDoesNotMatch",
+			oidc.ClientAuthorizationPolicy{
+				DefaultPolicy: authorization.Denied,
+				Rules:         []oidc.ClientAuthorizationPolicyRule{{Subjects: groupA, Policy: authorization.OneFactor}},
+			},
+			subjectGroupB,
+			authorization.Denied,
+			true,
+		},
+		{
+			"ShouldBeUndeterminedWhenNetworkRuleReachedFirst",
+			oidc.ClientAuthorizationPolicy{
+				DefaultPolicy: authorization.Denied,
+				Rules:         []oidc.ClientAuthorizationPolicyRule{{Networks: []*net.IPNet{lan}, Policy: authorization.OneFactor}},
+			},
+			subjectGroupA,
+			authorization.Denied,
+			false,
+		},
+		{
+			"ShouldBeUndeterminedWhenSubjectAndNetworkRuleMatchesSubject",
+			oidc.ClientAuthorizationPolicy{
+				DefaultPolicy: authorization.Denied,
+				Rules:         []oidc.ClientAuthorizationPolicyRule{{Subjects: groupA, Networks: []*net.IPNet{lan}, Policy: authorization.OneFactor}},
+			},
+			subjectGroupA,
+			authorization.Denied,
+			false,
+		},
+		{
+			"ShouldSkipSubjectAndNetworkRuleNotMatchingSubject",
+			oidc.ClientAuthorizationPolicy{
+				DefaultPolicy: authorization.Denied,
+				Rules:         []oidc.ClientAuthorizationPolicyRule{{Subjects: groupA, Networks: []*net.IPNet{lan}, Policy: authorization.OneFactor}},
+			},
+			subjectGroupB,
+			authorization.Denied,
+			true,
+		},
+		{
+			"ShouldReturnSubjectRuleBeforeNetworkRule",
+			oidc.ClientAuthorizationPolicy{
+				DefaultPolicy: authorization.OneFactor,
+				Rules: []oidc.ClientAuthorizationPolicyRule{
+					{Subjects: groupA, Policy: authorization.Denied},
+					{Networks: []*net.IPNet{lan}, Policy: authorization.OneFactor},
+				},
+			},
+			subjectGroupA,
+			authorization.Denied,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			level, determined := tc.policy.GetRequiredLevelWithoutNetwork(tc.subject)
+
+			assert.Equal(t, tc.determined, determined)
+
+			if tc.determined {
+				assert.Equal(t, tc.expected, level)
+			}
+		})
+	}
+}

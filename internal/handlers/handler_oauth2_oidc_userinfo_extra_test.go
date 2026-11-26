@@ -6,6 +6,8 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -18,6 +20,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -104,7 +107,8 @@ func TestOpenIDConnectUserinfoExtra(t *testing.T) {
 
 		OpenIDConnectUserinfo(mock.Ctx, rwu, ru)
 
-		assert.NotEqual(t, http.StatusOK, rwu.Code)
+		assert.Equal(t, http.StatusUnauthorized, rwu.Code)
+		assert.Contains(t, rwu.Header().Get(fasthttp.HeaderWWWAuthenticate), `error="invalid_token"`)
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpUserInfoNotAccessToken, nil)
 	})
@@ -188,7 +192,24 @@ func TestOpenIDConnectUserinfoExtra(t *testing.T) {
 		require.Equal(t, http.StatusOK, rwu.Code)
 
 		assert.Equal(t, middlewares.ContentTypeApplicationJWT, rwu.Header().Get(fasthttp.HeaderContentType))
-		assert.Len(t, strings.Split(rwu.Body.String(), "."), 3)
+		assert.Equal(t, "no-store", rwu.Header().Get(fasthttp.HeaderCacheControl))
+
+		parts := strings.Split(rwu.Body.String(), ".")
+
+		require.Len(t, parts, 3)
+
+		payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+
+		require.NoError(t, err)
+
+		claims := map[string]any{}
+
+		require.NoError(t, json.Unmarshal(payload, &claims))
+
+		assert.Equal(t, "https://login.example.com:8080", claims[oidc.ClaimIssuer])
+		assert.Equal(t, []any{testOIDCAuthorizationCodeID}, claims[oidc.ClaimAudience])
+		assert.NotEmpty(t, claims[oidc.ClaimSubject])
+		assert.NotEmpty(t, claims[oidc.ClaimJWTID])
 	})
 
 	t.Run("ShouldReturnClientCredentialsClaims", func(t *testing.T) {
@@ -258,69 +279,139 @@ func TestOpenIDConnectUserinfoClaimsErrors(t *testing.T) {
 		return token
 	}
 
-	t.Run("ShouldFallBackToClientCredentialsClaimsWhenUserCannotBeLoaded", func(t *testing.T) {
-		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
-		defer mock.Close()
+	testCases := []struct {
+		name     string
+		identity func(identifier model.UserOpaqueIdentifier) (*model.UserOpaqueIdentifier, error)
+		details  error
+		status   int
+		expected string
+		log      string
+	}{
+		{
+			"ShouldRejectTokenWhenUserDisabled",
+			nil,
+			authentication.ErrUserNotFound,
+			http.StatusUnauthorized,
+			"invalid_token",
+			"user not found",
+		},
+		{
+			"ShouldRejectTokenWhenSubjectUnknown",
+			func(_ model.UserOpaqueIdentifier) (*model.UserOpaqueIdentifier, error) {
+				return nil, nil
+			},
+			nil,
+			http.StatusUnauthorized,
+			"invalid_token",
+			"user not found",
+		},
+		{
+			"ShouldFailWhenStorageFails",
+			func(_ model.UserOpaqueIdentifier) (*model.UserOpaqueIdentifier, error) {
+				return nil, fmt.Errorf("error in db")
+			},
+			nil,
+			http.StatusInternalServerError,
+			"server_error",
+			"error in db",
+		},
+		{
+			"ShouldFailWhenUserProviderFails",
+			nil,
+			fmt.Errorf("ldap unavailable"),
+			http.StatusInternalServerError,
+			"server_error",
+			"ldap unavailable",
+		},
+	}
 
-		client := newTestOIDCAuthorizationCodeClient(t)
-		client.ConsentMode = "implicit"
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+			defer mock.Close()
 
-		config := newTestOIDCConfig(t)
-		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
+			client := newTestOIDCAuthorizationCodeClient(t)
+			client.ConsentMode = "implicit"
 
-		setupTestOIDCProvider(t, mock, config)
-		setupTestOIDCSessionStore(t, mock)
-		setupTestOIDCConsentStore(t, mock)
-		setupTestOIDCUserDetails(t, mock)
+			config := newTestOIDCConfig(t)
+			config.Clients = []schema.IdentityProvidersOpenIDConnectClient{client}
 
-		identifier := model.UserOpaqueIdentifier{Service: "openid", Username: testUsername, Identifier: uuid.Must(uuid.NewRandom())}
+			setupTestOIDCProvider(t, mock, config)
+			setupTestOIDCSessionStore(t, mock)
+			setupTestOIDCConsentStore(t, mock)
 
-		mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifierBySignature(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-			AnyTimes().
-			Return(&identifier, nil)
+			identifier := model.UserOpaqueIdentifier{Service: "openid", Username: testUsername, Identifier: uuid.Must(uuid.NewRandom())}
 
-		var broken bool
+			var broken bool
 
-		mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifier(gomock.Any(), gomock.Any()).
-			AnyTimes().
-			DoAndReturn(func(_ any, _ uuid.UUID) (*model.UserOpaqueIdentifier, error) {
-				if broken {
-					return nil, fmt.Errorf("error in db")
-				}
+			mock.StorageMock.EXPECT().
+				LoadUserOpaqueIdentifierBySignature(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				AnyTimes().
+				Return(&identifier, nil)
 
-				value := identifier
+			mock.StorageMock.EXPECT().
+				LoadUserOpaqueIdentifier(gomock.Any(), gomock.Any()).
+				AnyTimes().
+				DoAndReturn(func(_ any, _ uuid.UUID) (*model.UserOpaqueIdentifier, error) {
+					if broken && tc.identity != nil {
+						return tc.identity(identifier)
+					}
 
-				return &value, nil
-			})
+					value := identifier
 
-		token := mustGetStandardFlowToken(t, mock)
+					return &value, nil
+				})
 
-		broken = true
+			details := newTestOIDCUserDetails()
 
-		rwu, ru := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCUserinfoEndpoint, nil)
+			mock.UserProviderMock.EXPECT().
+				GetDetails(testUsername).
+				AnyTimes().
+				Return(details, nil)
 
-		ru.Header.Set(fasthttp.HeaderAuthorization, "Bearer "+token)
+			mock.UserProviderMock.EXPECT().
+				GetDetailsExtended(testUsername).
+				AnyTimes().
+				DoAndReturn(func(_ string) (*authentication.UserDetailsExtended, error) {
+					if broken && tc.details != nil {
+						return nil, tc.details
+					}
 
-		OpenIDConnectUserinfo(mock.Ctx, rwu, ru)
+					return &authentication.UserDetailsExtended{UserDetails: details}, nil
+				})
 
-		require.Equal(t, http.StatusOK, rwu.Code)
+			token := mustGetStandardFlowToken(t, mock)
 
-		claims := getTestOAuth2ErrorResponse(t, rwu)
+			broken = true
 
-		assert.NotEmpty(t, claims[oidc.ClaimSubject])
+			rwu, ru := newTestOAuth2Request(t, fasthttp.MethodGet, testOIDCUserinfoEndpoint, nil)
 
-		var logged bool
+			ru.Header.Set(fasthttp.HeaderAuthorization, "Bearer "+token)
 
-		for _, entry := range mock.Hook.AllEntries() {
-			if strings.Contains(entry.Message, "error occurred loading user information") {
-				logged = true
+			OpenIDConnectUserinfo(mock.Ctx, rwu, ru)
+
+			assert.Equal(t, tc.status, rwu.Code)
+
+			response := getTestOAuth2ErrorResponse(t, rwu)
+
+			assert.Equal(t, tc.expected, response["error"])
+			assert.NotContains(t, response, oidc.ClaimSubject)
+
+			if tc.status == http.StatusUnauthorized {
+				assert.Contains(t, rwu.Header().Get(fasthttp.HeaderWWWAuthenticate), `error="invalid_token"`)
 			}
-		}
 
-		assert.True(t, logged, "the failure to load the user should be logged for a standard flow token")
-	})
+			var logged bool
+
+			for _, entry := range mock.Hook.AllEntries() {
+				if err, ok := entry.Data["error"].(error); ok && strings.Contains(err.Error(), tc.log) {
+					logged = true
+				}
+			}
+
+			assert.True(t, logged, "the failure to load the user should be logged")
+		})
+	}
 }
 
 func TestOpenIDConnectUserinfoSigningError(t *testing.T) {
@@ -361,5 +452,5 @@ func TestOpenIDConnectUserinfoSigningError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, rwu.Code)
 
 	assert.NotContains(t, rwu.Header().Get(fasthttp.HeaderContentType), "jwt")
-	assert.Equal(t, "{}", strings.TrimSpace(rwu.Body.String()))
+	assert.Equal(t, "server_error", getTestOAuth2ErrorResponse(t, rwu)["error"])
 }

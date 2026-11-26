@@ -46,6 +46,10 @@ func UserDetailerFromSubject(ctx Context, subject uuid.UUID) (detailer UserDetai
 		return nil, err
 	}
 
+	if identifier == nil {
+		return nil, fmt.Errorf("error loading user opaque identifier with value '%s': %w", subject, authentication.ErrUserNotFound)
+	}
+
 	if details, err = ctx.GetUserProvider().GetDetailsExtended(identifier.Username); err != nil {
 		return nil, err
 	}

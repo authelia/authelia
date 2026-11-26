@@ -83,6 +83,26 @@ func (p *ClientAuthorizationPolicy) GetRequiredLevel(subject authorization.Subje
 	return p.DefaultPolicy
 }
 
+// GetRequiredLevelWithoutNetwork returns the required authorization.Level given an authorization.Subject whose IP is
+// unknown, such as at the Token Endpoint where the request comes from the client rather than the user. The rules are
+// evaluated in order by their subjects alone. When a rule with networks matches the subject before any other rule
+// decides, the level depends on the IP of the user and determined is false.
+func (p *ClientAuthorizationPolicy) GetRequiredLevelWithoutNetwork(subject authorization.Subject) (level authorization.Level, determined bool) {
+	for _, rule := range p.Rules {
+		if !rule.matchesSubjectsOnly(subject) {
+			continue
+		}
+
+		if len(rule.Networks) != 0 {
+			return p.DefaultPolicy, false
+		}
+
+		return rule.Policy, true
+	}
+
+	return p.DefaultPolicy, true
+}
+
 // ClientAuthorizationPolicyRule describes the authorization.Level for particular criteria relevant to OpenID Connect 1.0 Clients.
 type ClientAuthorizationPolicyRule struct {
 	Subjects []authorization.AccessControlSubjects
@@ -92,24 +112,29 @@ type ClientAuthorizationPolicyRule struct {
 
 // MatchesSubjects returns true if the rule matches the subjects.
 func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Subject) (match bool) {
-	if len(p.Subjects) != 0 && subject.IsAnonymous() {
-		return false
-	}
-
-	matchesSubject := false
-
-	for _, rule := range p.Subjects {
-		if rule.IsMatch(subject) {
-			matchesSubject = true
-			break
-		}
-	}
-
-	if len(p.Subjects) != 0 && !matchesSubject {
+	if !p.matchesSubjectsOnly(subject) {
 		return false
 	}
 
 	return p.Networks.IsMatch(subject)
+}
+
+func (p *ClientAuthorizationPolicyRule) matchesSubjectsOnly(subject authorization.Subject) (match bool) {
+	if len(p.Subjects) == 0 {
+		return true
+	}
+
+	if subject.IsAnonymous() {
+		return false
+	}
+
+	for _, rule := range p.Subjects {
+		if rule.IsMatch(subject) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // IsMatch returns true if all elements of an AccessControlRule match the object and subject.

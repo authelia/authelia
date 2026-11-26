@@ -162,6 +162,21 @@ func TestUserDetailerFromSubject(t *testing.T) {
 	}
 }
 
+func TestUserDetailerFromSubjectShouldErrUserNotFoundWhenIdentifierUnknown(t *testing.T) {
+	subjectUUID := uuid.MustParse("fb1bdb5e-96b3-4c04-b7a3-3e532b4d2e70")
+
+	ctrl := gomock.NewController(t)
+
+	store := mocks.NewMockStorage(ctrl)
+
+	store.EXPECT().LoadUserOpaqueIdentifier(gomock.Any(), subjectUUID).Return(nil, nil)
+
+	detailer, err := oidc.UserDetailerFromSubject(&TestContext{Storage: store, UserProvider: mocks.NewMockUserProvider(ctrl)}, subjectUUID)
+
+	assert.ErrorIs(t, err, authentication.ErrUserNotFound)
+	assert.Nil(t, detailer)
+}
+
 func TestUserDetailerFromSubjectString(t *testing.T) {
 	subjectUUID := uuid.MustParse("fb1bdb5e-96b3-4c04-b7a3-3e532b4d2e70")
 

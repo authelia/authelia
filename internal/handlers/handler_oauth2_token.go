@@ -5,11 +5,15 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
@@ -134,28 +138,21 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return false
 	}
 
+	var detailer oidc.UserDetailer
+
+	if detailer, handled = handleOAuth2TokenUser(ctx, rw, requester, client, session); handled {
+		return true
+	}
+
 	if client.GetEnableJWTProfileOAuthAccessTokens() {
 		ctx.GetLogger().WithFields(map[string]any{"subject": session.Subject, "scope": requester.GetRequestedScopes()}).Debug("Hydrate JWT Profile Access Token claims")
 
-		if len(session.Subject) == 0 {
+		if detailer == nil {
 			ctx.GetLogger().
 				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
 				Trace("Access Request JWT Profile Claims Processing Skipped as no subject was provided")
 
 			return false
-		}
-
-		var detailer oidc.UserDetailer
-
-		if detailer, err = oidc.UserDetailerFromSubjectString(ctx, session.Subject); err != nil {
-			ctx.GetLogger().
-				WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
-				WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
-				Error("Access Request encountered an error while trying to obtain the detailer to hydrate the JWT Profile Access Token claims")
-
-			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
-
-			return true
 		}
 
 		extra := map[string]any{}
@@ -186,4 +183,57 @@ func handleOAuth2TokenHydration(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	return false
+}
+
+func handleOAuth2TokenUser(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, requester oauthelia2.AccessRequester, client oidc.Client, session *oidc.Session) (detailer oidc.UserDetailer, handled bool) {
+	if len(session.Subject) == 0 {
+		return nil, false
+	}
+
+	var err error
+
+	if detailer, err = oidc.UserDetailerFromSubjectString(ctx, session.Subject); err != nil {
+		ctx.GetLogger().
+			WithFields(map[string]any{"oauth2_access_request_id": requester.GetID()}).
+			WithError(err).
+			Error("Access Request encountered an error while trying to load the user the grant was issued to")
+
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			err = oauthelia2.ErrInvalidGrant.WithDebug("The user the grant was issued to could not be found or is disabled.")
+		} else {
+			err = oauthelia2.ErrServerError.WithDebugf("Error occurred loading the user the grant was issued to: %v.", err)
+		}
+
+		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+		return nil, true
+	}
+
+	policy := client.GetAuthorizationPolicy()
+
+	required, determined := policy.GetRequiredLevelWithoutNetwork(authorization.Subject{Username: detailer.GetUsername(), Groups: detailer.GetGroups()})
+
+	switch {
+	case !determined:
+		ctx.GetLogger().
+			WithFields(map[string]any{"oauth2_access_request_id": requester.GetID(), logging.FieldAuthorizationPolicy: policy.Name}).
+			Debug("Access Request client authorization policy check skipped as the policy depends on the network of the user")
+
+		return detailer, false
+	case required == authorization.Denied:
+		err = oauthelia2.ErrInvalidGrant.WithDebug("The client authorization policy does not permit the user the grant was issued to.")
+	case session.AuthenticationLevel != authentication.NotAuthenticated && !authorization.IsAuthLevelSufficient(session.AuthenticationLevel, required):
+		err = oauthelia2.ErrInvalidGrant.WithDebugf("The client authorization policy requires the '%s' authorization level but the grant was authorized at the '%s' authentication level.", required, session.AuthenticationLevel)
+	default:
+		return detailer, false
+	}
+
+	ctx.GetLogger().
+		WithFields(map[string]any{"oauth2_access_request_id": requester.GetID(), logging.FieldUsername: detailer.GetUsername(), logging.FieldGroups: detailer.GetGroups(), logging.FieldAuthorizationPolicy: policy.Name}).
+		WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+		Error("Access Request was refused as the client authorization policy does not permit the user the grant was issued to")
+
+	ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
+
+	return nil, true
 }

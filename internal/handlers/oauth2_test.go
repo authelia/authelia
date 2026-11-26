@@ -101,7 +101,7 @@ var regexpConsentMalformedChallengeID = regexp.MustCompile(`error occurred parsi
 
 var regexpAccessRequestIssuerMismatch = regexp.MustCompile(`^Access Request with id '[^']+' could not be processed: `)
 
-var regexpUserInfoNotAccessToken = regexp.MustCompile(`bearer authorization failed as the token is not an Access Token$`)
+var regexpUserInfoNotAccessToken = regexp.MustCompile(`The credential was of type 'refresh_token' rather than 'access_token'\.$`)
 
 var regexpUnsafeTargetURI = regexp.MustCompile(`^Error occurred determining if the URI '.*' is safe to redirect to as it could not be parsed$`)
 

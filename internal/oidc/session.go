@@ -16,6 +16,7 @@ import (
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/token/jwt"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
@@ -76,6 +77,10 @@ type Session struct {
 	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
 	GrantedClaims         []string        `json:"granted_claims,omitempty"`
 	Extra                 map[string]any  `json:"extra"`
+
+	// AuthenticationLevel is the authentication level of the user when the grant was authorized. It is
+	// authentication.NotAuthenticated for a grant without a user and for a grant stored before it was recorded.
+	AuthenticationLevel authentication.Level `json:"authentication_level,omitempty"`
 }
 
 // GetSubject returns the subject, if set. This is optional and only used during token introspection and to determine
@@ -286,6 +291,7 @@ func (s *Session) Clone() oauthelia2.Session {
 		AllowedTopLevelClaims: slices.Clone(s.AllowedTopLevelClaims),
 		GrantedClaims:         slices.Clone(s.GrantedClaims),
 		Extra:                 maps.Clone(s.Extra),
+		AuthenticationLevel:   s.AuthenticationLevel,
 	}
 
 	if s.DefaultSession != nil {

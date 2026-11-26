@@ -18,6 +18,7 @@ import (
 	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -122,7 +123,7 @@ func TestHandleOAuth2TokenHydration(t *testing.T) {
 					Return(nil, fmt.Errorf("error in db"))
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, session *oidc.Session) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Access Request encountered an error while trying to obtain the detailer to hydrate the JWT Profile Access Token claims", regexpAnyError)
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Access Request encountered an error while trying to load the user the grant was issued to", regexpAnyError)
 			},
 		},
 		{
@@ -232,6 +233,66 @@ func TestHandleOAuth2TokenHydration(t *testing.T) {
 				assert.Nil(t, session.AccessToken)
 			},
 		},
+		{
+			name:    "ShouldSkipLevelCheckForGrantWithoutRecordedLevel",
+			session: newTestOIDCSessionWithSubject(subject.String()),
+			handled: false,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, requester *mocks.MockAccessRequester, client *mocks.MockOIDCClient, strategy *mocks.MockClaimsStrategy) {
+				requester.EXPECT().GetGrantTypes().Return(oauthelia2.Arguments{oidc.GrantTypeRefreshToken}).AnyTimes()
+				requester.EXPECT().GetID().Return(testValue).AnyTimes()
+
+				client.EXPECT().GetEnableJWTProfileOAuthAccessTokens().Return(false).AnyTimes()
+				client.EXPECT().GetAuthorizationPolicy().Return(oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}).AnyTimes()
+
+				expectSubjectLookup(t, mock, subject)
+			},
+		},
+		{
+			name:    "ShouldDenyGrantWithoutRecordedLevelWhenPolicyDenies",
+			session: newTestOIDCSessionWithSubject(subject.String()),
+			handled: true,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, requester *mocks.MockAccessRequester, client *mocks.MockOIDCClient, strategy *mocks.MockClaimsStrategy) {
+				requester.EXPECT().GetGrantTypes().Return(oauthelia2.Arguments{oidc.GrantTypeRefreshToken}).AnyTimes()
+				requester.EXPECT().GetID().Return(testValue).AnyTimes()
+
+				client.EXPECT().GetAuthorizationPolicy().Return(oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.Denied}).AnyTimes()
+
+				expectSubjectLookup(t, mock, subject)
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, session *oidc.Session) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Access Request was refused as the client authorization policy does not permit the user the grant was issued to", regexpAnyError)
+			},
+		},
+		{
+			name:    "ShouldPermitGrantAtRequiredLevel",
+			session: newTestOIDCSessionWithSubjectAndLevel(subject.String(), authentication.TwoFactor),
+			handled: false,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, requester *mocks.MockAccessRequester, client *mocks.MockOIDCClient, strategy *mocks.MockClaimsStrategy) {
+				requester.EXPECT().GetGrantTypes().Return(oauthelia2.Arguments{oidc.GrantTypeRefreshToken}).AnyTimes()
+				requester.EXPECT().GetID().Return(testValue).AnyTimes()
+
+				client.EXPECT().GetEnableJWTProfileOAuthAccessTokens().Return(false).AnyTimes()
+				client.EXPECT().GetAuthorizationPolicy().Return(oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}).AnyTimes()
+
+				expectSubjectLookup(t, mock, subject)
+			},
+		},
+		{
+			name:    "ShouldDenyGrantBelowRequiredLevel",
+			session: newTestOIDCSessionWithSubjectAndLevel(subject.String(), authentication.OneFactor),
+			handled: true,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx, requester *mocks.MockAccessRequester, client *mocks.MockOIDCClient, strategy *mocks.MockClaimsStrategy) {
+				requester.EXPECT().GetGrantTypes().Return(oauthelia2.Arguments{oidc.GrantTypeRefreshToken}).AnyTimes()
+				requester.EXPECT().GetID().Return(testValue).AnyTimes()
+
+				client.EXPECT().GetAuthorizationPolicy().Return(oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}).AnyTimes()
+
+				expectSubjectLookup(t, mock, subject)
+			},
+			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx, session *oidc.Session) {
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Access Request was refused as the client authorization policy does not permit the user the grant was issued to", regexpAnyError)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -250,6 +311,8 @@ func TestHandleOAuth2TokenHydration(t *testing.T) {
 			if tc.setup != nil {
 				tc.setup(t, mock, requester, client, strategy)
 			}
+
+			client.EXPECT().GetAuthorizationPolicy().Return(oidc.ClientAuthorizationPolicy{DefaultPolicy: authorization.OneFactor}).AnyTimes()
 
 			handled := handleOAuth2TokenHydration(mock.Ctx, rw, requester, client, tc.session)
 
@@ -277,6 +340,13 @@ func expectSubjectLookup(t *testing.T, mock *mocks.MockAutheliaCtx, subject uuid
 func newTestOIDCSessionWithSubject(subject string) (session *oidc.Session) {
 	session = oidc.NewSession()
 	session.Subject = subject
+
+	return session
+}
+
+func newTestOIDCSessionWithSubjectAndLevel(subject string, level authentication.Level) (session *oidc.Session) {
+	session = newTestOIDCSessionWithSubject(subject)
+	session.AuthenticationLevel = level
 
 	return session
 }
