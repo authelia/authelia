@@ -7,8 +7,10 @@ package handlers
 import (
 	"net/http"
 	"net/url"
+	"regexp"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -46,6 +48,8 @@ func TestOAuth2RevocationPOST(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
 
+		mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
+
 		setupTestOIDCProvider(t, mock, nil)
 
 		rw, r := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCRevocationEndpoint, url.Values{
@@ -81,9 +85,13 @@ func TestOAuth2RevocationPOST(t *testing.T) {
 			testOIDCFormParameterClientSecret: []string{testOIDCClientSecretValue},
 		})
 
+		mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
+
 		OAuth2RevocationPOST(mock.Ctx, rw, r)
 
 		require.Equal(t, http.StatusOK, rw.Code)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexp.MustCompile(`^Revocation Request with id '[^']+' was successfully processed$`), nil)
 
 		rwi, ri := newTestOAuth2Request(t, fasthttp.MethodPost, testOIDCIntrospectionEndpoint, url.Values{
 			testOIDCFormParameterToken:        []string{token},

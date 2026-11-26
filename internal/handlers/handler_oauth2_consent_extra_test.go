@@ -418,11 +418,19 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to determine if the device code session is active during the Consent Flow stage of the Device Authorization Flow", nil)
 	})
 
-	t.Run("ShouldHandleDeviceCodeSessionWithExistingChallenge", func(t *testing.T) {
+	t.Run("ShouldHandleDeviceCodeSessionWithExistingChallengeLoadError", func(t *testing.T) {
+		challengeID := uuid.Must(uuid.NewRandom())
+
 		mock, userCode := setup(t, func(device *model.OAuth2DeviceCodeSession) {
-			device.ChallengeID = uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+			device.ChallengeID = uuid.NullUUID{UUID: challengeID, Valid: true}
 		})
 		defer mock.Close()
+
+		setupTestOIDCSubjectStore(t, mock)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), challengeID).
+			Return(nil, fmt.Errorf("error in db"))
 
 		mock.Ctx.Request.SetBodyString(body(userCode))
 
@@ -430,7 +438,7 @@ func TestHandleOAuth2ConsentDeviceAuthorizationPOSTExtra(t *testing.T) {
 
 		mock.Assert200KO(t, messageOperationFailed)
 
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the device code session already has a challenge id", nil)
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the existing consent session of the device code session could not be loaded", "error in db")
 	})
 
 	t.Run("ShouldHandleInsufficientAuthenticationLevel", func(t *testing.T) {

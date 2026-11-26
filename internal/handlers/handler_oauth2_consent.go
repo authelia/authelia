@@ -486,16 +486,6 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
-	if device.ChallengeID.Valid {
-		ctx.GetLogger().
-			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID, logging.FieldSessionID: device.ID}).
-			Error("Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the device code session already has a challenge id")
-
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
-
 	if device.ClientID != bodyJSON.ClientID {
 		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldUsername: userSession.Username, "body_client_id": bodyJSON.ClientID, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
@@ -561,6 +551,12 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
 			Error("Error occurred trying to determine the subject during the Consent Flow stage of the Device Authorization Flow as the subject of the device code session does not match the subject of the user session")
 
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if device.ChallengeID.Valid && !handleOAuth2ConsentDeviceAuthorizationCanReplace(ctx, userSession, device, subject) {
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -646,6 +642,34 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 
 		return
 	}
+}
+
+func handleOAuth2ConsentDeviceAuthorizationCanReplace(ctx *middlewares.AutheliaCtx, userSession session.UserSession, device *model.OAuth2DeviceCodeSession, subject uuid.UUID) (replace bool) {
+	log := ctx.GetLogger().WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldFlowID: device.ChallengeID.UUID.String()})
+
+	previous, err := ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, device.ChallengeID.UUID)
+	if err != nil {
+		log.
+			WithError(err).
+			Error("Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the existing consent session of the device code session could not be loaded")
+
+		return false
+	}
+
+	switch {
+	case previous.Granted:
+		log.Error("Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the existing consent session of the device code session has already been granted")
+
+		return false
+	case !previous.Subject.Valid || previous.Subject.UUID != subject:
+		log.Error("Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the existing consent session of the device code session belongs to a different user")
+
+		return false
+	}
+
+	log.Debug("Replacing the existing consent session of the device code session as it was never granted")
+
+	return true
 }
 
 func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowID uuid.UUID) (userSession session.UserSession, details authentication.UserDetails, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
