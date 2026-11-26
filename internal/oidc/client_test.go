@@ -866,7 +866,7 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				}
 			}
 
-			actual := client.GetConsentResponseBody(tc.session, tc.form, tc.authTime, tc.disablePreConf)
+			actual := client.GetConsentResponseBody(tc.session, tc.form, tc.authTime, time.Unix(19000000020, 0), tc.disablePreConf)
 
 			assert.Equal(t, tc.expected, actual)
 		})

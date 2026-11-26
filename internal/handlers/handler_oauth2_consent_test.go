@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/url"
@@ -477,15 +478,79 @@ func TestOAuth2ConsentPOST(t *testing.T) {
 			SaveOAuth2ConsentPreConfiguration(gomock.Any(), gomock.Any()).
 			Return(int64(0), fmt.Errorf("failed to save"))
 
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flow_id":"%s","client_id":"%s","consent":true,"pre_configure":true}`, consent.ChallengeID, testOIDCAuthorizationCodeID))
+
+		OAuth2ConsentPOST(mock.Ctx)
+
+		mock.Assert200KO(t, messageOperationFailed)
+
+		AssertLogEntryMessageAndError(t, MustGetLogLastSeq(t, mock.Hook, 0), "Error occurred saving consent pre-configuration to the database", "failed to save")
+	})
+
+	t.Run("ShouldRejectConsentSessionOfAnotherUser", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		consent := newTestOIDCConsentSession(t, mock, uuid.Nil)
+		consent.Subject = uuid.NullUUID{UUID: uuid.Must(uuid.NewRandom()), Valid: true}
+
+		expectTestOIDCConsentSubject(t, mock, uuid.Must(uuid.NewRandom()))
+
 		mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), true).
-			Return(nil)
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
 
 		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flow_id":"%s","client_id":"%s","consent":true,"pre_configure":true}`, consent.ChallengeID, testOIDCAuthorizationCodeID))
 
 		OAuth2ConsentPOST(mock.Ctx)
 
-		AssertLogEntryMessageAndError(t, MustGetLogLastSeq(t, mock.Hook, 0), "Error occurred saving consent pre-configuration to the database", "failed to save")
+		mock.Assert200KO(t, messageOperationFailed)
+
+		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session belongs to a different user", nil)
+	})
+
+	t.Run("ShouldAssignSubjectWhenConsentSessionHasNone", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		setupTestOIDCUserDetails(t, mock)
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		subject := uuid.Must(uuid.NewRandom())
+
+		consent := newTestOIDCConsentSession(t, mock, uuid.Nil)
+
+		expectTestOIDCConsentSubject(t, mock, subject)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			SaveOAuth2ConsentSessionResponse(gomock.Any(), gomock.Any(), true).
+			DoAndReturn(func(_ context.Context, saved *model.OAuth2ConsentSession, _ bool) error {
+				assert.Equal(t, uuid.NullUUID{UUID: subject, Valid: true}, saved.Subject)
+
+				return nil
+			})
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flow_id":"%s","client_id":"%s","consent":true}`, consent.ChallengeID, testOIDCAuthorizationCodeID))
+
+		OAuth2ConsentPOST(mock.Ctx)
+
+		assert.Equal(t, 200, mock.Ctx.Response.StatusCode())
+		assert.Contains(t, string(mock.Ctx.Response.Body()), `"status":"OK"`)
 	})
 }
 
@@ -500,6 +565,10 @@ func newTestOIDCConsentSession(t *testing.T, mock *mocks.MockAutheliaCtx, subjec
 		oidc.FormParameterState:        []string{"abcdefghijklmnopqrstuvwxyz"},
 	}
 
+	if subject != uuid.Nil {
+		expectTestOIDCConsentSubject(t, mock, subject)
+	}
+
 	return &model.OAuth2ConsentSession{
 		ID:              1,
 		ChallengeID:     uuid.Must(uuid.NewRandom()),
@@ -510,4 +579,15 @@ func newTestOIDCConsentSession(t *testing.T, mock *mocks.MockAutheliaCtx, subjec
 		Form:            form.Encode(),
 		RequestedScopes: model.StringSlicePipeDelimited{oidc.ScopeOpenID},
 	}
+}
+
+func expectTestOIDCConsentSubject(t *testing.T, mock *mocks.MockAutheliaCtx, subject uuid.UUID) {
+	t.Helper()
+
+	mock.StorageMock.EXPECT().
+		LoadUserOpaqueIdentifierBySignature(gomock.Any(), gomock.Eq("openid"), gomock.Any(), gomock.Any()).
+		AnyTimes().
+		DoAndReturn(func(_ context.Context, service, sectorID, username string) (*model.UserOpaqueIdentifier, error) {
+			return &model.UserOpaqueIdentifier{Service: service, SectorID: sectorID, Username: username, Identifier: subject}, nil
+		})
 }

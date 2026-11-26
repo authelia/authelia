@@ -286,6 +286,11 @@ type Provider interface {
 	// has been granted by the authorization endpoint.
 	SaveOAuth2ConsentSessionGranted(ctx context.Context, id int) (err error)
 
+	// ClearOAuth2ConsentSessionSubject removes the subject from an OAuth2.0 consent session in the storage provider
+	// given the challenge ID, provided the consent session belongs to the given subject and has not been responded to
+	// or granted. It reports whether a consent session was updated.
+	ClearOAuth2ConsentSessionSubject(ctx context.Context, challengeID, subject uuid.UUID) (cleared bool, err error)
+
 	// LoadOAuth2ConsentSessionByChallengeID returns an OAuth2.0 consent session in the storage provider given the
 	// challenge ID.
 	LoadOAuth2ConsentSessionByChallengeID(ctx context.Context, challengeID uuid.UUID) (consent *model.OAuth2ConsentSession, err error)

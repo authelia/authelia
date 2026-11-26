@@ -9,12 +9,20 @@ export type SignOutResponse = { safeTargetURL: boolean } | undefined;
 
 export type SignOutBody = {
     targetURL?: string;
+    flowID?: string;
 };
 
-export async function signOut(targetURL: string | undefined, signal?: AbortSignal): Promise<SignOutResponse> {
+export async function signOut(
+    targetURL: string | undefined,
+    signal?: AbortSignal,
+    flowID?: string,
+): Promise<SignOutResponse> {
     const body: SignOutBody = {};
     if (targetURL) {
         body.targetURL = targetURL;
+    }
+    if (flowID) {
+        body.flowID = flowID;
     }
 
     return PostWithOptionalResponse<SignOutResponse>(LogoutPath, body, signal);

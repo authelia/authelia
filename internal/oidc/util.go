@@ -462,18 +462,21 @@ func IsMaybeSignedJWT(value string) (is bool) {
 	return strings.Count(value, ".") == 2
 }
 
-// RequesterRequiresLogin returns true if the oauthelia2.Requester requires the user to authenticate again.
-func RequesterRequiresLogin(requester oauthelia2.Requester, requested, authenticated time.Time) (required bool) {
+// RequesterRequiresLogin returns true if the oauthelia2.Requester requires the user to authenticate again. See
+// RequestFormRequiresLogin for the meaning of the times.
+func RequesterRequiresLogin(requester oauthelia2.Requester, requested, authenticated, now time.Time) (required bool) {
 	if requester == nil {
 		return false
 	}
 
-	return RequestFormRequiresLogin(requester.GetRequestForm(), requested, authenticated)
+	return RequestFormRequiresLogin(requester.GetRequestForm(), requested, authenticated, now)
 }
 
-// RequestFormRequiresLogin returns true if the form requires the user to authenticate again.
-func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Time) (required bool) {
-	requested, authenticated = requested.Truncate(time.Second), authenticated.Truncate(time.Second)
+// RequestFormRequiresLogin returns true if the form requires the user to authenticate again. A 'prompt' of 'login'
+// requires the user authenticated after the authorization request was made at requested, and a 'max_age' requires
+// no more than that many seconds have elapsed between when the user authenticated and now.
+func RequestFormRequiresLogin(form url.Values, requested, authenticated, now time.Time) (required bool) {
+	requested, authenticated, now = requested.Truncate(time.Second), authenticated.Truncate(time.Second), now.Truncate(time.Second)
 
 	if form.Has(FormParameterPrompt) {
 		if oauthelia2.Arguments(oauthelia2.RemoveEmpty(strings.Split(form.Get(FormParameterPrompt), " "))).Has(PromptLogin) && authenticated.Before(requested) {
@@ -492,7 +495,7 @@ func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Tim
 			age = 0
 		}
 
-		return authenticated.IsZero() || requested.IsZero() || authenticated.Add(time.Duration(age)*time.Second).Before(requested)
+		return authenticated.IsZero() || requested.IsZero() || now.IsZero() || authenticated.Add(time.Duration(age)*time.Second).Before(now)
 	}
 
 	return false

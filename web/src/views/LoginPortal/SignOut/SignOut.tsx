@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 
 import { IndexRoute } from "@constants/Routes";
-import { RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";
+import { FlowID, RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";
 import { useNotifications } from "@contexts/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useRedirector } from "@hooks/Redirector";
@@ -22,6 +22,7 @@ const SignOut = function () {
 
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useQueryParam(RedirectionURL);
+    const flowID = useQueryParam(FlowID);
     const redirector = useRedirector();
     const navigate = useRouterNavigate();
     const [timedOut, setTimedOut] = useState(false);
@@ -59,7 +60,7 @@ const SignOut = function () {
 
         (async () => {
             try {
-                const res = await signOut(redirectionURL, controller.signal);
+                const res = await signOut(redirectionURL, controller.signal, flowID);
                 if (res?.safeTargetURL) {
                     setSafeRedirect(true);
                 }
@@ -79,7 +80,7 @@ const SignOut = function () {
                 clearTimeout(timeoutId);
             }
         };
-    }, [redirectionURL, createErrorNotification, translate]);
+    }, [redirectionURL, flowID, createErrorNotification, translate]);
 
     useEffect(() => {
         if (timedOut) {

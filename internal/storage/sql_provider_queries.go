@@ -668,6 +668,11 @@ const (
 			preconfiguration = ?
 		WHERE challenge_id = ? AND responded_at IS NULL;`
 
+	queryFmtUpdateOAuth2ConsentSessionSubjectClear = `
+		UPDATE %s
+		SET subject = NULL
+		WHERE challenge_id = ? AND subject = ? AND responded_at IS NULL AND granted = FALSE;`
+
 	queryFmtUpdateOAuth2ConsentSessionGranted = `
 		UPDATE %s
 		SET granted = TRUE

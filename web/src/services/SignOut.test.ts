@@ -26,6 +26,16 @@ it("signs out without target URL", async () => {
     expect(result).toBeUndefined();
 });
 
+it("signs out with flow id", async () => {
+    (PostWithOptionalResponse as any).mockResolvedValue(undefined);
+    await signOut(undefined, undefined, "6c2b5c4e-1f0a-4f6e-9a5c-3d7b2e1f0a9c");
+    expect(PostWithOptionalResponse).toHaveBeenLastCalledWith(
+        "/logout",
+        { flowID: "6c2b5c4e-1f0a-4f6e-9a5c-3d7b2e1f0a9c" },
+        undefined,
+    );
+});
+
 it("forwards the abort signal when provided", async () => {
     const signal = new AbortController().signal;
     (PostWithOptionalResponse as any).mockResolvedValue(undefined);

@@ -53,23 +53,15 @@ func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 		return
 	}
 
-	requester := responder.GetAccessRequester()
+	if requester := responder.GetAccessRequester(); requester != nil {
+		if session, ok := requester.GetSession().(*oidc.Session); ok && !session.ValidIssuer(issuer) {
+			ctx.GetLogger().Debugf("Introspection Request with id '%s' yielded an inactive token as the original request and the introspection request occurred at endpoints where the origin or effective issuer did not match", requestID)
 
-	if requester != nil {
-		if s := requester.GetSession(); s != nil {
-			if session, ok := s.(*oidc.Session); ok {
-				if !session.ValidIssuer(issuer) {
-					err = oauthelia2.ErrInvalidRequest.WithDebug("The original request and the introspection request occurred at endpoints where the origin or effective issuer did not match.")
-
-					ctx.GetLogger().WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Errorf("Introspection Request with id '%s' failed with error", requestID)
-
-					ctx.Providers.OpenIDConnect.WriteIntrospectionError(ctx, rw, err)
-
-					return
-				}
-			}
+			responder = handleOAuth2IntrospectionInactive(responder)
 		}
+	}
 
+	if requester := responder.GetAccessRequester(); requester != nil {
 		ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t) requested at %s created with request id '%s' on client with id '%s'", requestID, responder.GetTokenUse(), responder.IsActive(), requester.GetRequestedAt().String(), requester.GetID(), requester.GetClient().GetID())
 	} else {
 		ctx.GetLogger().Tracef("Introspection Request with id '%s' yielded a %s (active: %t)", requestID, responder.GetTokenUse(), responder.IsActive())
@@ -80,4 +72,18 @@ func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 	}
 
 	ctx.Providers.OpenIDConnect.WriteIntrospectionResponse(ctx, rw, responder)
+}
+
+func handleOAuth2IntrospectionInactive(responder oauthelia2.IntrospectionResponder) (inactive *oauthelia2.IntrospectionResponse) {
+	inactive = &oauthelia2.IntrospectionResponse{Active: false}
+
+	if r, ok := responder.(oauthelia2.IntrospectionResponderClient); ok {
+		inactive.Client = r.GetClient()
+	}
+
+	if r, ok := responder.(interface{ IsJWTRequested() bool }); ok {
+		inactive.JWTRequested = r.IsJWTRequested()
+	}
+
+	return inactive
 }

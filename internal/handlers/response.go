@@ -353,7 +353,7 @@ func resolveFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, use
 		return newFlowResponseFailure(messageAuthenticationFailed)
 	}
 
-	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime(), ctx.GetClock().Now()) {
 		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDecision)
 
 		query := targetURL.Query()

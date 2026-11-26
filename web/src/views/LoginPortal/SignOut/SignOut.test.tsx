@@ -9,6 +9,7 @@ import SignOut from "@views/LoginPortal/SignOut/SignOut";
 
 const mocks = vi.hoisted(() => ({
     createErrorNotification: vi.fn(),
+    flowID: null as null | string,
     navigate: vi.fn(),
     redirectionURL: null as null | string,
     redirector: vi.fn(),
@@ -28,6 +29,7 @@ vi.mock("@constants/Routes", () => ({
 }));
 
 vi.mock("@constants/SearchParams", () => ({
+    FlowID: "flow_id",
     RedirectionRestoreURL: "rd_restore",
     RedirectionURL: "rd",
 }));
@@ -39,7 +41,7 @@ vi.mock("@contexts/NotificationsContext", () => ({
 }));
 
 vi.mock("@hooks/QueryParam", () => ({
-    useQueryParam: () => mocks.redirectionURL,
+    useQueryParam: (key: string) => (key === "flow_id" ? mocks.flowID : mocks.redirectionURL),
 }));
 
 vi.mock("@hooks/Redirector", () => ({
@@ -71,6 +73,7 @@ beforeEach(() => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.redirectionURL = null;
+    mocks.flowID = null;
     mocks.searchParams = new URLSearchParams();
     signOutMock.mockResolvedValue({ safeTargetURL: false } as any);
 });
@@ -93,7 +96,19 @@ describe("rendering", () => {
 
         render(<SignOut />);
 
-        await waitFor(() => expect(signOutMock).toHaveBeenCalledWith("https://app.example.com", expect.anything()));
+        await waitFor(() =>
+            expect(signOutMock).toHaveBeenCalledWith("https://app.example.com", expect.anything(), null),
+        );
+    });
+
+    it("signs out with the flow id", async () => {
+        mocks.flowID = "6c2b5c4e-1f0a-4f6e-9a5c-3d7b2e1f0a9c";
+
+        render(<SignOut />);
+
+        await waitFor(() =>
+            expect(signOutMock).toHaveBeenCalledWith(null, expect.anything(), "6c2b5c4e-1f0a-4f6e-9a5c-3d7b2e1f0a9c"),
+        );
     });
 });
 

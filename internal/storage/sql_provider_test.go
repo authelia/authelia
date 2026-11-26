@@ -1133,6 +1133,34 @@ func TestSQLProviderOAuth2ConsentSession(t *testing.T) {
 		assert.Equal(t, "test-client", loaded.ClientID)
 	})
 
+	t.Run("ShouldClearConsentSubjectOnlyForOwner", func(t *testing.T) {
+		subject, other := uuid.MustParse("e79b6494-8852-4439-860c-159f2cba83dc"), uuid.MustParse("5f1a7d6c-30c8-4d9b-9b0c-6f2f7a1f5e11")
+
+		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
+		require.NoError(t, err)
+
+		loaded.Subject = uuid.NullUUID{UUID: subject, Valid: true}
+
+		_, err = provider.conn(ctx).ExecContext(ctx, "UPDATE oauth2_consent_session SET subject = ? WHERE id = ?;", loaded.Subject, loaded.ID)
+		require.NoError(t, err)
+
+		cleared, err := provider.ClearOAuth2ConsentSessionSubject(ctx, challengeID, other)
+		require.NoError(t, err)
+		assert.False(t, cleared)
+
+		reloaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
+		require.NoError(t, err)
+		assert.Equal(t, uuid.NullUUID{UUID: subject, Valid: true}, reloaded.Subject)
+
+		cleared, err = provider.ClearOAuth2ConsentSessionSubject(ctx, challengeID, subject)
+		require.NoError(t, err)
+		assert.True(t, cleared)
+
+		reloaded, err = provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
+		require.NoError(t, err)
+		assert.False(t, reloaded.Subject.Valid)
+	})
+
 	t.Run("ShouldSaveConsentResponse", func(t *testing.T) {
 		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
 		require.NoError(t, err)
@@ -1149,6 +1177,16 @@ func TestSQLProviderOAuth2ConsentSession(t *testing.T) {
 		assert.Equal(t, model.StringSlicePipeDelimited{"openid", "profile"}, reloaded.GrantedScopes)
 		assert.Equal(t, model.StringSlicePipeDelimited{"aud-a"}, reloaded.GrantedAudience)
 		assert.Equal(t, model.StringSlicePipeDelimited{"https://api.example.com"}, reloaded.GrantedResource)
+	})
+
+	t.Run("ShouldNotClearConsentSubjectAfterResponse", func(t *testing.T) {
+		loaded, err := provider.LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID)
+		require.NoError(t, err)
+		require.True(t, loaded.RespondedAt.Valid)
+
+		cleared, err := provider.ClearOAuth2ConsentSessionSubject(ctx, challengeID, loaded.Subject.UUID)
+		require.NoError(t, err)
+		assert.False(t, cleared)
 	})
 
 	t.Run("ShouldSaveConsentGranted", func(t *testing.T) {

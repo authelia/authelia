@@ -5,14 +5,18 @@
 package handlers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/mock/gomock"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -173,4 +177,110 @@ func (s *LogoutSuite) TestShouldDestroySession() {
 	b := s.mock.Ctx.Response.Header.PeekCookie("authelia_session")
 
 	assert.True(s.T(), strings.HasPrefix(string(b), "authelia_session=;"))
+}
+
+func TestLogoutPOSTClearConsentSubject(t *testing.T) {
+	t.Run("ShouldClearSubjectOfOwnConsentSession", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		subject := uuid.Must(uuid.NewRandom())
+		consent := newTestOIDCConsentSession(t, mock, subject)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			ClearOAuth2ConsentSessionSubject(gomock.Any(), consent.ChallengeID, subject).
+			Return(true, nil)
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flowID":"%s"}`, consent.ChallengeID))
+
+		LogoutPOST(mock.Ctx)
+
+		assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
+
+		us, err := mock.Ctx.GetSession()
+		require.NoError(t, err)
+		assert.True(t, us.IsAnonymous())
+	})
+
+	t.Run("ShouldNotClearSubjectWhenConsentSessionHasNone", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		consent := newTestOIDCConsentSession(t, mock, uuid.Nil)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flowID":"%s"}`, consent.ChallengeID))
+
+		LogoutPOST(mock.Ctx)
+
+		assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
+	})
+
+	t.Run("ShouldNotClearSubjectWhenAnonymous", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flowID":"%s"}`, uuid.Must(uuid.NewRandom())))
+
+		LogoutPOST(mock.Ctx)
+
+		assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
+	})
+
+	t.Run("ShouldNotClearSubjectWithMalformedFlowID", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		mock.Ctx.Request.SetBodyString(`{"flowID":"not-a-uuid"}`)
+
+		LogoutPOST(mock.Ctx)
+
+		assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
+	})
+
+	t.Run("ShouldContinueLogoutWhenClearFails", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
+		defer mock.Close()
+
+		config := newTestOIDCConfig(t)
+		config.Clients = []schema.IdentityProvidersOpenIDConnectClient{newTestOIDCAuthorizationCodeClient(t)}
+
+		setupTestOIDCProvider(t, mock, config)
+
+		subject := uuid.Must(uuid.NewRandom())
+		consent := newTestOIDCConsentSession(t, mock, subject)
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), consent.ChallengeID).
+			Return(consent, nil)
+
+		mock.StorageMock.EXPECT().
+			ClearOAuth2ConsentSessionSubject(gomock.Any(), consent.ChallengeID, subject).
+			Return(false, fmt.Errorf("error in db"))
+
+		mock.Ctx.Request.SetBodyString(fmt.Sprintf(`{"flowID":"%s"}`, consent.ChallengeID))
+
+		LogoutPOST(mock.Ctx)
+
+		assert.Equal(t, `{"status":"OK","data":{"safeTargetURL":false}}`, string(mock.Ctx.Response.Body()))
+
+		AssertLogEntryMessageAndError(t, MustGetLogLastSeq(t, mock.Hook, 0), "Error occurred clearing the consent session subject during logout", "error in db")
+	})
 }

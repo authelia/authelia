@@ -88,7 +88,7 @@ func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form, userSession.LastAuthenticatedTime(), false)); err != nil {
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form, userSession.LastAuthenticatedTime(), ctx.GetClock().Now(), false)); err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
@@ -130,7 +130,7 @@ func handleOAuth2ConsentUseCodeGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(device, form, userSession.LastAuthenticatedTime(), true)); err != nil {
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(device, form, userSession.LastAuthenticatedTime(), ctx.GetClock().Now(), true)); err != nil {
 		ctx.GetLogger().
 			WithError(err).
 			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username}).
@@ -275,7 +275,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		return
 	}
 
-	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime(), ctx.GetClock().Now()) {
 		ctx.GetLogger().
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 			Error("The authorization request requires the user performs a login even prior to providing consent")
@@ -299,7 +299,9 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 					WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
 					Warn("Ignored saving pre-configuration as it is not permitted by the client configuration")
 			default:
-				handleSavePreConfiguredConsent(ctx, userSession, consent, client, form, bodyJSON.Claims)
+				if handled := handleSavePreConfiguredConsent(ctx, userSession, consent, client, form, bodyJSON.Claims); handled {
+					return
+				}
 			}
 		}
 	}
@@ -349,7 +351,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	}
 }
 
-func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, form url.Values, claims []string) {
+func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, form url.Values, claims []string) (handled bool) {
 	var err error
 
 	config := model.OAuth2ConsentPreConfig{
@@ -395,7 +397,7 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 
 		ctx.SetJSONError(messageOperationFailed)
 
-		return
+		return true
 	}
 
 	consent.PreConfiguration = sql.NullInt64{Int64: id, Valid: true}
@@ -403,6 +405,8 @@ func handleSavePreConfiguredConsent(ctx *middlewares.AutheliaCtx, userSession se
 	ctx.GetLogger().
 		WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldExpiration: config.ExpiresAt.Time.Unix(), logging.FieldScope: consent.GrantedScopes, "claims": consent.GrantedClaims}).
 		Debug("Saved consent pre-configuration with expiration")
+
+	return false
 }
 
 //nolint:gocyclo
@@ -719,6 +723,31 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 		ctx.SetJSONError(messageOperationFailed)
 
 		return userSession, details, nil, nil, true
+	}
+
+	if consent.Subject.Valid {
+		var subject uuid.UUID
+
+		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.GetLogger().
+				WithError(err).
+				WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
+				Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as an error occurred determining the subject")
+
+			ctx.SetJSONError(messageOperationFailed)
+
+			return userSession, details, nil, nil, true
+		}
+
+		if subject != consent.Subject.UUID {
+			ctx.GetLogger().
+				WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldSubject: consent.Subject.UUID.String()}).
+				Error("Error occurred performing consent during the Consent Flow stage of the Authorization Flow as the consent session belongs to a different user")
+
+			ctx.SetJSONError(messageOperationFailed)
+
+			return userSession, details, nil, nil, true
+		}
 	}
 
 	return userSession, details, consent, client, false

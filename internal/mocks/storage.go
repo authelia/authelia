@@ -79,6 +79,21 @@ func (mr *MockStorageMockRecorder) BeginTX(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTX", reflect.TypeOf((*MockStorage)(nil).BeginTX), ctx)
 }
 
+// ClearOAuth2ConsentSessionSubject mocks base method.
+func (m *MockStorage) ClearOAuth2ConsentSessionSubject(ctx context.Context, challengeID, subject uuid.UUID) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ClearOAuth2ConsentSessionSubject", ctx, challengeID, subject)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ClearOAuth2ConsentSessionSubject indicates an expected call of ClearOAuth2ConsentSessionSubject.
+func (mr *MockStorageMockRecorder) ClearOAuth2ConsentSessionSubject(ctx, challengeID, subject any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearOAuth2ConsentSessionSubject", reflect.TypeOf((*MockStorage)(nil).ClearOAuth2ConsentSessionSubject), ctx, challengeID, subject)
+}
+
 // Close mocks base method.
 func (m *MockStorage) Close() error {
 	m.ctrl.T.Helper()

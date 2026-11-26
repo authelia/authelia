@@ -151,13 +151,11 @@ func TestOAuth2IntrospectionPOST(t *testing.T) {
 
 		OAuth2IntrospectionPOST(mock.Ctx, rw, r)
 
-		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		assert.Equal(t, http.StatusOK, rw.Code)
 
 		response := getTestOAuth2ErrorResponse(t, rw)
 
-		assert.Equal(t, "invalid_request", response["error"])
-
-		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpIntrospectionRequestFailed, regexpIntrospectionIssuerMismatch)
+		assert.Equal(t, map[string]any{"active": false}, response)
 	})
 }
 

@@ -192,6 +192,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateOAuth2ConsentSessionResponseByID:          fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponseByID, tableOAuth2ConsentSession),
 		sqlUpdateOAuth2ConsentSessionResponseByChallengeID: fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionResponseByChallengeID, tableOAuth2ConsentSession),
 		sqlUpdateOAuth2ConsentSessionGranted:               fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionGranted, tableOAuth2ConsentSession),
+		sqlUpdateOAuth2ConsentSessionSubjectClear:          fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionSubjectClear, tableOAuth2ConsentSession),
 		sqlSelectOAuth2ConsentSessionByChallengeID:         fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
 
 		sqlInsertOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AccessTokenSession),
@@ -408,6 +409,7 @@ type SQLProvider struct {
 	sqlUpdateOAuth2ConsentSessionResponseByID          string
 	sqlUpdateOAuth2ConsentSessionResponseByChallengeID string
 	sqlUpdateOAuth2ConsentSessionGranted               string
+	sqlUpdateOAuth2ConsentSessionSubjectClear          string
 	sqlSelectOAuth2ConsentSessionByChallengeID         string
 
 	// Table: oauth2_authorization_code_session.
@@ -1448,6 +1450,26 @@ func (p *SQLProvider) SaveOAuth2ConsentSessionGranted(ctx context.Context, id in
 	}
 
 	return nil
+}
+
+// ClearOAuth2ConsentSessionSubject removes the subject from an OAuth2.0 consent session in the storage provider given
+// the challenge ID, provided the consent session belongs to the given subject and has not been responded to or granted.
+// It reports whether a consent session was updated.
+func (p *SQLProvider) ClearOAuth2ConsentSessionSubject(ctx context.Context, challengeID, subject uuid.UUID) (cleared bool, err error) {
+	var (
+		result sql.Result
+		n      int64
+	)
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionSubjectClear, challengeID, subject); err != nil {
+		return false, fmt.Errorf("error clearing the subject of oauth2 consent session with challenge id '%s': %w", challengeID, err)
+	}
+
+	if n, err = result.RowsAffected(); err != nil {
+		return false, fmt.Errorf("error clearing the subject of oauth2 consent session with challenge id '%s': %w", challengeID, err)
+	}
+
+	return n == 1, nil
 }
 
 // LoadOAuth2ConsentSessionByChallengeID returns an OAuth2.0 consent session in the storage provider given the challenge ID.

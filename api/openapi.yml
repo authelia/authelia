@@ -3667,6 +3667,15 @@ components:
           type: string
           examples:
             - 'https://redirect.{{ .Domain | default "example.com" }}'
+        flowID:
+          type: string
+          format: uuid
+          description: >
+            The flow ID of an OpenID Connect 1.0 consent flow being continued by another user. The subject of the
+            consent session is cleared when it belongs to the user being logged out.
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          examples:
+            - '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
     handlers.logoutResponseBody:
       type: object
       properties:

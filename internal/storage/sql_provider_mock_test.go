@@ -344,6 +344,18 @@ func TestSQLProviderSimpleExecErrors(t *testing.T) {
 			expectErr: "error updating oauth2 consent session (granted) with id '7': boom",
 		},
 		{
+			name: "ShouldReturnErrClearOAuth2ConsentSessionSubject",
+			setup: func(db *mocks.MockSQLXDB) {
+				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), uuid.Nil, uuid.Nil).Return(nil, errors.New("boom"))
+			},
+			invoke: func(p *storage.SQLProvider) error {
+				_, err := p.ClearOAuth2ConsentSessionSubject(context.Background(), uuid.Nil, uuid.Nil)
+
+				return err
+			},
+			expectErr: "error clearing the subject of oauth2 consent session with challenge id '00000000-0000-0000-0000-000000000000': boom",
+		},
+		{
 			name: "ShouldReturnErrRevokeOAuth2PARContext",
 			setup: func(db *mocks.MockSQLXDB) {
 				db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), "sig").Return(nil, errors.New("boom"))

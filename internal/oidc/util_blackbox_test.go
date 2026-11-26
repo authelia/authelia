@@ -326,7 +326,7 @@ func TestRequesterRequiresLogin(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, oidc.RequesterRequiresLogin(tc.have, time.Unix(tc.requested, 0), time.Unix(tc.authenticated, 0)))
+			assert.Equal(t, tc.expected, oidc.RequesterRequiresLogin(tc.have, time.Unix(tc.requested, 0), time.Unix(tc.authenticated, 0), time.Unix(tc.requested, 0)))
 		})
 	}
 }
@@ -412,7 +412,63 @@ func TestRequestFormRequiresLoginPrecision(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, oidc.RequestFormRequiresLogin(tc.form, tc.requested, tc.authenticated))
+			assert.Equal(t, tc.expected, oidc.RequestFormRequiresLogin(tc.form, tc.requested, tc.authenticated, tc.requested))
+		})
+	}
+}
+
+func TestRequestFormRequiresLoginNow(t *testing.T) {
+	testCases := []struct {
+		name                          string
+		form                          url.Values
+		requested, authenticated, now time.Time
+		expected                      bool
+	}{
+		{
+			name:          "ShouldRequireWithMaxAgeExceededAfterRequest",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"60"}},
+			requested:     time.Unix(1000, 0),
+			authenticated: time.Unix(970, 0),
+			now:           time.Unix(1300, 0),
+			expected:      true,
+		},
+		{
+			name:          "ShouldNotRequireWithMaxAgeWithinNow",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"60"}},
+			requested:     time.Unix(1000, 0),
+			authenticated: time.Unix(1250, 0),
+			now:           time.Unix(1300, 0),
+			expected:      false,
+		},
+		{
+			name:          "ShouldRequireWithMaxAgeNowZero",
+			form:          url.Values{oidc.FormParameterMaximumAge: []string{"60"}},
+			requested:     time.Unix(1000, 0),
+			authenticated: time.Unix(1000, 0),
+			now:           time.Time{},
+			expected:      true,
+		},
+		{
+			name:          "ShouldNotRequireWithPromptLoginAuthenticatedAfterRequest",
+			form:          url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}},
+			requested:     time.Unix(1000, 0),
+			authenticated: time.Unix(1010, 0),
+			now:           time.Unix(5000, 0),
+			expected:      false,
+		},
+		{
+			name:          "ShouldRequireWithPromptLoginAuthenticatedBeforeRequest",
+			form:          url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}},
+			requested:     time.Unix(1000, 0),
+			authenticated: time.Unix(990, 0),
+			now:           time.Unix(1000, 0),
+			expected:      true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RequestFormRequiresLogin(tc.form, tc.requested, tc.authenticated, tc.now))
 		})
 	}
 }

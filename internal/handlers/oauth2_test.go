@@ -61,8 +61,6 @@ var (
 
 var regexpErrorInvalidClient = regexp.MustCompile(`^Client authentication failed \(e\.g\., unknown client, no client authentication included, or unsupported authentication method\)\.`)
 
-var regexpIntrospectionIssuerMismatch = regexp.MustCompile(`The original request and the introspection request occurred at endpoints where the origin or effective issuer did not match\.`)
-
 var (
 	regexpRevocationRequestIssuerError = regexp.MustCompile(`^Revocation Request with id '[^']+' could not be processed: `)
 	regexpRevocationRequestFailed      = regexp.MustCompile(`^Revocation Request with id '[^']+' failed with error: `)

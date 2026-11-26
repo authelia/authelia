@@ -166,6 +166,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpdateOAuth2ConsentSessionResponseByID = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponseByID)
 	provider.sqlUpdateOAuth2ConsentSessionResponseByChallengeID = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponseByChallengeID)
 	provider.sqlUpdateOAuth2ConsentSessionGranted = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionGranted)
+	provider.sqlUpdateOAuth2ConsentSessionSubjectClear = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionSubjectClear)
 	provider.sqlSelectOAuth2ConsentSessionByChallengeID = provider.db.Rebind(provider.sqlSelectOAuth2ConsentSessionByChallengeID)
 
 	provider.sqlInsertOAuth2AccessTokenSession = provider.db.Rebind(provider.sqlInsertOAuth2AccessTokenSession)

@@ -21,11 +21,10 @@ import (
 
 	jose "authelia.com/provider/jose"
 	oauth2 "authelia.com/provider/oauth2"
-	gomock "go.uber.org/mock/gomock"
-
 	authentication "github.com/authelia/authelia/v4/internal/authentication"
 	authorization "github.com/authelia/authelia/v4/internal/authorization"
 	oidc "github.com/authelia/authelia/v4/internal/oidc"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockOIDCClient is a mock of Client interface.
@@ -293,17 +292,17 @@ func (mr *MockOIDCClientMockRecorder) GetConsentPolicy() *gomock.Call {
 }
 
 // GetConsentResponseBody mocks base method.
-func (m *MockOIDCClient) GetConsentResponseBody(session oidc.RequesterFormSession, form url.Values, authTime time.Time, disablePreConf bool) oidc.ConsentGetResponseBody {
+func (m *MockOIDCClient) GetConsentResponseBody(session oidc.RequesterFormSession, form url.Values, authTime, now time.Time, disablePreConf bool) oidc.ConsentGetResponseBody {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetConsentResponseBody", session, form, authTime, disablePreConf)
+	ret := m.ctrl.Call(m, "GetConsentResponseBody", session, form, authTime, now, disablePreConf)
 	ret0, _ := ret[0].(oidc.ConsentGetResponseBody)
 	return ret0
 }
 
 // GetConsentResponseBody indicates an expected call of GetConsentResponseBody.
-func (mr *MockOIDCClientMockRecorder) GetConsentResponseBody(session, form, authTime, disablePreConf any) *gomock.Call {
+func (mr *MockOIDCClientMockRecorder) GetConsentResponseBody(session, form, authTime, now, disablePreConf any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConsentResponseBody", reflect.TypeOf((*MockOIDCClient)(nil).GetConsentResponseBody), session, form, authTime, disablePreConf)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConsentResponseBody", reflect.TypeOf((*MockOIDCClient)(nil).GetConsentResponseBody), session, form, authTime, now, disablePreConf)
 }
 
 // GetEffectiveLifespan mocks base method.
