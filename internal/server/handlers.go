@@ -215,9 +215,8 @@ func handlerRouter(config *schema.Configuration, providers middlewares.Providers
 		WithPostMiddlewares(middlewares.RequireCSRFToken, middlewares.RequireElevated).
 		Build()
 
-	middlewarePasswordChange := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-		WithPostMiddlewares(middlewares.RequireElevatedOrPasswordChangeRequired).
+	middlewarePasswordChange := newPortalAPIBridgeBuilder(config, providers).
+		WithPostMiddlewares(middlewares.RequireCSRFToken, middlewares.RequireElevatedOrPasswordChangeRequired).
 		Build()
 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
