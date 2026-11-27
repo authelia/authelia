@@ -395,7 +395,17 @@ func handleExternalIdentityCallbackLinked(ctx *middlewares.AutheliaCtx, provider
 		return
 	}
 
-	if isPasswordChangeRequiredDetails(ctx, extended) {
+	var required bool
+
+	if required, err = isPasswordChangeRequiredDetails(ctx, extended); err != nil {
+		log.WithError(err).Errorf("%s: error occurred determining if a password change is required", logFmtErrExternalIdentityCallback)
+
+		externalIdentityRedirect(ctx, pathExternalIdentityError)
+
+		return
+	}
+
+	if required {
 		userSession := setPasswordChangeRequiredSession(ctx, sessionProvider, details.Username)
 
 		if err = ctx.SaveSession(&userSession); err != nil {

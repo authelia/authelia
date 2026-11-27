@@ -9,6 +9,7 @@ import PasswordChangeRequiredForm from "@views/LoginPortal/PasswordChangeRequire
 
 const createErrorNotification = vi.fn();
 const postPasswordChange = vi.fn();
+const signOut = vi.fn();
 
 vi.mock("@contexts/NotificationsContext", () => ({
     useNotifications: () => ({ createErrorNotification, createSuccessNotification: vi.fn() }),
@@ -26,14 +27,22 @@ vi.mock("@services/ChangePassword", () => ({
     postPasswordChange: (...args: unknown[]) => postPasswordChange(...args),
 }));
 
+vi.mock("@services/SignOut", () => ({
+    signOut: (...args: unknown[]) => signOut(...args),
+}));
+
 beforeEach(() => {
     createErrorNotification.mockReset();
     postPasswordChange.mockReset();
     postPasswordChange.mockResolvedValue(undefined);
+    signOut.mockReset();
+    signOut.mockResolvedValue(undefined);
 });
 
-function renderForm(onPasswordChanged = vi.fn()) {
-    render(<PasswordChangeRequiredForm username="john" onPasswordChanged={onPasswordChanged} />);
+function renderForm(onPasswordChanged = vi.fn(), onSignedOut = vi.fn()) {
+    render(
+        <PasswordChangeRequiredForm username="john" onPasswordChanged={onPasswordChanged} onSignedOut={onSignedOut} />,
+    );
 
     return onPasswordChanged;
 }
@@ -99,4 +108,64 @@ it("keeps the user on the form when the change fails", async () => {
 
     await waitFor(() => expect(createErrorNotification).toHaveBeenCalled());
     expect(onPasswordChanged).not.toHaveBeenCalled();
+});
+
+function axiosError(status: number) {
+    return Object.assign(new Error("request failed"), { isAxiosError: true, response: { status } });
+}
+
+it("tells the user when the current password is incorrect", async () => {
+    postPasswordChange.mockRejectedValue(axiosError(401));
+
+    renderForm();
+
+    type("old-password", "wrong");
+    type("new-password", "not-a-secret");
+    type("repeat-new-password", "not-a-secret");
+
+    fireEvent.click(document.getElementById("password-change-button") as HTMLElement);
+
+    await waitFor(() => expect(createErrorNotification).toHaveBeenCalledWith("Incorrect password"));
+});
+
+it("tells the user when the new password does not meet the policy", async () => {
+    postPasswordChange.mockRejectedValue(axiosError(400));
+
+    renderForm();
+
+    type("old-password", "temporary");
+    type("new-password", "weak");
+    type("repeat-new-password", "weak");
+
+    fireEvent.click(document.getElementById("password-change-button") as HTMLElement);
+
+    await waitFor(() =>
+        expect(createErrorNotification).toHaveBeenCalledWith(
+            "Your supplied password does not meet the password policy requirements",
+        ),
+    );
+});
+
+it("signs the user out", async () => {
+    const onSignedOut = vi.fn();
+
+    renderForm(vi.fn(), onSignedOut);
+
+    fireEvent.click(document.getElementById("password-change-sign-out-button") as HTMLElement);
+
+    await waitFor(() => expect(signOut).toHaveBeenCalledWith(undefined));
+    await waitFor(() => expect(onSignedOut).toHaveBeenCalled());
+});
+
+it("reports a failed sign out", async () => {
+    signOut.mockRejectedValue(new Error("failed"));
+
+    const onSignedOut = vi.fn();
+
+    renderForm(vi.fn(), onSignedOut);
+
+    fireEvent.click(document.getElementById("password-change-sign-out-button") as HTMLElement);
+
+    await waitFor(() => expect(createErrorNotification).toHaveBeenCalledWith("There was an issue signing out"));
+    expect(onSignedOut).toHaveBeenCalled();
 });

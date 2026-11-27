@@ -386,6 +386,10 @@ func (p *LDAPUserProvider) ClearExtraAttribute(username string, attribute string
 	modifyRequest.Delete(name, nil)
 
 	if err = p.modify(client, modifyRequest); err != nil {
+		if getLDAPResultCode(err) == ldap.LDAPResultNoSuchAttribute {
+			return nil
+		}
+
 		return fmt.Errorf("unable to clear attribute '%s' for user '%s'. Cause: %w", attribute, username, err)
 	}
 

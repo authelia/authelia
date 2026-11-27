@@ -90,10 +90,11 @@ const (
 )
 
 const (
-	errFmtAuthBackendPasswordChangeRequiredAttributeUnknown  = "authentication_backend: password_change: option 'required_attribute' is configured as '%s' but that attribute is not defined"
-	errFmtAuthBackendPasswordChangeRequiredAttributeDisabled = "authentication_backend: password_change: option 'required_attribute' can't be configured when option 'disable' is true"
-	errFmtAuthBackendPasswordChangeClearAttributeUnknown     = "authentication_backend: password_change: option 'clear_attribute' is configured as '%s' but that attribute is not a configured extra attribute"
-	errFmtAuthBackendPasswordChangeClearAttributeRequired    = "authentication_backend: password_change: option 'clear_attribute' can't be configured without option 'required_attribute'"
+	errFmtAuthBackendPasswordChangeRequiredAttributeUnknown    = "authentication_backend: password_change: option 'required_attribute' is configured as '%s' but that attribute is not defined"
+	errFmtAuthBackendPasswordChangeRequiredAttributeNotBoolean = "authentication_backend: password_change: option 'required_attribute' is configured as '%s' but that attribute is not a single valued boolean extra attribute or a user attribute definition"
+	errFmtAuthBackendPasswordChangeRequiredAttributeDisabled   = "authentication_backend: password_change: option 'required_attribute' can't be configured when option 'disable' is true"
+	errFmtAuthBackendPasswordChangeClearAttributeUnknown       = "authentication_backend: password_change: option 'clear_attribute' is configured as '%s' but that attribute is not a configured extra attribute"
+	errFmtAuthBackendPasswordChangeClearAttributeRequired      = "authentication_backend: password_change: option 'clear_attribute' can't be configured without option 'required_attribute'"
 )
 
 const (

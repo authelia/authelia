@@ -333,9 +333,21 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var required bool
+
+	if required, err = isPasswordChangeRequiredDetails(ctx, extended); err != nil {
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": details.Username}).
+			Error("Error occurred determining if a password change is required")
+
+		return
+	}
+
 	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthTypePasskey, nil)
 
-	if isPasswordChangeRequiredDetails(ctx, extended) {
+	if required {
 		userSession = setPasswordChangeRequiredSession(ctx, sprovider, details.Username)
 
 		ctx.ReplyOK()

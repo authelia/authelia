@@ -1613,6 +1613,56 @@ func TestValidateAuthenticationBackendPasswordChange(t *testing.T) {
 			[]string{"authentication_backend: password_change: option 'required_attribute' is configured as 'nonexistent' but that attribute is not defined"},
 		},
 		{
+			"ShouldAllowABooleanExtraAttribute",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{
+						ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{"pwd_reset": {ValueType: "boolean"}},
+					},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{RequiredAttribute: "pwd_reset"},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldRaiseErrorOnAStringExtraAttribute",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					LDAP: &schema.AuthenticationBackendLDAP{
+						Attributes: schema.AuthenticationBackendLDAPAttributes{
+							Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+								"pwdReset": {AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "string"}},
+							},
+						},
+					},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{RequiredAttribute: "pwdReset"},
+				},
+			},
+			[]string{"authentication_backend: password_change: option 'required_attribute' is configured as 'pwdReset' but that attribute is not a single valued boolean extra attribute or a user attribute definition"},
+		},
+		{
+			"ShouldRaiseErrorOnAMultiValuedBooleanExtraAttribute",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{
+						ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{"pwd_reset": {ValueType: "boolean", MultiValued: true}},
+					},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{RequiredAttribute: "pwd_reset"},
+				},
+			},
+			[]string{"authentication_backend: password_change: option 'required_attribute' is configured as 'pwd_reset' but that attribute is not a single valued boolean extra attribute or a user attribute definition"},
+		},
+		{
+			"ShouldRaiseErrorOnAStandardAttribute",
+			&schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File:           &schema.AuthenticationBackendFile{},
+					PasswordChange: schema.AuthenticationBackendPasswordChange{RequiredAttribute: "username"},
+				},
+			},
+			[]string{"authentication_backend: password_change: option 'required_attribute' is configured as 'username' but that attribute is not a single valued boolean extra attribute or a user attribute definition"},
+		},
+		{
 			"ShouldRaiseErrorWhenPasswordChangeIsDisabled",
 			&schema.Configuration{
 				Definitions: schema.Definitions{

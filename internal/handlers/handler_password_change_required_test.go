@@ -65,7 +65,7 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 			"",
 		},
 		{
-			"ShouldNotBeRequiredWhenTheAttributeIsNotABoolean",
+			"ShouldErrorWhenTheAttributeIsNotABoolean",
 			"pwd_reset",
 			func(mock *mocks.MockAutheliaCtx) {
 				mock.UserProviderMock.EXPECT().
@@ -73,7 +73,7 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 					Return(newUserDetailsExtendedWithExtra(map[string]any{"pwd_reset": "TRUE"}), nil)
 			},
 			false,
-			"",
+			"the 'pwd_reset' user attribute resolved to a string rather than a boolean so it can't determine if a password change is required",
 		},
 		{
 			"ShouldNotBeRequiredWhenTheDetailsAreUnavailable",
@@ -231,5 +231,8 @@ func TestIsPasswordChangeRequiredDetailsShouldNotBeRequiredWithoutDetails(t *tes
 
 	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
 
-	assert.False(t, isPasswordChangeRequiredDetails(mock.Ctx, nil))
+	required, err := isPasswordChangeRequiredDetails(mock.Ctx, nil)
+
+	assert.NoError(t, err)
+	assert.False(t, required)
 }

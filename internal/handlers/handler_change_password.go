@@ -180,7 +180,13 @@ func handleChangePasswordSession(ctx *middlewares.AutheliaCtx, provider session.
 
 			return false
 		}
-	} else if err = provider.Save(ctx, userSession); err != nil {
+
+		return true
+	}
+
+	handleClearPasswordChangeRequired(ctx, username)
+
+	if err = provider.Save(ctx, userSession); err != nil {
 		ctx.GetLogger().WithError(err).
 			WithFields(map[string]any{"username": username}).
 			Error("Unable to update password change state")

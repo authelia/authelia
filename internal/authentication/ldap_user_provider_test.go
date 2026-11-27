@@ -3584,6 +3584,24 @@ func TestShouldUpdateUserPassword(t *testing.T) {
 }
 
 func TestShouldClearExtraAttribute(t *testing.T) {
+	testCases := []struct {
+		name string
+		have error
+		err  string
+	}{
+		{"ShouldClearTheAttribute", nil, ""},
+		{"ShouldSucceedWhenTheAttributeIsAlreadyAbsent", ldap.NewError(ldap.LDAPResultNoSuchAttribute, fmt.Errorf("no such attribute")), ""},
+		{"ShouldErrorWhenTheBindUserCantWriteTheAttribute", ldap.NewError(ldap.LDAPResultInsufficientAccessRights, fmt.Errorf("insufficient access")), "unable to clear attribute 'pwd_reset' for user 'john'. Cause: LDAP Result Code 50 \"Insufficient Access Rights\": insufficient access"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testShouldClearExtraAttribute(t, tc.have, tc.err)
+		})
+	}
+}
+
+func testShouldClearExtraAttribute(t *testing.T, have error, expected string) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -3704,7 +3722,7 @@ func TestShouldClearExtraAttribute(t *testing.T) {
 
 	modify := mockClient.EXPECT().
 		ModifyWithResult(modifyRequest).
-		Return(&ldap.ModifyResult{}, nil)
+		Return(&ldap.ModifyResult{}, have)
 
 	gomock.InOrder(dialURLOIDs, setTimeoutOIDs, searchOIDs, clientBindOIDs, clientCloseOIDs, dialURL, setTimeout, dseSearch, clientBind, searchProfile, modify, clientClose)
 
@@ -3712,7 +3730,12 @@ func TestShouldClearExtraAttribute(t *testing.T) {
 	require.NoError(t, err)
 
 	err = provider.ClearExtraAttribute("john", "pwd_reset")
-	require.NoError(t, err)
+
+	if expected == "" {
+		require.NoError(t, err)
+	} else {
+		require.EqualError(t, err, expected)
+	}
 }
 
 func TestShouldNotClearAnExtraAttributeWhichIsNotConfigured(t *testing.T) {

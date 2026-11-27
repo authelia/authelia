@@ -125,7 +125,18 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 
 		ctx.GetLogger().Tracef(logFmtTraceProfileDetails, details.Username, details.Groups, details.Emails)
 
-		if changeRequired || isPasswordChangeRequiredDetails(ctx, extended) {
+		if !changeRequired {
+			if changeRequired, err = isPasswordChangeRequiredDetails(ctx, extended); err != nil {
+				ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": details.Username}).
+					Error("Error occurred determining if a password change is required")
+
+				respondUnauthorized(ctx, messageAuthenticationFailed)
+
+				return
+			}
+		}
+
+		if changeRequired {
 			userSession := setPasswordChangeRequiredSession(ctx, provider, details.Username)
 
 			if err = provider.Save(ctx, &userSession); err != nil {

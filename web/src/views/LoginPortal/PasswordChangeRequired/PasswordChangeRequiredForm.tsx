@@ -4,6 +4,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
+import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import { Alert, AlertTitle } from "@components/UI/Alert";
@@ -15,11 +16,13 @@ import { useNotifications } from "@contexts/NotificationsContext";
 import { usePasswordVisibility } from "@hooks/PasswordVisibility";
 import LoginLayout from "@layouts/LoginLayout";
 import { postPasswordChange } from "@services/ChangePassword";
+import { signOut } from "@services/SignOut";
 
 export interface Props {
     username: string;
 
     onPasswordChanged: () => void;
+    onSignedOut: () => void;
 }
 
 const PasswordChangeRequiredForm = function (props: Props) {
@@ -78,11 +81,40 @@ const PasswordChangeRequiredForm = function (props: Props) {
             await postPasswordChange(props.username, oldPassword, newPassword);
 
             props.onPasswordChanged();
-        } catch {
-            createErrorNotification(translate("There was an issue changing the password"));
+        } catch (err) {
+            const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+
+            if (status === 401) {
+                setOldError(true);
+                oldRef.current?.focus();
+                createErrorNotification(translate("Incorrect password"));
+            } else if (status === 400) {
+                setNewError(true);
+                setRepeatError(true);
+                newRef.current?.focus();
+                createErrorNotification(
+                    translate("Your supplied password does not meet the password policy requirements"),
+                );
+            } else {
+                createErrorNotification(translate("There was an issue changing the password"));
+            }
+
             setLoading(false);
         }
     }, [createErrorNotification, loading, newPassword, oldPassword, props, repeatPassword, translate]);
+
+    const handleSignOut = useCallback(async () => {
+        setLoading(true);
+
+        try {
+            await signOut(undefined);
+        } catch {
+            createErrorNotification(translate("There was an issue signing out"));
+        }
+
+        setLoading(false);
+        props.onSignedOut();
+    }, [createErrorNotification, props, translate]);
 
     return (
         <LoginLayout id="password-change-required" title={translate("Change your password")}>
@@ -134,6 +166,14 @@ const PasswordChangeRequiredForm = function (props: Props) {
                 />
                 <Button id="password-change-button" disabled={loading} onClick={handleSubmit}>
                     {loading ? <Spinner /> : translate("Change password")}
+                </Button>
+                <Button
+                    id="password-change-sign-out-button"
+                    variant="outline"
+                    disabled={loading}
+                    onClick={handleSignOut}
+                >
+                    {translate("Sign out")}
                 </Button>
             </div>
         </LoginLayout>

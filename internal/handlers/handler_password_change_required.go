@@ -29,29 +29,26 @@ func isPasswordChangeRequired(ctx AuthzContext, username string, cached bool) (r
 		return false, fmt.Errorf("error occurred retrieving extended user details to determine if a password change is required: %w", err)
 	}
 
-	return isPasswordChangeRequiredDetails(ctx, details), nil
+	return isPasswordChangeRequiredDetails(ctx, details)
 }
 
-func isPasswordChangeRequiredDetails(ctx AuthzContext, details *authentication.UserDetailsExtended) (required bool) {
+func isPasswordChangeRequiredDetails(ctx AuthzContext, details *authentication.UserDetailsExtended) (required bool, err error) {
 	name := ctx.GetConfiguration().AuthenticationBackend.PasswordChange.RequiredAttribute
 
 	if name == "" || details == nil {
-		return false
+		return false, nil
 	}
 
 	value, found := ctx.GetProviderUserAttributeResolver().ResolveWithExtra(name, details, ctx.GetClock().Now(), details.Extra)
 	if !found {
-		return false
+		return false, nil
 	}
 
 	if required, ok := value.(bool); ok {
-		return required
+		return required, nil
 	}
 
-	ctx.GetLogger().WithFields(map[string]any{"username": details.GetUsername(), "attribute": name}).
-		Errorf("The '%s' user attribute did not resolve to a boolean so it can't determine if a password change is required", name)
-
-	return false
+	return false, fmt.Errorf("the '%s' user attribute resolved to a %T rather than a boolean so it can't determine if a password change is required", name, value)
 }
 
 func getFirstFactorUserDetails(ctx *middlewares.AutheliaCtx, username string) (details *authentication.UserDetails, extended *authentication.UserDetailsExtended, err error) {
@@ -80,10 +77,7 @@ func setPasswordChangeRequiredSession(ctx *middlewares.AutheliaCtx, provider ses
 }
 
 func completePasswordChangeRequired(ctx *middlewares.AutheliaCtx, provider session.Strategy, username string) (err error) {
-	if err = clearPasswordChangeRequired(ctx, username); err != nil {
-		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username, "attribute": ctx.Configuration.AuthenticationBackend.PasswordChange.ClearAttribute}).
-			Error("Error occurred clearing the attribute which requires the user change their password, the password was changed so the user may sign in with it")
-	}
+	handleClearPasswordChangeRequired(ctx, username)
 
 	if err = provider.Destroy(ctx); err != nil {
 		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username}).
@@ -97,6 +91,13 @@ func completePasswordChangeRequired(ctx *middlewares.AutheliaCtx, provider sessi
 	}
 
 	return nil
+}
+
+func handleClearPasswordChangeRequired(ctx *middlewares.AutheliaCtx, username string) {
+	if err := clearPasswordChangeRequired(ctx, username); err != nil {
+		ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": username, "attribute": ctx.Configuration.AuthenticationBackend.PasswordChange.ClearAttribute}).
+			Error("Error occurred clearing the attribute which requires the user change their password, the password was changed so the user may sign in with it")
+	}
 }
 
 func clearPasswordChangeRequired(ctx *middlewares.AutheliaCtx, username string) (err error) {

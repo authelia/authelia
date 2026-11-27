@@ -315,7 +315,11 @@ const LoginPortal = function (props: Props) {
     );
 
     const passwordChangeRequiredForm = passwordChangeRequired ? (
-        <PasswordChangeRequiredForm username={state!.username} onPasswordChanged={fetchState} />
+        <PasswordChangeRequiredForm
+            username={state!.username}
+            onPasswordChanged={fetchState}
+            onSignedOut={fetchState}
+        />
     ) : undefined;
 
     return (

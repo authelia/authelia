@@ -527,8 +527,12 @@ func handleAuthnCookiePasswordChangeRequired(ctx AuthzContext, userSession *sess
 	username := userSession.Username
 
 	if extended {
-		required = isPasswordChangeRequiredDetails(ctx, &details)
-	} else if required, err = isPasswordChangeRequired(ctx, username, true); err != nil {
+		required, err = isPasswordChangeRequiredDetails(ctx, &details)
+	} else {
+		required, err = isPasswordChangeRequired(ctx, username, true)
+	}
+
+	if err != nil {
 		ctx.GetLogger().WithError(err).WithField("username", username).Error("Error occurred determining if the user must change their password")
 
 		return false

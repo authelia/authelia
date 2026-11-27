@@ -623,27 +623,31 @@ func validateAuthenticationBackendPasswordChange(config *schema.Configuration, v
 
 	if !isUserAttributeValid(name, config) {
 		validator.Push(fmt.Errorf(errFmtAuthBackendPasswordChangeRequiredAttributeUnknown, name))
+	} else if _, ok := config.Definitions.UserAttributes[name]; !ok {
+		if attribute, found := getAuthenticationBackendExtraAttribute(name, config); !found || attribute.ValueType != authentication.ValueTypeBoolean || attribute.IsMultiValued() {
+			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordChangeRequiredAttributeNotBoolean, name))
+		}
 	}
 
-	if clear != "" && !isAuthenticationBackendExtraAttribute(clear, config) {
+	if _, found := getAuthenticationBackendExtraAttribute(clear, config); clear != "" && !found {
 		validator.Push(fmt.Errorf(errFmtAuthBackendPasswordChangeClearAttributeUnknown, clear))
 	}
 }
 
-func isAuthenticationBackendExtraAttribute(name string, config *schema.Configuration) (valid bool) {
+func getAuthenticationBackendExtraAttribute(name string, config *schema.Configuration) (attribute schema.AuthenticationBackendExtraAttribute, found bool) {
 	if config.AuthenticationBackend.File != nil {
-		_, valid = config.AuthenticationBackend.File.ExtraAttributes[name]
+		attribute, found = config.AuthenticationBackend.File.ExtraAttributes[name]
 
-		return valid
+		return attribute, found
 	}
 
 	if config.AuthenticationBackend.LDAP != nil {
-		for attribute, properties := range config.AuthenticationBackend.LDAP.Attributes.Extra {
-			if properties.Name == name || (properties.Name == "" && attribute == name) {
-				return true
+		for directory, properties := range config.AuthenticationBackend.LDAP.Attributes.Extra {
+			if properties.Name == name || (properties.Name == "" && directory == name) {
+				return properties.AuthenticationBackendExtraAttribute, true
 			}
 		}
 	}
 
-	return false
+	return attribute, false
 }

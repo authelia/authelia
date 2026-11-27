@@ -7,6 +7,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"testing"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -22,6 +24,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -427,4 +430,82 @@ func TestStateGETShouldReportTheHeldUsername(t *testing.T) {
 
 	assert.Contains(t, string(mock.Ctx.Response.Body()), `"username":"`+testUsername+`"`)
 	assert.Contains(t, string(mock.Ctx.Response.Body()), `"password_change_required":true`)
+}
+
+func TestChangePasswordPOSTShouldClearTheRequiredAttributeOutsideTheHeldFlow(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Providers.UserAttributeResolver = &expression.UserAttributes{}
+	mock.Ctx.Providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(schema.PasswordPolicy{})
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.ClearAttribute = "pwd_reset"
+
+	userSession := mock.Ctx.NewSession()
+	userSession.Username = testUsername
+	userSession.SetOneFactorPassword(mock.Clock.Now(), false)
+
+	require.NoError(t, mock.Ctx.SaveSession(&userSession))
+
+	body, err := json.Marshal(changePasswordRequestBody{OldPassword: testPasswordOld, NewPassword: testPasswordNew})
+	require.NoError(t, err)
+
+	mock.Ctx.Request.SetBody(body)
+
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().ChangePassword(testUsername, testPasswordOld, testPasswordNew).Return(nil),
+		mock.UserProviderMock.EXPECT().GetDetailsExtended(testUsername).
+			Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Username: testUsername}, Extra: map[string]any{"pwd_reset": true}}, nil),
+		mock.UserProviderMock.EXPECT().ClearExtraAttribute(testUsername, "pwd_reset").Return(fmt.Errorf("failed to mock the clear")),
+		mock.UserProviderMock.EXPECT().GetDetails(testUsername).Return(&authentication.UserDetails{Username: testUsername}, nil),
+	)
+
+	ChangePasswordPOST(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+	var found bool
+
+	for _, entry := range mock.Hook.AllEntries() {
+		if entry.Level == logrus.ErrorLevel && entry.Data["attribute"] == "pwd_reset" {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
+
+	after, err := mock.Ctx.GetSession()
+	require.NoError(t, err)
+
+	assert.Equal(t, testUsername, after.Username)
+}
+
+func TestFirstFactorPasswordPOSTShouldRefuseWhenTheAttributeIsNotABoolean(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Providers.UserAttributeResolver = &expression.UserAttributes{}
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+
+	mock.UserProviderMock.EXPECT().CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).Return(true, nil)
+	mock.UserProviderMock.EXPECT().GetDetailsExtended(gomock.Eq(testValue)).
+		Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Username: testValue}, Extra: map[string]any{"pwd_reset": "TRUE"}}, nil)
+	mock.StorageMock.EXPECT().LoadBannedIP(gomock.Any(), gomock.Any()).Return(nil, nil)
+	mock.StorageMock.EXPECT().LoadBannedUser(gomock.Any(), gomock.Any()).Return(nil, nil)
+	mock.StorageMock.EXPECT().AppendAuthenticationLog(gomock.Any(), gomock.Any()).Return(nil)
+
+	mock.Ctx.Request.SetBodyString(`{"username": "test", "password": "hello"}`)
+
+	FirstFactorPasswordPOST(nil)(mock.Ctx)
+
+	mock.AssertLastLogMessage(t, "Error occurred determining if a password change is required", "the 'pwd_reset' user attribute resolved to a string rather than a boolean so it can't determine if a password change is required")
+	mock.Assert401KO(t, messageAuthenticationFailed)
+
+	userSession, err := mock.Ctx.GetSession()
+	require.NoError(t, err)
+
+	assert.Equal(t, authentication.NotAuthenticated, userSession.AuthenticationLevel(false))
+	assert.False(t, userSession.IsPasswordChangeRequired())
 }

@@ -145,8 +145,10 @@ authentication_backend:
 ```
 
 This option can't be configured when [disable](#password-change-disable) is `true`, as the user would be held with no way to perform
-the change. An attribute which resolves to something other than a boolean does not hold anybody back, and is logged
-as an error.
+the change. It must name either a [user attribute definition](../definitions/user-attributes.md) or a single valued extra
+attribute with a `value_type` of `boolean`; any other attribute is refused at startup. A definition is an expression
+whose result can only be known at sign in, so if it resolves to something other than a boolean the sign in is
+refused and the error is logged, rather than letting a user through who may be required to change their password.
 
 This option is not how [Active Directory](ldap.md#implementation) is handled, which is described below.
 
@@ -155,7 +157,9 @@ This option is not how [Active Directory](ldap.md#implementation) is handled, wh
 {{< confkey type="string" required="no" >}}
 
 The name of an extra attribute which is cleared from the authentication backend once the user has performed the
-password change that [required_attribute](#required_attribute) held them for.
+password change that [required_attribute](#required_attribute) held them for. It is also cleared after the user
+changes their password from the settings page or resets a forgotten password, as either replaces the password the
+attribute was flagging.
 
 Most directory servers clear the signal themselves: OpenLDAP removes `pwdReset` and Active Directory sets
 `pwdLastSet` when the user changes their own password. Those backends do not need this option at all. It exists for
@@ -172,6 +176,9 @@ authentication_backend:
       pwd_reset:
         value_type: 'boolean'
 ```
+
+With the [ldap](ldap.md) provider the [user](ldap.md#user) Authelia binds as needs write access to this attribute,
+and an attribute which is already absent is treated as cleared.
 
 This always names an extra attribute configured on the authentication backend, never a user attribute definition,
 as a definition is an expression which can be read but not written. It is only attempted while the user would still
