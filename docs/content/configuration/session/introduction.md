@@ -208,9 +208,15 @@ If this option is absent you must use the appropriate query parameter or header 
 {{< confkey type="structure" required="no" >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The remote IP is determined from the first value of the `X-Forwarded-For` header when it's present, falling back to the
-IP of the connection. Your proxy must overwrite this header rather than append to a value supplied by the client,
-otherwise a client can present any remote IP it likes and this option provides no protection.
+This option is only as reliable as the remote IP Authelia determines for each request. By default the remote IP is the
+left most value of the `X-Forwarded-For` header when it's present, falling back to the IP of the connection, which is
+only safe when every proxy overwrites this header rather than appending to a value supplied by the client. Otherwise a
+client can present any remote IP it likes and this option provides no protection.
+
+If any proxy appends to this header, configure the [trusted_proxies](../miscellaneous/server.md#trusted_proxies) option
+with [walk_x_forwarded_for](../miscellaneous/server.md#walk_x_forwarded_for) enabled, so the remote IP is the right most
+value which isn't a trusted proxy. Every proxy between the client and Authelia must be included in its networks, as a
+proxy which isn't is treated as the client, which anchors every session it forwards to the network of that proxy.
 {{< /callout >}}
 
 Anchors sessions for this session cookie domain to the network of the remote IP they're first saved from. When a session

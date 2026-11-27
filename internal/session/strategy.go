@@ -186,9 +186,7 @@ func (p *DefaultStrategy) Save(ctx Context, session *UserSession) (err error) {
 		}
 	}
 
-	if p.config.AnchorRemoteIP != nil && session.RemoteNetworkBits == 0 {
-		session.RemoteNetwork, session.RemoteNetworkBits = anchorNetwork(ctx.RemoteIP(), p.config.AnchorRemoteIP)
-	}
+	p.anchor(ctx, session)
 
 	p.adoptCSRFSecret(ctx, session)
 
@@ -497,8 +495,6 @@ func (p *DefaultStrategy) get(ctx Context, heal bool) (id string, session *UserS
 		return id, nil, errors.New("error occurred getting session: domain does not match cookie domain")
 	}
 
-	// A session without a remote network predates anchoring being enabled, so it's treated the same as a session
-	// anchored to another remote network rather than being anchored to whichever remote IP happens to present it first.
 	if p.config.AnchorRemoteIP != nil && !isAnchored(session, ctx.RemoteIP()) {
 		return p.replaceUnanchored(ctx, id, session)
 	}
@@ -532,6 +528,14 @@ func (p *DefaultStrategy) cacheKeyAuthz() string {
 	return cacheKeyPrefixAuthz + p.config.Domain
 }
 
+func (p *DefaultStrategy) anchor(ctx Context, session *UserSession) {
+	if p.config.AnchorRemoteIP == nil || session.RemoteNetworkBits != 0 {
+		return
+	}
+
+	session.RemoteNetwork, session.RemoteNetworkBits = anchorNetwork(ctx.RemoteIP(), p.config.AnchorRemoteIP)
+}
+
 func (p *DefaultStrategy) replaceUnanchored(ctx Context, id string, session *UserSession) (string, *UserSession, error) {
 	if err := p.destroyByID(ctx, id, session); err != nil {
 		return id, nil, fmt.Errorf("error occurred destroying session not anchored to the network of the remote IP: %w", err)
@@ -547,8 +551,6 @@ func (p *DefaultStrategy) replaceUnanchored(ctx Context, id string, session *Use
 	return "", &userSession, nil
 }
 
-// anchorNetwork returns the network the remote IP belongs to and its prefix length, using the mask configured for the
-// address family of the remote IP. An IPv4-mapped IPv6 address is an IPv4 address for this purpose.
 func anchorNetwork(ip net.IP, config *schema.SessionCookieAnchorRemoteIP) (network net.IP, bits uint8) {
 	if ipv4 := ip.To4(); ipv4 != nil {
 		return ipv4.Mask(net.CIDRMask(config.IPv4Mask, net.IPv4len*8)), uint8(config.IPv4Mask) //nolint:gosec // Validated to be between 1 and 32.
@@ -561,8 +563,6 @@ func anchorNetwork(ip net.IP, config *schema.SessionCookieAnchorRemoteIP) (netwo
 	return nil, 0
 }
 
-// isAnchored returns true if the remote IP is within the network the session is anchored to. The address family of the
-// remote IP must be the same as the one the session was anchored with.
 func isAnchored(session *UserSession, ip net.IP) bool {
 	if session.RemoteNetworkBits == 0 {
 		return false

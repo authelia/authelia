@@ -221,7 +221,6 @@ func TestDefaultStrategy_GetShouldEnforceAnchoredRemoteNetwork(t *testing.T) {
 			require.NoError(t, strategy.Save(ctx, &userSession))
 			require.Len(t, repository.data, 1)
 
-			// A later request, which has no session retained against its context.
 			next := newTestContext()
 			next.remoteIP = tc.next
 			next.cookies[testNameSession] = ctx.cookies[testNameSession]
