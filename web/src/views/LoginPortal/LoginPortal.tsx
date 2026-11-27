@@ -37,6 +37,7 @@ import { postExternalIdentityStart } from "@services/ExternalIdentity";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
+import PasswordChangeRequiredForm from "@views/LoginPortal/PasswordChangeRequired/PasswordChangeRequiredForm";
 
 const AuthenticatedView = lazy(() => import("@views/LoginPortal/AuthenticatedView/AuthenticatedView"));
 const FirstFactorForm = lazy(() => import("@views/LoginPortal/FirstFactor/FirstFactorForm"));
@@ -286,8 +287,11 @@ const LoginPortal = function (props: Props) {
         }
     };
 
+    const passwordChangeRequired = state !== undefined && state.password_change_required === true;
+
     const firstFactorReady =
         state !== undefined &&
+        !passwordChangeRequired &&
         state.authentication_level === AuthenticationLevel.Unauthenticated &&
         (location.pathname === IndexRoute || linkPage);
 
@@ -312,7 +316,13 @@ const LoginPortal = function (props: Props) {
 
     return (
         <Routes>
-            <Route path={IndexRoute} element={firstFactorForm()} />
+            <Route path={IndexRoute} element={
+                    passwordChangeRequired ? (
+                        <PasswordChangeRequiredForm username={state!.username} onPasswordChanged={fetchState} />
+                    ) : (
+                        firstFactorForm()
+                    )
+                } />
             <Route path={ExternalIdentityLinkRoute} element={firstFactorForm(linkProvider)} />
             <Route
                 path={`${SecondFactorRoute}/*`}

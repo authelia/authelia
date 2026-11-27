@@ -41,7 +41,7 @@ func (s *LDAPSuite) TestSigninEmailScenario() {
 }
 
 func (s *LDAPSuite) TestChangePasswordScenario() {
-	suite.Run(s.T(), NewChangePasswordScenario())
+	suite.Run(s.T(), NewChangePasswordScenario(NewPasswordChangeRequiredLDAPBackend()))
 }
 
 func TestLDAPSuite(t *testing.T) {

@@ -111,12 +111,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		WithFields(map[string]any{"username": username}).
 		Debug("User has changed their password")
 
-	if err = provider.Save(ctx, &userSession); err != nil {
-		ctx.GetLogger().WithError(err).
-			WithFields(map[string]any{"username": username}).
-			Error("Unable to update password change state")
-		ctx.SetJSONError(messageOperationFailed)
-
+	if !handleChangePasswordSession(ctx, provider, &userSession) {
 		return
 	}
 
@@ -167,4 +162,28 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
+}
+
+func handleChangePasswordSession(ctx *middlewares.AutheliaCtx, provider session.Strategy, userSession *session.UserSession) (ok bool) {
+	var err error
+
+	if userSession.IsPasswordChangeRequired() {
+		if err = completePasswordChangeRequired(ctx, provider, userSession.Username); err != nil {
+			ctx.GetLogger().WithError(err).
+				WithFields(map[string]any{"username": userSession.Username}).
+				Error("Unable to complete the required password change for user")
+			ctx.SetJSONError(messageOperationFailed)
+
+			return false
+		}
+	} else if err = provider.Save(ctx, userSession); err != nil {
+		ctx.GetLogger().WithError(err).
+			WithFields(map[string]any{"username": userSession.Username}).
+			Error("Unable to update password change state")
+		ctx.SetJSONError(messageOperationFailed)
+
+		return false
+	}
+
+	return true
 }

@@ -1054,6 +1054,16 @@
           "title": "Disable",
           "description": "Disables the Password Change option.",
           "default": false
+        },
+        "required_attribute": {
+          "type": "string",
+          "title": "Required Attribute",
+          "description": "The name of a user attribute which, when true, requires the user change their password before they can authenticate."
+        },
+        "clear_attribute": {
+          "type": "string",
+          "title": "Clear Attribute",
+          "description": "The name of an extra attribute which is cleared from the authentication backend after a required password change."
         }
       },
       "additionalProperties": false,

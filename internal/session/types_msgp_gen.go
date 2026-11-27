@@ -2188,6 +2188,24 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
+		case "pcru":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "PasswordChangeRequiredUsername")
+					return
+				}
+				z.PasswordChangeRequiredUsername = nil
+			} else {
+				if z.PasswordChangeRequiredUsername == nil {
+					z.PasswordChangeRequiredUsername = new(string)
+				}
+				*z.PasswordChangeRequiredUsername, err = dc.ReadString()
+				if err != nil {
+					err = msgp.WrapError(err, "PasswordChangeRequiredUsername")
+					return
+				}
+			}
 		case "ttl":
 			z.RefreshTTL, err = dc.ReadTime()
 			if err != nil {
@@ -2250,8 +2268,8 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(20)
-	var zb0001Mask uint32 /* 20 bits */
+	zb0001Len := uint32(21)
+	var zb0001Mask uint32 /* 21 bits */
 	_ = zb0001Mask
 	if z.CSRF == nil {
 		zb0001Len--
@@ -2297,13 +2315,17 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 		zb0001Len--
 		zb0001Mask |= 0x8000
 	}
+	if z.PasswordChangeRequiredUsername == nil {
+		zb0001Len--
+		zb0001Mask |= 0x10000
+	}
 	if z.ExternalIdentity == nil {
 		zb0001Len--
-		zb0001Mask |= 0x40000
+		zb0001Mask |= 0x80000
 	}
 	if z.ExternalIdentityPending == nil {
 		zb0001Len--
-		zb0001Mask |= 0x80000
+		zb0001Mask |= 0x100000
 	}
 	// variable map header, size zb0001Len
 	err = en.WriteMapHeader(zb0001Len)
@@ -2605,6 +2627,25 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
+		if (zb0001Mask & 0x10000) == 0 { // if not omitted
+			// write "pcru"
+			err = en.Append(0xa4, 0x70, 0x63, 0x72, 0x75)
+			if err != nil {
+				return
+			}
+			if z.PasswordChangeRequiredUsername == nil {
+				err = en.WriteNil()
+				if err != nil {
+					return
+				}
+			} else {
+				err = en.WriteString(*z.PasswordChangeRequiredUsername)
+				if err != nil {
+					err = msgp.WrapError(err, "PasswordChangeRequiredUsername")
+					return
+				}
+			}
+		}
 		// write "ttl"
 		err = en.Append(0xa3, 0x74, 0x74, 0x6c)
 		if err != nil {
@@ -2625,7 +2666,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "Elevations")
 			return
 		}
-		if (zb0001Mask & 0x40000) == 0 { // if not omitted
+		if (zb0001Mask & 0x80000) == 0 { // if not omitted
 			// write "eid"
 			err = en.Append(0xa3, 0x65, 0x69, 0x64)
 			if err != nil {
@@ -2644,7 +2685,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x80000) == 0 { // if not omitted
+		if (zb0001Mask & 0x100000) == 0 { // if not omitted
 			// write "eidp"
 			err = en.Append(0xa4, 0x65, 0x69, 0x64, 0x70)
 			if err != nil {
@@ -2671,8 +2712,8 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(20)
-	var zb0001Mask uint32 /* 20 bits */
+	zb0001Len := uint32(21)
+	var zb0001Mask uint32 /* 21 bits */
 	_ = zb0001Mask
 	if z.CSRF == nil {
 		zb0001Len--
@@ -2718,13 +2759,17 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 		zb0001Len--
 		zb0001Mask |= 0x8000
 	}
+	if z.PasswordChangeRequiredUsername == nil {
+		zb0001Len--
+		zb0001Mask |= 0x10000
+	}
 	if z.ExternalIdentity == nil {
 		zb0001Len--
-		zb0001Mask |= 0x40000
+		zb0001Mask |= 0x80000
 	}
 	if z.ExternalIdentityPending == nil {
 		zb0001Len--
-		zb0001Mask |= 0x80000
+		zb0001Mask |= 0x100000
 	}
 	// variable map header, size zb0001Len
 	o = msgp.AppendMapHeader(o, zb0001Len)
@@ -2883,6 +2928,15 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				o = msgp.AppendString(o, *z.PasswordResetUsername)
 			}
 		}
+		if (zb0001Mask & 0x10000) == 0 { // if not omitted
+			// string "pcru"
+			o = append(o, 0xa4, 0x70, 0x63, 0x72, 0x75)
+			if z.PasswordChangeRequiredUsername == nil {
+				o = msgp.AppendNil(o)
+			} else {
+				o = msgp.AppendString(o, *z.PasswordChangeRequiredUsername)
+			}
+		}
 		// string "ttl"
 		o = append(o, 0xa3, 0x74, 0x74, 0x6c)
 		o = msgp.AppendTime(o, z.RefreshTTL)
@@ -2893,7 +2947,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 			err = msgp.WrapError(err, "Elevations")
 			return
 		}
-		if (zb0001Mask & 0x40000) == 0 { // if not omitted
+		if (zb0001Mask & 0x80000) == 0 { // if not omitted
 			// string "eid"
 			o = append(o, 0xa3, 0x65, 0x69, 0x64)
 			if z.ExternalIdentity == nil {
@@ -2906,7 +2960,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x80000) == 0 { // if not omitted
+		if (zb0001Mask & 0x100000) == 0 { // if not omitted
 			// string "eidp"
 			o = append(o, 0xa4, 0x65, 0x69, 0x64, 0x70)
 			if z.ExternalIdentityPending == nil {
@@ -3165,6 +3219,23 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
+		case "pcru":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.PasswordChangeRequiredUsername = nil
+			} else {
+				if z.PasswordChangeRequiredUsername == nil {
+					z.PasswordChangeRequiredUsername = new(string)
+				}
+				*z.PasswordChangeRequiredUsername, bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "PasswordChangeRequiredUsername")
+					return
+				}
+			}
 		case "ttl":
 			z.RefreshTTL, bts, err = msgp.ReadTimeBytes(bts)
 			if err != nil {
@@ -3260,6 +3331,12 @@ func (z *UserSession) Msgsize() (s int) {
 		s += msgp.NilSize
 	} else {
 		s += msgp.StringPrefixSize + len(*z.PasswordResetUsername)
+	}
+	s += 5
+	if z.PasswordChangeRequiredUsername == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.StringPrefixSize + len(*z.PasswordChangeRequiredUsername)
 	}
 	s += 4 + msgp.TimeSize + 2 + z.Elevations.Msgsize() + 4
 	if z.ExternalIdentity == nil {

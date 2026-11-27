@@ -16,6 +16,7 @@ export interface AutheliaState {
     authentication_level: AuthenticationLevel;
     factor_knowledge: boolean;
     default_redirection_url?: string;
+    password_change_required?: boolean;
 }
 
 export async function getState(): Promise<AutheliaState> {
