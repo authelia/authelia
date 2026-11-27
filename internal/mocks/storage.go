@@ -163,6 +163,21 @@ func (mr *MockStorageMockRecorder) ConsumeRecoveryCode(ctx, id, ip any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeRecoveryCode", reflect.TypeOf((*MockStorage)(nil).ConsumeRecoveryCode), ctx, id, ip)
 }
 
+// CountStaleOAuth2ConsentSessions mocks base method.
+func (m *MockStorage) CountStaleOAuth2ConsentSessions(ctx context.Context, before, accessIssuedAfter, refreshIssuedAfter time.Time) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountStaleOAuth2ConsentSessions", ctx, before, accessIssuedAfter, refreshIssuedAfter)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountStaleOAuth2ConsentSessions indicates an expected call of CountStaleOAuth2ConsentSessions.
+func (mr *MockStorageMockRecorder) CountStaleOAuth2ConsentSessions(ctx, before, accessIssuedAfter, refreshIssuedAfter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountStaleOAuth2ConsentSessions", reflect.TypeOf((*MockStorage)(nil).CountStaleOAuth2ConsentSessions), ctx, before, accessIssuedAfter, refreshIssuedAfter)
+}
+
 // CountUnusedRecoveryCodesByUsername mocks base method.
 func (m *MockStorage) CountUnusedRecoveryCodesByUsername(ctx context.Context, username string) (int, error) {
 	m.ctrl.T.Helper()
@@ -319,6 +334,21 @@ func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username str
 func (mr *MockStorageMockRecorder) DeletePreferredDuoDevice(ctx, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).DeletePreferredDuoDevice), ctx, username)
+}
+
+// DeleteStaleOAuth2ConsentSessions mocks base method.
+func (m *MockStorage) DeleteStaleOAuth2ConsentSessions(ctx context.Context, before, accessIssuedAfter, refreshIssuedAfter time.Time) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteStaleOAuth2ConsentSessions", ctx, before, accessIssuedAfter, refreshIssuedAfter)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteStaleOAuth2ConsentSessions indicates an expected call of DeleteStaleOAuth2ConsentSessions.
+func (mr *MockStorageMockRecorder) DeleteStaleOAuth2ConsentSessions(ctx, before, accessIssuedAfter, refreshIssuedAfter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteStaleOAuth2ConsentSessions", reflect.TypeOf((*MockStorage)(nil).DeleteStaleOAuth2ConsentSessions), ctx, before, accessIssuedAfter, refreshIssuedAfter)
 }
 
 // DeleteTOTPConfiguration mocks base method.
