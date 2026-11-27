@@ -144,7 +144,9 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Authz
 		default:
 			modified = handleAuthnCookieRefreshTTL(ctx, &userSession, s.refresh)
 
-			invalid = handleAuthnCookiePasswordChangeRequired(ctx, &userSession, details, s.refresh, modified, s.extended)
+			if invalid, err = handleAuthnCookiePasswordChangeRequired(ctx, &userSession, details, s.refresh, modified, s.extended); err != nil {
+				return authn, fmt.Errorf("failed to determine if the user must change their password: %w", err)
+			}
 		}
 	}
 
@@ -517,12 +519,10 @@ func handleAuthnCookieRefreshTTL(ctx AuthzContext, userSession *session.UserSess
 	return true
 }
 
-func handleAuthnCookiePasswordChangeRequired(ctx AuthzContext, userSession *session.UserSession, details authentication.UserDetailsExtended, refresh schema.RefreshIntervalDuration, refreshed, extended bool) (required bool) {
+func handleAuthnCookiePasswordChangeRequired(ctx AuthzContext, userSession *session.UserSession, details authentication.UserDetailsExtended, refresh schema.RefreshIntervalDuration, refreshed, extended bool) (required bool, err error) {
 	if userSession.IsAnonymous() || (!refreshed && !refresh.Always()) {
-		return false
+		return false, nil
 	}
-
-	var err error
 
 	username := userSession.Username
 
@@ -533,16 +533,14 @@ func handleAuthnCookiePasswordChangeRequired(ctx AuthzContext, userSession *sess
 	}
 
 	if err != nil {
-		ctx.GetLogger().WithError(err).WithField("username", username).Error("Error occurred determining if the user must change their password")
-
-		return false
+		return false, err
 	}
 
 	if required {
 		ctx.GetLogger().WithField("username", username).Info("Destroying the session of the user as the backend requires them to change their password")
 	}
 
-	return required
+	return required, nil
 }
 
 func handleAuthnCookieValidate(ctx AuthzContext, userSession *session.UserSession) (invalid bool) {

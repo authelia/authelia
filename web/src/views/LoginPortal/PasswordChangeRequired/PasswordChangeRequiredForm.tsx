@@ -33,6 +33,7 @@ const PasswordChangeRequiredForm = function (props: Props) {
     const [newPassword, setNewPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [changed, setChanged] = useState(false);
 
     const [oldError, setOldError] = useState(false);
     const [newError, setNewError] = useState(false);
@@ -46,6 +47,12 @@ const PasswordChangeRequiredForm = function (props: Props) {
 
     const handleSubmit = useCallback(async () => {
         if (loading) {
+            return;
+        }
+
+        if (changed) {
+            props.onPasswordChanged();
+
             return;
         }
 
@@ -80,6 +87,8 @@ const PasswordChangeRequiredForm = function (props: Props) {
         try {
             await postPasswordChange(props.username, oldPassword, newPassword);
 
+            setChanged(true);
+            setLoading(false);
             props.onPasswordChanged();
         } catch (err) {
             const status = axios.isAxiosError(err) ? err.response?.status : undefined;
@@ -101,7 +110,7 @@ const PasswordChangeRequiredForm = function (props: Props) {
 
             setLoading(false);
         }
-    }, [createErrorNotification, loading, newPassword, oldPassword, props, repeatPassword, translate]);
+    }, [changed, createErrorNotification, loading, newPassword, oldPassword, props, repeatPassword, translate]);
 
     const handleSignOut = useCallback(async () => {
         setLoading(true);
@@ -132,6 +141,7 @@ const PasswordChangeRequiredForm = function (props: Props) {
                         className="pr-10"
                         autoComplete="current-password"
                         autoFocus
+                        disabled={changed}
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
                         onKeyDown={(e) => (e.key === "Enter" ? handleSubmit() : undefined)}
@@ -149,6 +159,7 @@ const PasswordChangeRequiredForm = function (props: Props) {
                     type={showPassword ? "text" : "password"}
                     error={newError}
                     autoComplete="new-password"
+                    disabled={changed}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     onKeyDown={(e) => (e.key === "Enter" ? handleSubmit() : undefined)}
@@ -160,12 +171,13 @@ const PasswordChangeRequiredForm = function (props: Props) {
                     type={showPassword ? "text" : "password"}
                     error={repeatError}
                     autoComplete="new-password"
+                    disabled={changed}
                     value={repeatPassword}
                     onChange={(e) => setRepeatPassword(e.target.value)}
                     onKeyDown={(e) => (e.key === "Enter" ? handleSubmit() : undefined)}
                 />
                 <Button id="password-change-button" disabled={loading} onClick={handleSubmit}>
-                    {loading ? <Spinner /> : translate("Change password")}
+                    {loading ? <Spinner /> : translate(changed ? "Retry" : "Change password")}
                 </Button>
                 <Button
                     id="password-change-sign-out-button"

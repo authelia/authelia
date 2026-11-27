@@ -169,3 +169,24 @@ it("reports a failed sign out", async () => {
     await waitFor(() => expect(createErrorNotification).toHaveBeenCalledWith("There was an issue signing out"));
     expect(onSignedOut).toHaveBeenCalled();
 });
+
+it("offers to retry only the state refresh after the password has changed", async () => {
+    const onPasswordChanged = renderForm();
+
+    type("old-password", "temporary");
+    type("new-password", "not-a-secret");
+    type("repeat-new-password", "not-a-secret");
+
+    fireEvent.click(document.getElementById("password-change-button") as HTMLElement);
+
+    await waitFor(() => expect(onPasswordChanged).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByText("Retry")).toBeInTheDocument());
+
+    expect(document.getElementById("password-change-button")).not.toBeDisabled();
+    expect(document.getElementById("password-change-sign-out-button")).not.toBeDisabled();
+
+    fireEvent.click(document.getElementById("password-change-button") as HTMLElement);
+
+    await waitFor(() => expect(onPasswordChanged).toHaveBeenCalledTimes(2));
+    expect(postPasswordChange).toHaveBeenCalledTimes(1);
+});

@@ -107,7 +107,8 @@ The attribute is checked on every way a user can sign in or be authorized:
 - A request authorized with credentials in the `Authorization` or `Proxy-Authorization` header is refused.
 - An existing session is checked again each time its user details are refreshed, as set by
   [refresh_interval](#refresh_interval), and is ended when the attribute has become `true`. A
-  [refresh_interval](#refresh_interval) of `never` disables this check, and `always` performs it on every request.
+  [refresh_interval](#refresh_interval) of `disable` disables this check, and `always` performs it on every request. If the check can't be completed, for example because
+  the backend is unavailable, the request is refused and the check is attempted again on the next request.
 
 The attribute is normally one you define in
 [definitions.user_attributes](../definitions/user-attributes.md), which is what lets this work across directory

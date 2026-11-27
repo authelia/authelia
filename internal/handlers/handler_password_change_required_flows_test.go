@@ -203,45 +203,67 @@ func TestCookieSessionAuthnStrategyPasswordChangeRequiredOnRefresh(t *testing.T)
 	}
 }
 
-func TestCookieSessionAuthnStrategyPasswordChangeRequiredOnRefreshLookupFailure(t *testing.T) {
-	mock := mocks.NewMockAutheliaCtx(t)
-	defer mock.Close()
+func TestCookieSessionAuthnStrategyPasswordChangeRequiredOnRefreshFailure(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *authentication.UserDetailsExtended
+		haveErr  error
+		expected string
+	}{
+		{"ShouldRefuseWhenTheLookupFails", nil, fmt.Errorf("failed to mock the details"), "failed to determine if the user must change their password: error occurred retrieving extended user details to determine if a password change is required: failed to mock the details"},
+		{"ShouldRefuseWhenTheAttributeIsNotABoolean", &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Username: testUsername}, Extra: map[string]any{"pwd_reset": "TRUE"}}, nil, "failed to determine if the user must change their password: the 'pwd_reset' user attribute resolved to a string rather than a boolean so it can't determine if a password change is required"},
+	}
 
-	mock.Ctx.Providers.UserAttributeResolver = &expression.UserAttributes{}
-	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
 
-	targetURI := &url.URL{Scheme: "https", Host: "app.example.com"}
+			mock.Ctx.Providers.UserAttributeResolver = &expression.UserAttributes{}
+			mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
 
-	primary, err := mock.Ctx.GetSessionManagerByTargetURI(targetURI)
-	require.NoError(t, err)
+			targetURI := &url.URL{Scheme: "https", Host: "app.example.com"}
 
-	userSession := session.NewUserSession(testUsername)
-	userSession.CookieDomain = "example.com"
-	userSession.SetOneFactorPassword(mock.Ctx.GetClock().Now(), false)
+			primary, err := mock.Ctx.GetSessionManagerByTargetURI(targetURI)
+			require.NoError(t, err)
 
-	require.NoError(t, primary.SaveSession(&userSession))
+			expired := mock.Ctx.GetClock().Now().Add(-time.Minute)
 
-	mock.UserProviderMock.EXPECT().
-		GetDetailsCached(gomock.Eq(testUsername)).
-		Return(&authentication.UserDetails{Username: testUsername}, nil).
-		AnyTimes()
+			userSession := session.NewUserSession(testUsername)
+			userSession.CookieDomain = "example.com"
+			userSession.SetOneFactorPassword(mock.Ctx.GetClock().Now(), false)
+			userSession.RefreshTTL = expired
 
-	mock.UserProviderMock.EXPECT().
-		GetDetailsExtendedCached(gomock.Eq(testUsername)).
-		Return(nil, fmt.Errorf("failed to mock the details"))
+			require.NoError(t, primary.SaveSession(&userSession))
 
-	manager, err := mock.Ctx.GetAuthzSessionManagerByTargetURI(targetURI)
-	require.NoError(t, err)
+			mock.UserProviderMock.EXPECT().
+				GetDetailsCached(gomock.Eq(testUsername)).
+				Return(&authentication.UserDetails{Username: testUsername}, nil).
+				AnyTimes()
 
-	var authn *Authn
+			mock.UserProviderMock.EXPECT().
+				GetDetailsExtendedCached(gomock.Eq(testUsername)).
+				Return(tc.have, tc.haveErr)
 
-	withAuthzRequest(mock.Ctx, func() {
-		authn, err = NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()).Get(mock.Ctx, manager, nil)
-	})
+			manager, err := mock.Ctx.GetAuthzSessionManagerByTargetURI(targetURI)
+			require.NoError(t, err)
 
-	require.NoError(t, err)
-	assert.Equal(t, testUsername, authn.Username)
-	mock.AssertLastLogMessage(t, "Error occurred determining if the user must change their password", "error occurred retrieving extended user details to determine if a password change is required: failed to mock the details")
+			var authn *Authn
+
+			withAuthzRequest(mock.Ctx, func() {
+				authn, err = NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(time.Minute)).Get(mock.Ctx, manager, nil)
+			})
+
+			assert.EqualError(t, err, tc.expected)
+			assert.Equal(t, anonymous, authn.Username)
+			assert.Equal(t, authentication.NotAuthenticated, authn.Level)
+
+			stored, err := primary.GetSession()
+			require.NoError(t, err)
+
+			assert.Equal(t, expired.Unix(), stored.RefreshTTL.Unix())
+		})
+	}
 }
 
 func TestFirstFactorPasskeyPOSTShouldHoldAUserWhoMustChangeTheirPassword(t *testing.T) {

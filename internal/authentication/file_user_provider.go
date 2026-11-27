@@ -35,6 +35,7 @@ type FileUserProvider struct {
 	hash          algorithm.Hash
 	database      FileUserProviderDatabase
 	mutex         sync.Mutex
+	write         sync.Mutex
 	timeoutReload time.Time
 	digest        *[sha256.Size]byte
 }
@@ -158,6 +159,10 @@ func (p *FileUserProvider) GetDetailsExtendedCached(username string) (details *U
 
 // UpdatePassword update the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
+	p.write.Lock()
+
+	defer p.write.Unlock()
+
 	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
@@ -193,6 +198,10 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 
 // ChangePassword implements the UserProvider interface.
 func (p *FileUserProvider) ChangePassword(username string, oldPassword string, newPassword string) (err error) {
+	p.write.Lock()
+
+	defer p.write.Unlock()
+
 	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
@@ -245,6 +254,10 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 
 // ClearExtraAttribute implements the UserProvider interface.
 func (p *FileUserProvider) ClearExtraAttribute(username string, attribute string) (err error) {
+	p.write.Lock()
+
+	defer p.write.Unlock()
+
 	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {

@@ -769,6 +769,37 @@ func TestFileUserProviderClearExtraAttributeShouldNotMutateDetailsHeldByCallers(
 	})
 }
 
+func TestFileUserProviderConcurrentUpdatesShouldNotRevertEachOther(t *testing.T) {
+	WithDatabase(t, UserDatabaseContentExtra, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{"example": {ValueType: "string"}}
+
+		provider := NewFileUserProvider(&config)
+		require.NoError(t, provider.StartupCheck())
+
+		var wg sync.WaitGroup
+
+		wg.Go(func() {
+			assert.NoError(t, provider.ChangePassword("john", "password", "a-new-password"))
+		})
+
+		wg.Go(func() {
+			assert.NoError(t, provider.ClearExtraAttribute("john", "example"))
+		})
+
+		wg.Wait()
+
+		valid, err := provider.CheckUserPassword("john", "a-new-password")
+		require.NoError(t, err)
+		assert.True(t, valid)
+
+		details, err := provider.GetDetailsExtended("john")
+		require.NoError(t, err)
+		assert.Empty(t, details.Extra)
+	})
+}
+
 func TestFileUserProviderGetDetailsExtendedShouldNotShareExtra(t *testing.T) {
 	WithDatabase(t, UserDatabaseContentExtra, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
