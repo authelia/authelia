@@ -67,4 +67,5 @@ authelia storage encryption rotate hmac --help
 * [authelia storage encryption rotate hmac session](authelia_storage_encryption_rotate_hmac_session.md)	 - Rotate the session HMAC key
 * [authelia storage encryption rotate hmac session-authz](authelia_storage_encryption_rotate_hmac_session-authz.md)	 - Rotate the session authz HMAC key
 * [authelia storage encryption rotate hmac session-csrf](authelia_storage_encryption_rotate_hmac_session-csrf.md)	 - Rotate the session CSRF HMAC key
+* [authelia storage encryption rotate hmac whc](authelia_storage_encryption_rotate_hmac_whc.md)	 - Rotate the webhook callback HMAC key
 

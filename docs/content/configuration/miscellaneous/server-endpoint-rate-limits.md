@@ -168,6 +168,13 @@ server:
             requests: 10
           - period: '1 hour'
             requests: 20
+      webhook_confirm:
+        enable: true
+        buckets:
+          - period: '1 minute'
+            requests: 10
+          - period: '10 minutes'
+            requests: 30
 ```
 
 ## Common Options
@@ -306,5 +313,13 @@ Configures the rate limiter which applies to the endpoint which exchanges the us
 [OAuth 2.0 Device Authorization Grant](../../integration/openid-connect/introduction.md#discoverable-endpoints) for a
 consent session. Only requests which fail to exchange a user code count towards the limit, so it limits attempts to guess
 a user code without affecting users who enter a valid one.
+
+See [Common Options](#common-options) for the individual options for this section.
+
+### webhook_confirm
+
+Configures the rate limiter which applies to the endpoint a [webhook](webhooks.md) destination requests to
+[confirm by callback](../../reference/guides/webhook-events.md#confirming-by-callback) that it accepts deliveries. The
+endpoint only exists when at least one webhook destination is configured.
 
 See [Common Options](#common-options) for the individual options for this section.

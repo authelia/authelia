@@ -17,8 +17,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/identity"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
@@ -29,6 +31,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/webauthn"
+	"github.com/authelia/authelia/v4/internal/webhooks"
 )
 
 // SetContentTypeApplicationJSON sets the Content-Type header to `application/json; charset=utf-8`.
@@ -81,6 +84,8 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	}
 
 	switch {
+	case config.Notifier.Disable:
+		providers.Notifier = notification.NewDisabledNotifier()
 	case config.Notifier.SMTP != nil:
 		providers.Notifier = notification.NewSMTPNotifier(config.Notifier.SMTP, caCertPool)
 	case config.Notifier.FileSystem != nil:
@@ -103,7 +108,27 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		}
 	}
 
+	newProvidersEvents(config, caCertPool, &providers)
+
 	return providers, warns, errs
+}
+
+func newProvidersEvents(config *schema.Configuration, caCertPool *x509.CertPool, providers *Providers) {
+	if len(config.Webhooks.Destinations) == 0 {
+		return
+	}
+
+	dispatcher := webhooks.NewDispatcher(config, caCertPool, logging.Logger().WithField("service", "webhooks"))
+
+	if providers.Metrics != nil {
+		dispatcher.SetMetrics(providers.Metrics)
+	}
+
+	if providers.StorageProvider != nil {
+		dispatcher.SetStore(providers.StorageProvider)
+	}
+
+	providers.Events = dispatcher
 }
 
 // NewProvidersBasic returns a new Providers with the simple providers.
@@ -112,6 +137,7 @@ func NewProvidersBasic() Providers {
 		GarbageCollector: NewGarbageCollector(),
 		Clock:            clock.New(),
 		Random:           random.New(),
+		Events:           events.NewNoOpEmitter(),
 	}
 }
 

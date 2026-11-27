@@ -18,6 +18,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -81,6 +82,12 @@ func TestRecoveryCodePOST_SuccessBumpsTwoFactor_NotElevation(t *testing.T) {
 		AnyTimes().
 		Return(nil)
 
+	expectAuthnSuccess(mock, testUsername, events.StageSecondFactor, events.MethodRecoveryCode)
+
+	mock.EventsMock.EXPECT().
+		Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialRecoveryCodeUsed, "", true))).
+		Times(1)
+
 	mock.Ctx.Request.SetBody([]byte(`{"code":"XYZ-1234"}`))
 
 	RecoveryCodePOST(mock.Ctx)
@@ -112,6 +119,8 @@ func TestRecoveryCodePOST_RejectsAlreadyConsumedCode(t *testing.T) {
 	mock.StorageMock.EXPECT().
 		LoadRecoveryCode(gomock.Any(), gomock.Eq(testUsername), gomock.Any()).
 		Return(consumed, nil)
+
+	expectAuthnFailure(mock, testUsername, events.StageSecondFactor, events.MethodRecoveryCode, events.ReasonInvalidCredentials)
 
 	mock.StorageMock.EXPECT().
 		AppendAuthenticationLog(gomock.Any(), gomock.Any()).
@@ -218,6 +227,8 @@ func TestRecoveryCodePOST(t *testing.T) {
 		mock.StorageMock.EXPECT().
 			AppendAuthenticationLog(gomock.Any(), gomock.Any()).
 			Return(nil)
+
+		expectAuthnSuccess(mock, testUsername, events.StageSecondFactor, events.MethodRecoveryCode)
 	}
 
 	testCases := []struct {
@@ -290,6 +301,8 @@ func TestRecoveryCodePOST(t *testing.T) {
 				mock.StorageMock.EXPECT().
 					AppendAuthenticationLog(gomock.Any(), gomock.Any()).
 					Return(nil)
+
+				expectAuthnFailure(mock, testUsername, events.StageSecondFactor, events.MethodRecoveryCode, events.ReasonInvalidCredentials)
 			},
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Assert403KO(t, messageMFAValidationFailed)
@@ -314,6 +327,8 @@ func TestRecoveryCodePOST(t *testing.T) {
 				mock.StorageMock.EXPECT().
 					AppendAuthenticationLog(gomock.Any(), gomock.Any()).
 					Return(nil)
+
+				expectAuthnFailure(mock, testUsername, events.StageSecondFactor, events.MethodRecoveryCode, events.ReasonInvalidCredentials)
 			},
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Assert403KO(t, messageMFAValidationFailed)
@@ -402,6 +417,10 @@ func TestRecoveryCodePOST(t *testing.T) {
 				mock.NotifierMock.EXPECT().
 					Send(gomock.Any(), gomock.Any(), gomock.Eq("Recovery code used"), gomock.Any(), gomock.Any()).
 					Return(nil)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialRecoveryCodeUsed, "", true))).
+					Times(1)
 			},
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
@@ -429,6 +448,10 @@ func TestRecoveryCodePOST(t *testing.T) {
 				mock.NotifierMock.EXPECT().
 					Send(gomock.Any(), gomock.Any(), gomock.Eq("Recovery code used"), gomock.Any(), gomock.Any()).
 					Return(nil)
+
+				mock.EventsMock.EXPECT().
+					Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialRecoveryCodeUsed, "", true))).
+					Times(1)
 			},
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Assert200KO(t, messageAuthenticationFailed)

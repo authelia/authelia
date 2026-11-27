@@ -11,6 +11,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -152,7 +153,7 @@ func RecoveryCodePOST(ctx *middlewares.AutheliaCtx) {
 		ctx.GetLogger().WithFields(map[string]any{"username": userSession.Username, "remaining": remaining}).Warn("User has signed in with a recovery code and is running low on remaining codes")
 	}
 
-	ctxLogEvent(ctx, userSession.Username, "Recovery code used", emailEventBody{
+	ctxLogEvent(ctx, events.TypeUserCredentialRecoveryCodeUsed, userSession.Username, "Recovery code used", emailEventBody{
 		Prefix: "A recovery code was used to sign in to your account.",
 		Body:   fmt.Sprintf("The recovery code (generated %s) was just consumed and can no longer be used.", code.CreatedAt.Format("2006-01-02 15:04 MST")),
 		Suffix: "If this was not you, change your account password immediately and revoke any remaining recovery codes from the Two-Factor Authentication settings page.",

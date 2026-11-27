@@ -19,6 +19,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/identity"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -55,6 +56,8 @@ func TestFirstFactorExternalIdentityCallbackProviderTypes(t *testing.T) {
 
 				mock.StorageMock.EXPECT().UpdateExternalIdentityLinkSignIn(mock.Ctx, 7, gomock.Any()).Return(nil)
 				mock.StorageMock.EXPECT().AppendAuthenticationLog(mock.Ctx, gomock.Any()).Return(nil)
+
+				expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
 			},
 			Assert: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				userSession, err := mock.Ctx.GetSession()
@@ -87,6 +90,8 @@ func TestFirstFactorExternalIdentityCallbackProviderTypes(t *testing.T) {
 
 				mock.StorageMock.EXPECT().UpdateExternalIdentityLinkSignIn(mock.Ctx, 7, gomock.Any()).Return(nil)
 				mock.StorageMock.EXPECT().AppendAuthenticationLog(mock.Ctx, gomock.Any()).Return(nil)
+
+				expectAuthnSuccess(mock, "john", events.StageFirstFactor, events.MethodPassword)
 			},
 			Assert: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				userSession, err := mock.Ctx.GetSession()

@@ -31,6 +31,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/events"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
@@ -353,6 +354,9 @@ func TestWebAuthnRelyingPartyRegistrationPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, "Second Factor Method Added", gomock.Any(), gomock.Any()).
 						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialWebAuthnAdded, "test", true))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -479,6 +483,9 @@ func TestWebAuthnRelyingPartyRegistrationPOST(t *testing.T) {
 						EXPECT().
 						Send(mock.Ctx, mail.Address{Name: testDisplayName, Address: testEmail}, "Second Factor Method Added", gomock.Any(), gomock.Any()).
 						Return(nil),
+					mock.EventsMock.
+						EXPECT().
+						Emit(mock.Ctx, gomock.Cond(condUserCredential(events.TypeUserCredentialWebAuthnAdded, "test", true))),
 				)
 			},
 			`{"status":"OK"}`,
@@ -776,6 +783,12 @@ func TestWebAuthnRelyingPartyAssertionPOST(t *testing.T) {
 
 			gomock.InOrder(calls...)
 
+			if tc.expectSuccess {
+				expectAuthnSuccess(mock, testUsername, events.StageSecondFactor, events.MethodWebAuthn)
+			} else {
+				expectAuthnFailure(mock, testUsername, events.StageSecondFactor, events.MethodWebAuthn, events.ReasonInvalidCredentials)
+			}
+
 			WebAuthnAssertionPOST(mock.Ctx)
 
 			if tc.expectSuccess {
@@ -966,6 +979,8 @@ func TestWebAuthnRelyingPartyFirstFactorPasskeyPOST(t *testing.T) {
 			AppendAuthenticationLog(mock.Ctx, gomock.Any()).
 			Return(nil),
 	)
+
+	expectAuthnSuccess(mock, testUsername, events.StageFirstFactor, events.MethodWebAuthn)
 
 	FirstFactorPasskeyPOST(mock.Ctx)
 

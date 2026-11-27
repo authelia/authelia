@@ -24,6 +24,7 @@ const (
 	serviceTypeGC        = "gc"
 	serviceTypeCollector = "collector"
 	serviceTypeWatchdog  = "watchdog"
+	serviceTypeWebhooks  = "webhooks"
 
 	serviceNameSystemd = "systemd"
 )
