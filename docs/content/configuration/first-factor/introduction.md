@@ -96,8 +96,18 @@ This setting controls if users can change their password from the web frontend o
 
 The name of a user attribute which, when it resolves to `true`, requires the user change their password before they
 are permitted to authenticate. A user who signs in with the correct password is held at the portal and offered the
-password change form; the session they hold carries no authentication level, so the password they signed in with
-opens nothing until it has been replaced.
+password change form; the session they hold carries no authentication level and no identity, so the password they
+signed in with opens nothing until it has been replaced.
+
+The attribute is checked on every way a user can sign in or be authorized:
+
+- A password sign in at the portal holds the user.
+- A [passkey](../second-factor/webauthn.md#enable_passkey_login) sign in holds the user in the same way, even though no password was entered.
+- An [external identity](external-identity.md) sign in holds the user in the same way.
+- A request authorized with credentials in the `Authorization` or `Proxy-Authorization` header is refused.
+- An existing session is checked again each time its user details are refreshed, as set by
+  [refresh_interval](#refresh_interval), and is ended when the attribute has become `true`. A
+  [refresh_interval](#refresh_interval) of `never` disables this check, and `always` performs it on every request.
 
 The attribute is normally one you define in
 [definitions.user_attributes](../definitions/user-attributes.md), which is what lets this work across directory
@@ -166,8 +176,9 @@ authentication_backend:
 This always names an extra attribute configured on the authentication backend, never a user attribute definition,
 as a definition is an expression which can be read but not written. It is only attempted while the user would still
 be held, so configuring it against a backend which clears the attribute itself results in no write at all. A
-failure to clear it is logged rather than returned to the user: their password was changed either way, and the only
-consequence is that they are held again the next time they authenticate.
+failure to clear it is logged as an error rather than returned to the user: their password was changed either way,
+the held session is ended as it would be after a successful clear, and the only consequence is that they are held
+again the next time they authenticate.
 
 #### Active Directory
 
@@ -186,6 +197,13 @@ exactly as given.
 
 Nothing needs to clear the signal afterwards, as the directory stamps `pwdLastSet` itself when the password is
 changed, which is what that clause tests.
+
+Because the default admits these users while password change is enabled, setting "User must change password at next
+logon" on a user who is already signed in does not end their session. Previously the next lookup at
+[refresh_interval](#refresh_interval) found no such user and ended it; that lookup now succeeds, so the session
+remains until it expires or the user signs out, and they are held for the change at their next sign in. To end their
+sessions when the flag is set, write [users_filter](ldap.md#users_filter) out with the `(!(pwdLastSet=0))` clause, at
+the cost of those users being refused rather than held.
 
 ### registration
 

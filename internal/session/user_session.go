@@ -93,11 +93,11 @@ func (s *UserSession) SetOneFactorPassword(now time.Time, keepMeLoggedIn bool) {
 
 // SetPasswordChangeRequired records that the user proved their password but must change it before they can
 // authenticate. No authentication level, timestamp or method reference is set: the session is a holding state which
-// permits nothing except the password change itself. The session must already have been constructed for the
-// authenticating user via NewUserSession.
-func (s *UserSession) SetPasswordChangeRequired(now time.Time) {
+// permits nothing except the password change itself. The username is recorded only in PasswordChangeRequiredUsername
+// so the session stays anonymous to every other consumer.
+func (s *UserSession) SetPasswordChangeRequired(now time.Time, username string) {
 	s.LastActivity = now.Unix()
-	s.PasswordChangeRequiredUsername = new(s.Username)
+	s.PasswordChangeRequiredUsername = new(username)
 }
 
 // IsPasswordChangeRequired returns true while the session is held pending a password change.

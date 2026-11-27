@@ -100,7 +100,7 @@ func TestIsPasswordChangeRequired(t *testing.T) {
 				tc.setup(mock)
 			}
 
-			required, err := isPasswordChangeRequired(mock.Ctx, testUsername)
+			required, err := isPasswordChangeRequired(mock.Ctx, testUsername, false)
 
 			assert.Equal(t, tc.expected, required)
 
@@ -205,4 +205,31 @@ func newUserDetailsExtendedWithExtra(extra map[string]any) (details *authenticat
 		UserDetails: &authentication.UserDetails{Username: testUsername},
 		Extra:       extra,
 	}
+}
+
+func TestIsPasswordChangeRequiredCached(t *testing.T) {
+	mock := newMockAutheliaCtxWithUserAttributes(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+
+	mock.UserProviderMock.EXPECT().
+		GetDetailsExtendedCached(testUsername).
+		Return(newUserDetailsExtendedWithExtra(map[string]any{"pwd_reset": true}), nil)
+
+	required, err := isPasswordChangeRequired(mock.Ctx, testUsername, true)
+
+	assert.NoError(t, err)
+	assert.True(t, required)
+}
+
+func TestIsPasswordChangeRequiredDetailsShouldNotBeRequiredWithoutDetails(t *testing.T) {
+	mock := newMockAutheliaCtxWithUserAttributes(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+
+	assert.False(t, isPasswordChangeRequiredDetails(mock.Ctx, nil))
 }

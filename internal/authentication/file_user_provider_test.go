@@ -736,6 +736,60 @@ func TestFileUserProviderClearExtraAttribute(t *testing.T) {
 	}
 }
 
+func TestFileUserProviderClearExtraAttributeShouldNotMutateDetailsHeldByCallers(t *testing.T) {
+	WithDatabase(t, UserDatabaseContentExtra, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{"example": {ValueType: "string"}}
+
+		provider := NewFileUserProvider(&config)
+		require.NoError(t, provider.StartupCheck())
+
+		held, err := provider.GetDetailsExtended("john")
+		require.NoError(t, err)
+
+		var wg sync.WaitGroup
+
+		wg.Go(func() {
+			for range 1000 {
+				_ = held.Extra["example"]
+			}
+		})
+
+		require.NoError(t, provider.ClearExtraAttribute("john", "example"))
+
+		wg.Wait()
+
+		assert.Equal(t, map[string]any{"example": "123"}, held.Extra)
+
+		after, err := provider.GetDetailsExtended("john")
+		require.NoError(t, err)
+
+		assert.Empty(t, after.Extra)
+	})
+}
+
+func TestFileUserProviderGetDetailsExtendedShouldNotShareExtra(t *testing.T) {
+	WithDatabase(t, UserDatabaseContentExtra, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{"example": {ValueType: "string"}}
+
+		provider := NewFileUserProvider(&config)
+		require.NoError(t, provider.StartupCheck())
+
+		first, err := provider.GetDetailsExtended("john")
+		require.NoError(t, err)
+
+		first.Extra["example"] = "changed"
+
+		second, err := provider.GetDetailsExtended("john")
+		require.NoError(t, err)
+
+		assert.Equal(t, "123", second.Extra["example"])
+	})
+}
+
 func TestShouldRaiseWhenLoadingMalformedDatabaseForFirstTime(t *testing.T) {
 	WithDatabase(t, MalformedUserDatabaseContent, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration

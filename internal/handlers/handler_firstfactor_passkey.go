@@ -224,9 +224,10 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	var (
-		details *authentication.UserDetails
-		user    *model.WebAuthnUser
-		ok      bool
+		details  *authentication.UserDetails
+		extended *authentication.UserDetailsExtended
+		user     *model.WebAuthnUser
+		ok       bool
 	)
 
 	if user, ok = u.(*model.WebAuthnUser); !ok {
@@ -295,7 +296,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if details, err = ctx.GetUserProvider().GetDetails(user.Username); err != nil {
+	if details, extended, err = getFirstFactorUserDetails(ctx, user.Username); err != nil || details == nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -332,9 +333,17 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userSession = sprovider.New(details.Username)
-
 	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthTypePasskey, nil)
+
+	if isPasswordChangeRequiredDetails(ctx, extended) {
+		userSession = setPasswordChangeRequiredSession(ctx, sprovider, details.Username)
+
+		ctx.ReplyOK()
+
+		return
+	}
+
+	userSession = sprovider.New(details.Username)
 
 	if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
 		userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())

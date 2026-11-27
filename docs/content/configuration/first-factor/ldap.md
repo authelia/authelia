@@ -231,7 +231,9 @@ The default value is dependent on the [implementation](#implementation), refer t
 The `activedirectory` [implementation](#implementation) additionally depends on
 [password_change.disable](introduction.md#password-change-disable). Its default excludes users who must change their password at
 their next sign in only when they have no way to perform that change; see
-[Active Directory](introduction.md#active-directory) for why.
+[Active Directory](introduction.md#active-directory) for why. As a result, while password change is enabled, setting
+"User must change password at next logon" on a signed in user no longer ends their session at the next
+[refresh_interval](introduction.md#refresh_interval) lookup.
 
 ### additional_groups_dn
 

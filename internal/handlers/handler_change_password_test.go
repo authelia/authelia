@@ -12,6 +12,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
@@ -86,8 +87,7 @@ func TestChangePasswordPOST_ShouldClearTheAttributeAndDestroyTheHeldSession(t *t
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
 
-	userSession.Username = testUsername
-	userSession.SetPasswordChangeRequired(mock.Clock.Now())
+	userSession.SetPasswordChangeRequired(mock.Clock.Now(), testUsername)
 
 	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
@@ -133,7 +133,7 @@ func TestChangePasswordPOST_ShouldClearTheAttributeAndDestroyTheHeldSession(t *t
 	assert.Empty(t, userSession.Username)
 }
 
-func TestChangePasswordPOST_ShouldKeepTheHeldSessionWhenTheClearFails(t *testing.T) {
+func TestChangePasswordPOST_ShouldEndTheHeldSessionWhenTheClearFails(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
 	defer mock.Close()
@@ -146,8 +146,7 @@ func TestChangePasswordPOST_ShouldKeepTheHeldSessionWhenTheClearFails(t *testing
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
 
-	userSession.Username = testUsername
-	userSession.SetPasswordChangeRequired(mock.Clock.Now())
+	userSession.SetPasswordChangeRequired(mock.Clock.Now(), testUsername)
 
 	assert.NoError(t, mock.Ctx.SaveSession(&userSession))
 
@@ -170,20 +169,33 @@ func TestChangePasswordPOST_ShouldKeepTheHeldSessionWhenTheClearFails(t *testing
 		mock.UserProviderMock.EXPECT().
 			ClearExtraAttribute(testUsername, "pwd_reset").
 			Return(fmt.Errorf("failed to mock the clear")),
+		mock.UserProviderMock.EXPECT().
+			GetDetails(testUsername).
+			Return(&authentication.UserDetails{Username: testUsername}, nil),
 	)
 
 	ChangePasswordPOST(mock.Ctx)
 
-	errResponse := mock.GetResponseError(t)
-	assert.Equal(t, "KO", errResponse.Status)
-	assert.Equal(t, messageOperationFailed.Message, errResponse.Message)
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 
-	mock.AssertLastLogMessage(t, "Unable to complete the required password change for user", "error occurred clearing the 'pwd_reset' attribute which requires the user change their password: failed to mock the clear")
+	var entry *logrus.Entry
+
+	for _, e := range mock.Hook.AllEntries() {
+		if e.Level == logrus.ErrorLevel {
+			entry = e
+		}
+	}
+
+	require.NotNil(t, entry)
+	assert.Equal(t, "Error occurred clearing the attribute which requires the user change their password, the password was changed so the user may sign in with it", entry.Message)
+	assert.Equal(t, testUsername, entry.Data["username"])
+	assert.Equal(t, "pwd_reset", entry.Data["attribute"])
+	assert.EqualError(t, entry.Data["error"].(error), "error occurred clearing the 'pwd_reset' attribute which requires the user change their password: failed to mock the clear")
 
 	userSession, err = mock.Ctx.GetSession()
 	assert.NoError(t, err)
-	assert.True(t, userSession.IsPasswordChangeRequired())
-	assert.Equal(t, testUsername, userSession.Username)
+	assert.False(t, userSession.IsPasswordChangeRequired())
+	assert.Empty(t, userSession.Username)
 }
 
 func TestChangePasswordPOST_ShouldFailWhenPasswordPolicyNotMet(t *testing.T) {

@@ -314,16 +314,17 @@ const LoginPortal = function (props: Props) {
         </ComponentOrLoading>
     );
 
+    const passwordChangeRequiredForm = passwordChangeRequired ? (
+        <PasswordChangeRequiredForm username={state!.username} onPasswordChanged={fetchState} />
+    ) : undefined;
+
     return (
         <Routes>
-            <Route path={IndexRoute} element={
-                    passwordChangeRequired ? (
-                        <PasswordChangeRequiredForm username={state!.username} onPasswordChanged={fetchState} />
-                    ) : (
-                        firstFactorForm()
-                    )
-                } />
-            <Route path={ExternalIdentityLinkRoute} element={firstFactorForm(linkProvider)} />
+            <Route path={IndexRoute} element={passwordChangeRequiredForm ?? firstFactorForm()} />
+            <Route
+                path={ExternalIdentityLinkRoute}
+                element={passwordChangeRequiredForm ?? firstFactorForm(linkProvider)}
+            />
             <Route
                 path={`${SecondFactorRoute}/*`}
                 element={

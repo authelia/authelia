@@ -426,30 +426,12 @@ func (s *FirstFactorSuite) TestShouldFailWhenThePasswordChangeRequirementCannotB
 
 	s.mock.UserProviderMock.
 		EXPECT().
-		CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
-		Return(true, nil)
-
-	s.mock.UserProviderMock.
-		EXPECT().
-		GetDetails(gomock.Eq(testValue)).
-		Return(&authentication.UserDetails{
-			Username: testValue,
-			Emails:   []string{"test@example.com"},
-			Groups:   []string{"dev", "admins"},
-		}, nil)
-
-	s.mock.UserProviderMock.
-		EXPECT().
 		GetDetailsExtended(gomock.Eq(testValue)).
 		Return(nil, fmt.Errorf("failed to mock the details"))
 
 	s.mock.StorageMock.
 		EXPECT().
 		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
-
-	s.mock.StorageMock.
-		EXPECT().
-		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -463,7 +445,7 @@ func (s *FirstFactorSuite) TestShouldFailWhenThePasswordChangeRequirementCannotB
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	s.mock.AssertLastLogMessage(s.T(), "Error occurred determining if a password change is required", "error occurred retrieving extended user details to determine if a password change is required: failed to mock the details")
+	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed to mock the details")
 	s.mock.Assert401KO(s.T(), messageAuthenticationFailed)
 
 	userSession, err := s.mock.Ctx.GetSession()

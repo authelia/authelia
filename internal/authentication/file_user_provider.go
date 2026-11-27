@@ -9,6 +9,7 @@ import (
 	_ "embed" // Embed the users_database.template files.
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -258,6 +259,10 @@ func (p *FileUserProvider) ClearExtraAttribute(username string, attribute string
 		return nil
 	}
 
+	original := details
+
+	details.Extra = maps.Clone(details.Extra)
+
 	delete(details.Extra, attribute)
 
 	p.database.SetUserDetails(details.Username, &details)
@@ -269,6 +274,8 @@ func (p *FileUserProvider) ClearExtraAttribute(username string, attribute string
 	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
+		p.database.SetUserDetails(original.Username, &original)
+
 		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
 	}
 

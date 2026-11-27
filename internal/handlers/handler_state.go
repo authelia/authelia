@@ -37,6 +37,10 @@ func StateGET(ctx *middlewares.AutheliaCtx) {
 		PasswordChangeRequired: userSession.IsPasswordChangeRequired(),
 	}
 
+	if stateResponse.PasswordChangeRequired {
+		stateResponse.Username = *userSession.PasswordChangeRequiredUsername
+	}
+
 	if uri := ctx.GetDefaultRedirectionURL(); uri != nil {
 		stateResponse.DefaultRedirectionURL = uri.String()
 	}
