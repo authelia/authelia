@@ -240,7 +240,7 @@ func (p *DefaultStrategy) destroyUnanchoredAuthz(ctx Context, sid string, sessio
 		return false, nil
 	}
 
-	logContext(ctx).Debug("Session authz cookie resolves to a session which isn't anchored to the network of the remote IP")
+	logContext(ctx).Debug("Session authz cookie resolves to a network which isn't anchored to the remote IP")
 
 	if err = p.destroyByID(ctx, sid, session); err != nil {
 		return true, fmt.Errorf("error occurred destroying session not anchored to the network of the remote IP: %w", err)
