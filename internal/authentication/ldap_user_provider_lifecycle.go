@@ -7,25 +7,46 @@ package authentication
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+var ldapStartupCheckRetryDelay = time.Millisecond * 500
 
 // Close implements the UserProvider interface.
 func (p *LDAPUserProvider) Close() (err error) {
 	return p.factory.Close()
 }
 
-// StartupCheck implements the startup check provider interface.
+// StartupCheck implements the startup check provider interface. Network errors are retried up to 19 times with a 500ms
+// delay between attempts. Each attempt may block for up to the configured LDAP timeout per dial, and when pooling is
+// enabled initialization dials every pooled client sequentially, so an unreachable server which does not actively
+// refuse the connection can delay startup for a long time (up to roughly 19 * timeout, multiplied by the pool count when
+// pooling is enabled) before the startup check fails.
 func (p *LDAPUserProvider) StartupCheck() (err error) {
-	if err = p.factory.Initialize(); err != nil {
-		return err
-	}
-
 	var client LDAPExtendedClient
 
-	if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err != nil {
+	for i := 0; i < 19; i++ {
+		if i != 0 {
+			time.Sleep(ldapStartupCheckRetryDelay)
+		}
+
+		if err = p.factory.Initialize(); err == nil {
+			if client, err = p.factory.GetClient(WithPermitUnauthenticatedBind(p.config.PermitUnauthenticatedBind)); err == nil {
+				break
+			}
+		}
+
+		if !isLDAPNetworkError(err) {
+			return err
+		}
+
+		p.log.WithError(err).WithField("attempt", i+1).Debug("Error occurred connecting to the LDAP server during the startup check")
+	}
+
+	if err != nil {
 		return err
 	}
 

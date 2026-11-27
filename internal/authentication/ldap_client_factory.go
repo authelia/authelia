@@ -152,7 +152,8 @@ type PooledLDAPClientFactory struct {
 	sleep   time.Duration
 }
 
-// Initialize fills the pool with clients. It's safe to call multiple times, only the first call has an effect.
+// Initialize fills the pool with clients. It's safe to call multiple times, only the first successful call has an
+// effect. If no clients could be established the pool is reset so a subsequent call will attempt to fill it again.
 func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	f.mu.Lock()
 
@@ -206,7 +207,15 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	}
 
 	if len(errs) == f.count {
-		return fmt.Errorf("errors occurred initializing the client pool: no connections could be established")
+		f.mu.Lock()
+
+		if !f.closing {
+			f.pool = nil
+		}
+
+		f.mu.Unlock()
+
+		return fmt.Errorf("errors occurred initializing the client pool: no connections could be established: %w", errors.Join(errs...))
 	}
 
 	return nil
