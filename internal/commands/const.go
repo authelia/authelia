@@ -286,7 +286,9 @@ This subcommand allows removing rows which are finished with and which no longer
 
 A consent session is stale once it has expired and the user has already responded to it. Removing it also removes
 the authorization code, access token, refresh token, PKCE, device code, and OpenID Connect sessions which reference
-it. A session the user has never responded to is never removed as a flow may still be in progress against it.`
+it. A session the user has never responded to is never removed as a flow may still be in progress against it.
+A session which an active refresh token still references is never removed either, as the expiry of a consent session
+is only the deadline for responding to it and removing it would remove the refresh token with it.`
 
 	cmdAutheliaStorageCleanOAuth2Example = `authelia storage clean oauth2
 authelia storage clean oauth2 --dry-run

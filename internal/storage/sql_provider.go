@@ -200,8 +200,8 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateOAuth2ConsentSessionBinding:               fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionBinding, tableOAuth2ConsentSession),
 		sqlSelectOAuth2ConsentSessionByChallengeID:         fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
 
-		sqlCountStaleOAuth2ConsentSessions:  fmt.Sprintf(queryFmtCountStaleOAuth2ConsentSessions, tableOAuth2ConsentSession),
-		sqlDeleteStaleOAuth2ConsentSessions: fmt.Sprintf(queryFmtDeleteStaleOAuth2ConsentSessions, tableOAuth2ConsentSession),
+		sqlCountStaleOAuth2ConsentSessions:  fmt.Sprintf(queryFmtCountStaleOAuth2ConsentSessions, tableOAuth2ConsentSession, tableOAuth2RefreshTokenSession),
+		sqlDeleteStaleOAuth2ConsentSessions: fmt.Sprintf(queryFmtDeleteStaleOAuth2ConsentSessions, tableOAuth2ConsentSession, tableOAuth2RefreshTokenSession),
 
 		sqlInsertOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AccessTokenSession),
 		sqlSelectOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2AccessTokenSession),
