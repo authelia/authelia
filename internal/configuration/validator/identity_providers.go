@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -76,6 +77,8 @@ func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *sch
 	default:
 		validator.Push(fmt.Errorf(errFmtOIDCProviderInvalidValue, attrOIDCResourceStrategy, utils.StringJoinOr(oidc.ResourceStrategyNames), config.IdentityProviders.OIDC.ResourceStrategy))
 	}
+
+	validateOIDCTokenExchange(config, validator)
 
 	validateOIDCOptionsCORS(config.IdentityProviders.OIDC, validator)
 
@@ -694,6 +697,90 @@ func setOIDCDefaults(config *schema.Configuration) {
 	if config.IdentityProviders.OIDC.DPoP.ClockSkew == durationZero {
 		config.IdentityProviders.OIDC.DPoP.ClockSkew = schema.DefaultOpenIDConnectConfiguration.DPoP.ClockSkew
 	}
+
+	if config.IdentityProviders.OIDC.TokenExchange.MaxActorChainDepth == 0 {
+		config.IdentityProviders.OIDC.TokenExchange.MaxActorChainDepth = schema.DefaultOpenIDConnectConfiguration.TokenExchange.MaxActorChainDepth
+	}
+
+	setOIDCTokenExchangeDefaults(config)
+}
+
+func setOIDCTokenExchangeDefaults(config *schema.Configuration) {
+	if len(config.IdentityProviders.OIDC.TokenExchange.TokenTypes) == 0 {
+		config.IdentityProviders.OIDC.TokenExchange.TokenTypes = slices.Clone(schema.DefaultOpenIDConnectConfiguration.TokenExchange.TokenTypes)
+	}
+
+	if config.IdentityProviders.OIDC.TokenExchange.DefaultRequestedTokenType == "" {
+		config.IdentityProviders.OIDC.TokenExchange.DefaultRequestedTokenType = schema.DefaultOpenIDConnectConfiguration.TokenExchange.DefaultRequestedTokenType
+	}
+
+	if config.IdentityProviders.OIDC.TokenExchange.TransactionTokens.Lifespan == durationZero {
+		config.IdentityProviders.OIDC.TokenExchange.TransactionTokens.Lifespan = schema.DefaultOpenIDConnectConfiguration.TokenExchange.TransactionTokens.Lifespan
+	}
+
+	if config.IdentityProviders.OIDC.TokenExchange.TransactionTokens.SigningAlgorithm == "" {
+		config.IdentityProviders.OIDC.TokenExchange.TransactionTokens.SigningAlgorithm = schema.DefaultOpenIDConnectConfiguration.TokenExchange.TransactionTokens.SigningAlgorithm
+	}
+
+	if config.IdentityProviders.OIDC.TokenExchange.TransactionTokens.Replacement.MaxChainLength == 0 {
+		config.IdentityProviders.OIDC.TokenExchange.TransactionTokens.Replacement.MaxChainLength = schema.DefaultOpenIDConnectConfiguration.TokenExchange.TransactionTokens.Replacement.MaxChainLength
+	}
+}
+
+func validateOIDCTokenExchange(config *schema.Configuration, validator *schema.StructValidator) {
+	te := &config.IdentityProviders.OIDC.TokenExchange
+
+	if te.MaxActorChainDepth < 1 {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeMaxActorChainDepth, te.MaxActorChainDepth))
+	}
+
+	invalid, duplicates := validateList(te.TokenTypes, validOIDCTokenExchangeTokenTypes, true)
+
+	for _, value := range invalid {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeInvalidTokenType, utils.StringJoinOr(validOIDCTokenExchangeTokenTypes), value))
+	}
+
+	if len(duplicates) != 0 {
+		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderTokenExchangeDuplicateTokenTypes, utils.StringJoinAnd(duplicates)))
+	}
+
+	switch {
+	case te.DefaultRequestedTokenType == oidc.TokenTypeRefreshToken, te.DefaultRequestedTokenType == oidc.TokenTypeTxnToken:
+		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeDefaultInvalid, te.DefaultRequestedTokenType))
+	case !utils.IsStringInSlice(te.DefaultRequestedTokenType, te.TokenTypes):
+		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeDefaultNotConfigured, utils.StringJoinOr(te.TokenTypes), te.DefaultRequestedTokenType))
+	}
+
+	validateOIDCTokenExchangeTransactionTokens(config, validator)
+}
+
+func validateOIDCTokenExchangeTransactionTokens(config *schema.Configuration, validator *schema.StructValidator) {
+	te := &config.IdentityProviders.OIDC.TokenExchange
+	txn := &te.TransactionTokens
+
+	if txn.Lifespan < durationZero {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeTxnTokensLifespan, txn.Lifespan))
+	}
+
+	if txn.Replacement.MaxChainLength < 1 {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeTxnTokensChainLength, txn.Replacement.MaxChainLength))
+	}
+
+	if !utils.IsStringInSlice(oidc.TokenTypeTxnToken, te.TokenTypes) {
+		if txn.TrustDomain != "" || txn.Issuer != "" || txn.CopyRequestParameters || txn.Replacement.Enabled {
+			validator.Push(errors.New(errFmtOIDCProviderTokenExchangeTxnTokensWithoutType))
+		}
+
+		return
+	}
+
+	if txn.TrustDomain == "" {
+		validator.Push(errors.New(errFmtOIDCProviderTokenExchangeTxnTokensTrustDomain))
+	}
+
+	if !utils.IsStringInSlice(txn.SigningAlgorithm, config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs) {
+		validator.Push(fmt.Errorf(errFmtOIDCProviderTokenExchangeTxnTokensSigningAlg, utils.StringJoinOr(config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs), txn.SigningAlgorithm))
+	}
 }
 
 func validateOIDCOptionsCORS(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
@@ -900,6 +987,7 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientDPoPResponseTypes(c, config, validator)
 	validateOIDCClientResponseModes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
+	validateOIDCClientTokenExchange(c, config, validator)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
 	validateOIDCClientApplicationType(c, config, validator)
 	validateOIDCClientRefreshTokenRotation(c, config, validator)
@@ -1547,6 +1635,7 @@ func validateOIDCClientGrantTypesSetDefaults(c int, config *schema.IdentityProvi
 	}
 }
 
+//nolint:gocyclo
 func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, errDeprecatedFunc func()) {
 	for _, grantType := range config.Clients[c].GrantTypes {
 		switch grantType {
@@ -1565,6 +1654,12 @@ func validateOIDCClientGrantTypesCheckRelated(c int, config *schema.IdentityProv
 		case oidc.GrantTypeClientCredentials:
 			if config.Clients[c].Public {
 				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidGrantTypePublic, config.Clients[c].ID, oidc.GrantTypeClientCredentials))
+			}
+		case oidc.GrantTypeTokenExchange:
+			if config.Clients[c].Public {
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidGrantTypePublic, config.Clients[c].ID, oidc.GrantTypeTokenExchange))
+			} else if config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone {
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidGrantTypeAuthMethodNone, config.Clients[c].ID, oidc.GrantTypeTokenExchange))
 			}
 		case oidc.GrantTypeRefreshToken:
 			if !utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) {
@@ -1609,6 +1704,275 @@ func validateOIDCClientGrantTypesCheckResponseTypes(c int, config *schema.Identi
 
 		if len(missing) != 0 {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidResponseTypeGrantTypeMissing, config.Clients[c].ID, utils.StringJoinAnd(missing), responseType))
+		}
+	}
+}
+
+func validateOIDCClientTokenExchange(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	te := utils.IsStringInSlice(oidc.GrantTypeTokenExchange, config.Clients[c].GrantTypes)
+
+	validateOIDCClientTokenExchangeOptions(c, config, validator, te)
+	validateOIDCClientTokenExchangeClients(c, config, validator, te, attrOIDCSubjectTokenClientsSupported, config.Clients[c].SubjectTokenClientsSupported)
+	validateOIDCClientTokenExchangeClients(c, config, validator, te, attrOIDCActorTokenClientsSupported, config.Clients[c].ActorTokenClientsSupported)
+
+	if config.Clients[c].ActorTokenWithoutMayActAllowed {
+		switch {
+		case !te:
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeWithoutGrantType, config.Clients[c].ID, attrOIDCActorTokenWithoutMayActAllowed))
+		case len(config.Clients[c].ActorTokenTypesSupported) == 0:
+			// An empty 'actor_token_types_supported' is UNRESTRICTED, not disabled: the grant handler only applies
+			// the list when it is non-empty. Combined with this option the client may present any supported token
+			// type as an 'actor_token' with the RFC8693 Section 4.4 'may_act' check disabled.
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeMayActWithAllActorTokens, config.Clients[c].ID, attrOIDCActorTokenWithoutMayActAllowed, attrOIDCActorTokenTypesSupported))
+		}
+	}
+
+	validateOIDCClientTokenExchangeMayAct(c, config, validator)
+
+	if !te {
+		return
+	}
+
+	validateOIDCClientTokenExchangeDefaults(c, config, validator)
+}
+
+func validateOIDCClientTokenExchangeOptions(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, te bool) {
+	validateOIDCClientTokenExchangeTokenTypes(c, config, validator, te)
+
+	// The issuer options are JWT 'iss' claim values compared as opaque strings by the library; RFC 8693 does
+	// not require them to take any particular form, so only the grant type gating is enforced here, not content.
+	issuerOptions := []struct {
+		attr   string
+		values []string
+	}{
+		{attrOIDCSubjectTokenIssuersSupported, config.Clients[c].SubjectTokenIssuersSupported},
+		{attrOIDCActorTokenIssuersSupported, config.Clients[c].ActorTokenIssuersSupported},
+	}
+
+	for _, option := range issuerOptions {
+		if len(option.values) == 0 {
+			continue
+		}
+
+		if !te {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeWithoutGrantType, config.Clients[c].ID, option.attr))
+		}
+	}
+
+	boolOptions := []struct {
+		attr string
+		set  bool
+	}{
+		{attrOIDCTokenExchangeRefreshTokenAllowed, config.Clients[c].TokenExchangeRefreshTokenAllowed},
+		{attrOIDCOwnAccessTokenExchangeAllowed, config.Clients[c].OwnAccessTokenExchangeAllowed},
+		{attrOIDCOwnAccessTokenExchangeTargetsRestricted, config.Clients[c].OwnAccessTokenExchangeTargetsRestricted != nil},
+		{attrOIDCImpersonationAllowed, config.Clients[c].ImpersonationAllowed},
+		{attrOIDCTokenExchangeTxnTokenReplacement, config.Clients[c].TokenExchangeTxnTokenReplacement},
+	}
+
+	for _, option := range boolOptions {
+		if option.set && !te {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeWithoutGrantType, config.Clients[c].ID, option.attr))
+		}
+	}
+}
+
+func validateOIDCClientTokenExchangeTokenTypes(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, te bool) {
+	enabled := config.TokenExchange.TokenTypes
+
+	options := []struct {
+		attr   string
+		values []string
+	}{
+		{attrOIDCSubjectTokenTypesSupported, config.Clients[c].SubjectTokenTypesSupported},
+		{attrOIDCActorTokenTypesSupported, config.Clients[c].ActorTokenTypesSupported},
+		{attrOIDCRequestTokenTypesSupported, config.Clients[c].RequestTokenTypesSupported},
+	}
+
+	for _, option := range options {
+		if len(option.values) == 0 {
+			continue
+		}
+
+		if !te {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeWithoutGrantType, config.Clients[c].ID, option.attr))
+
+			continue
+		}
+
+		invalid, duplicates := validateList(option.values, enabled, true)
+
+		for _, value := range option.values {
+			if option.attr == attrOIDCActorTokenTypesSupported && value == oidc.TokenTypeTxnToken {
+				validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeActorTxnToken, config.Clients[c].ID, option.attr, value))
+			}
+		}
+
+		if len(invalid) != 0 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeTokenTypeNotEnabled, config.Clients[c].ID, option.attr, utils.StringJoinAnd(invalid)))
+		}
+
+		if len(duplicates) != 0 {
+			validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, option.attr, utils.StringJoinAnd(duplicates)))
+		}
+	}
+
+	if !te {
+		return
+	}
+
+	validateOIDCClientTokenExchangeTxnToken(c, config, validator)
+}
+
+func validateOIDCClientTokenExchangeTxnToken(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	client := config.Clients[c]
+
+	if utils.IsStringInSlice(oidc.TokenTypeTxnToken, client.SubjectTokenTypesSupported) && !client.TokenExchangeTxnTokenReplacement {
+		validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeSubjectTxnTokenWithoutReplacement, client.ID, attrOIDCSubjectTokenTypesSupported, oidc.TokenTypeTxnToken, attrOIDCTokenExchangeTxnTokenReplacement))
+	}
+
+	if client.TokenExchangeTxnTokenReplacement && !config.TokenExchange.TransactionTokens.Replacement.Enabled {
+		validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeReplacementNotEnabled, client.ID, attrOIDCTokenExchangeTxnTokenReplacement))
+	}
+
+	if client.TokenExchangeTxnTokenReplacement && getOIDCClientAuthorizationPolicyDefault(config, client.AuthorizationPolicy) == policyTwoFactor {
+		// Only the default level is considered: the rules of a named policy depend on the subject at runtime, so a
+		// policy whose default is 'one_factor' but which has 'two_factor' rules is not warned about.
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientTokenExchangeReplacementTwoFactor, client.ID, attrOIDCTokenExchangeTxnTokenReplacement, client.AuthorizationPolicy))
+	}
+
+	if utils.IsStringInSlice(oidc.TokenTypeTxnToken, client.RequestTokenTypesSupported) {
+		if td := config.TokenExchange.TransactionTokens.TrustDomain; !utils.IsStringInSlice(td, client.Audience) {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeTxnTokenAudience, client.ID, td, attrOIDCRequestTokenTypesSupported, oidc.TokenTypeTxnToken))
+		}
+	}
+}
+
+func getOIDCClientAuthorizationPolicyDefault(config *schema.IdentityProvidersOpenIDConnect, name string) string {
+	if policy, ok := config.AuthorizationPolicies[name]; ok {
+		return policy.DefaultPolicy
+	}
+
+	return name
+}
+
+func validateOIDCClientTokenExchangeDefaults(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	// Copy rather than alias: assigning the package-level slice directly would let a later append on one client's
+	// configuration mutate the shared default.
+	if len(config.Clients[c].SubjectTokenTypesSupported) == 0 {
+		for _, value := range validOIDCClientTokenExchangeSubjectTokenTypesDefault {
+			if utils.IsStringInSlice(value, config.TokenExchange.TokenTypes) {
+				config.Clients[c].SubjectTokenTypesSupported = append(config.Clients[c].SubjectTokenTypesSupported, value)
+			}
+		}
+
+		if len(config.Clients[c].SubjectTokenTypesSupported) == 0 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeSubjectTypesDefaultEmpty, config.Clients[c].ID, attrOIDCSubjectTokenTypesSupported, utils.StringJoinAnd(validOIDCClientTokenExchangeSubjectTokenTypesDefault)))
+		}
+	}
+
+	if len(config.Clients[c].RequestTokenTypesSupported) == 0 {
+		config.Clients[c].RequestTokenTypesSupported = []string{config.TokenExchange.DefaultRequestedTokenType}
+	}
+
+	if utils.IsStringInSlice(oidc.TokenTypeRefreshToken, config.Clients[c].RequestTokenTypesSupported) {
+		if !config.Clients[c].TokenExchangeRefreshTokenAllowed {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeRefreshTokenNotAllowed, config.Clients[c].ID, attrOIDCRequestTokenTypesSupported, oidc.TokenTypeRefreshToken, attrOIDCTokenExchangeRefreshTokenAllowed))
+		}
+
+		if !utils.IsStringInSlice(oidc.GrantTypeRefreshToken, config.Clients[c].GrantTypes) {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeRefreshTokenWithoutGrantType, config.Clients[c].ID, attrOIDCRequestTokenTypesSupported, oidc.TokenTypeRefreshToken))
+		}
+	}
+
+	switch {
+	case config.Clients[c].OwnAccessTokenExchangeTargetsRestricted == nil:
+		config.Clients[c].OwnAccessTokenExchangeTargetsRestricted = new(true)
+	case !config.Clients[c].OwnAccessTokenExchangeAllowed:
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientTokenExchangeOptionNoEffect, config.Clients[c].ID, attrOIDCOwnAccessTokenExchangeTargetsRestricted, attrOIDCOwnAccessTokenExchangeAllowed))
+	}
+}
+
+func validateOIDCClientTokenExchangeMayAct(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	mayAct := config.Clients[c].TokenExchangeMayAct
+
+	if mayAct == nil {
+		return
+	}
+
+	if mayAct.ClientID == "" && mayAct.Subject == "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeMayActEmpty, config.Clients[c].ID, attrOIDCTokenExchangeMayAct))
+
+		return
+	}
+
+	if mayAct.ClientID == "" {
+		return
+	}
+
+	validateOIDCClientTokenExchangeReferencedClient(c, config, validator, attrOIDCTokenExchangeMayAct, mayAct.ClientID)
+}
+
+func validateOIDCClientTokenExchangeReferencedClient(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, attr, id string) {
+	// Self-reference (id == config.Clients[c].ID) is permitted deliberately: a client authorizing itself is a
+	// legitimate arrangement, so the lookup below does not special-case or skip the client's own ID.
+	for i := range config.Clients {
+		if config.Clients[i].ID != id {
+			continue
+		}
+
+		if !utils.IsStringInSlice(oidc.GrantTypeTokenExchange, config.Clients[i].GrantTypes) {
+			// The grant handler checks the grant types of the client PERFORMING the exchange, so a referenced
+			// client without the grant type is permitted by this policy yet fails every exchange at runtime.
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeClientWithoutGrantType, config.Clients[c].ID, attr, id))
+		}
+
+		return
+	}
+
+	validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeUnknownClient, config.Clients[c].ID, attr, id))
+}
+
+func validateOIDCClientTokenExchangeClients(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, te bool, attr string, policies []schema.IdentityProvidersOpenIDConnectClientTokenExchangePolicy) {
+	if len(policies) == 0 {
+		return
+	}
+
+	if !te {
+		validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeWithoutGrantType, config.Clients[c].ID, attr))
+
+		return
+	}
+
+	seen := map[string]bool{}
+
+	for _, policy := range policies {
+		// Duplicate entries for the same client are rejected here at the config level. This is deliberately
+		// stricter than RegisteredClient.GetTokenExchangePermitted (internal/oidc/client.go), which composes
+		// duplicate entries with union semantics as defense in depth for a RegisteredClient constructed
+		// programmatically, bypassing this validator entirely.
+		if seen[policy.ClientID] {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeDuplicateClient, config.Clients[c].ID, attr, policy.ClientID))
+
+			continue
+		}
+
+		seen[policy.ClientID] = true
+
+		validateOIDCClientTokenExchangeReferencedClient(c, config, validator, attr, policy.ClientID)
+
+		if policy.ClientID != config.Clients[c].ID && !utils.IsStringInSlice(policy.ClientID, config.Clients[c].Audience) {
+			validator.PushWarning(fmt.Errorf(errFmtOIDCClientTokenExchangeClientNotInAudience, config.Clients[c].ID, attr, policy.ClientID))
+		}
+
+		invalid, duplicates := validateList(policy.RequestedTokenTypes, config.TokenExchange.TokenTypes, true)
+
+		if len(invalid) != 0 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientTokenExchangeTokenTypeNotEnabled, config.Clients[c].ID, attr, utils.StringJoinAnd(invalid)))
+		}
+
+		if len(duplicates) != 0 {
+			validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attr, utils.StringJoinAnd(duplicates)))
 		}
 	}
 }

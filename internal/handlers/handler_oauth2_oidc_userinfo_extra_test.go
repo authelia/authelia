@@ -258,7 +258,7 @@ func TestOpenIDConnectUserinfoClaimsErrors(t *testing.T) {
 		return token
 	}
 
-	t.Run("ShouldFallBackToClientCredentialsClaimsWhenUserCannotBeLoaded", func(t *testing.T) {
+	t.Run("ShouldFailClosedWhenUserCannotBeLoaded", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtxWithUserSession(t, newTestOIDCUserSession(1))
 		defer mock.Close()
 
@@ -305,11 +305,13 @@ func TestOpenIDConnectUserinfoClaimsErrors(t *testing.T) {
 
 		OpenIDConnectUserinfo(mock.Ctx, rwu, ru)
 
-		require.Equal(t, http.StatusOK, rwu.Code)
+		require.Equal(t, http.StatusInternalServerError, rwu.Code)
 
 		claims := getTestOAuth2ErrorResponse(t, rwu)
 
-		assert.NotEmpty(t, claims[oidc.ClaimSubject])
+		assert.Equal(t, "server_error", claims["error"])
+		assert.NotContains(t, claims, oidc.ClaimSubject)
+		assert.NotContains(t, claims, oidc.ClaimAuthenticationTime)
 
 		var logged bool
 

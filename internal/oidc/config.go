@@ -23,6 +23,7 @@ import (
 	"authelia.com/provider/oauth2/handler/par"
 	"authelia.com/provider/oauth2/handler/pkce"
 	"authelia.com/provider/oauth2/handler/rfc8628"
+	"authelia.com/provider/oauth2/handler/rfc8693"
 	"authelia.com/provider/oauth2/handler/rfc9449"
 	"authelia.com/provider/oauth2/i18n"
 	"authelia.com/provider/oauth2/token/jwt"
@@ -54,6 +55,11 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, issuer *Issuer, te
 			Require:         config.RequirePushedAuthorizationRequests,
 			ContextLifespan: 5 * time.Minute,
 			URIPrefix:       RedirectURIPrefixPushedAuthorizationRequestURN,
+		},
+		RFC8693: RFC8693Config{
+			TokenTypes:                NewRFC8693TokenTypes(&config.TokenExchange, issuer),
+			DefaultRequestedTokenType: defaultRequestedTokenType(&config.TokenExchange),
+			MaxActorChainDepth:        config.TokenExchange.MaxActorChainDepth,
 		},
 		JWTAccessToken: JWTAccessTokenConfig{
 			Enable:                       config.Discovery.JWTResponseAccessTokens,
@@ -208,6 +214,7 @@ func (c *Config) GetJWTStrategy(ctx context.Context) jwt.Strategy {
 type RFC8693Config struct {
 	TokenTypes                map[string]oauthelia2.RFC8693TokenType
 	DefaultRequestedTokenType string
+	MaxActorChainDepth        int
 }
 
 // LifespansConfig holds specific oauthelia2.Configurator information for token lifespans.
@@ -347,16 +354,24 @@ type StatelessJWTStrategy struct {
 func (c *Config) LoadHandlers(store *Store) {
 	validator := openid.NewOpenIDConnectRequestValidator(c.Strategy.JWT, c)
 
+	refreshTokenScopes := c.GetRefreshTokenScopes(context.Background())
+
 	var (
 		handlerDPoPAuthorize       any = nil
 		handlerDPoPDeviceAuthorize any = nil
 		handlerDPoPToken           any
+
+		handlerTxnToken any
 
 		handlerKeyBindingAuthorize       any = nil
 		handlerKeyBindingDeviceAuthorize any = nil
 		handlerKeyBindingUserAuthorize   any = nil
 		handlerKeyBindingToken           any = nil
 	)
+
+	if _, ok := c.RFC8693.TokenTypes[TokenTypeTxnToken]; ok {
+		handlerTxnToken = &rfc8693.TxnTokenTypeHandler{Config: c, Strategy: c.Strategy.JWT}
+	}
 
 	if c.DPoP.Enabled {
 		c.Strategy.DPoP = rfc9449.NewDefaultStrategy(c, store)
@@ -537,6 +552,41 @@ func (c *Config) LoadHandlers(store *Store) {
 			Storage: store,
 			Config:  c,
 		},
+
+		&rfc8693.TokenExchangeGrantHandler{
+			Config:           c,
+			ScopeStrategy:    c.Strategy.Scope,
+			AudienceStrategy: c.Strategy.Audience,
+			ResourceStrategy: c.Strategy.Resource,
+		},
+		&rfc8693.AccessTokenTypeHandler{
+			Config:                 c,
+			AccessTokenLifespan:    c.Lifespans.AccessToken,
+			RefreshTokenLifespan:   c.Lifespans.RefreshToken,
+			RefreshTokenScopes:     refreshTokenScopes,
+			ScopeStrategy:          c.Strategy.Scope,
+			CoreStrategy:           c.Strategy.Core,
+			Storage:                store,
+			TokenRevocationStorage: store,
+		},
+		&rfc8693.RefreshTokenTypeHandler{
+			Config:                 c,
+			RefreshTokenLifespan:   c.Lifespans.RefreshToken,
+			RefreshTokenScopes:     refreshTokenScopes,
+			ScopeStrategy:          c.Strategy.Scope,
+			CoreStrategy:           c.Strategy.Core,
+			Storage:                store,
+			TokenRevocationStorage: store,
+		},
+		&rfc8693.IDTokenTypeHandler{
+			Config:             c,
+			Strategy:           c.Strategy.JWT,
+			IssueStrategy:      c.Strategy.OpenID,
+			ValidationStrategy: &IDTokenSubjectValidationStrategy{TokenValidationStrategy: &openid.DefaultIDTokenValidationStrategy{Strategy: c.Strategy.JWT}},
+			Storage:            store,
+		},
+		handlerTxnToken,
+		&rfc8693.ActorTokenValidationHandler{},
 
 		&oauthelia2.DefaultResponseModeHandler{
 			Config: c,

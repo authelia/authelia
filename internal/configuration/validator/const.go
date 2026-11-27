@@ -356,6 +356,64 @@ const (
 		"%s but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntries = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
 		"but the values %s are present"
+	errFmtOIDCClientTokenExchangeWithoutGrantType = errFmtOIDCClientOption + "'%s' can only be configured when the " +
+		"'grant_types' option contains '" + oidc.GrantTypeTokenExchange + "'"
+	errFmtOIDCClientTokenExchangeTokenTypeNotEnabled = errFmtOIDCClientOption + "'%s' must only contain token types " +
+		"enabled by 'token_exchange: token_types' but it has %s"
+	errFmtOIDCClientTokenExchangeActorTxnToken = errFmtOIDCClientOption + "'%s' must not contain the '%s' value as " +
+		"Transaction Tokens are not accepted as an 'actor_token'"
+	errFmtOIDCClientTokenExchangeSubjectTxnTokenWithoutReplacement = errFmtOIDCClientOption + "'%s' can only contain the " +
+		"'%s' value when the '%s' option is enabled"
+	errFmtOIDCClientTokenExchangeReplacementNotEnabled = errFmtOIDCClientOption + "'%s' can only be enabled when the " +
+		"'token_exchange: transaction_tokens: replacement: enabled' option is enabled"
+	errFmtOIDCClientTokenExchangeTxnTokenAudience = errFmtOIDCClientOption + "'audience' must include the " +
+		"'transaction_tokens: trust_domain' value '%s' when the '%s' option contains '%s'"
+	errFmtOIDCClientTokenExchangeSubjectTypesDefaultEmpty = errFmtOIDCClientOption + "'%s' must be configured explicitly " +
+		"when 'token_exchange: token_types' does not include any of the default subject token types %s"
+	errFmtOIDCClientTokenExchangeReplacementTwoFactor = errFmtOIDCClientOption + "'%s' is enabled but the " +
+		"'authorization_policy' '%s' requires '" + policyTwoFactor + "' by default and replaced Transaction Tokens carry " +
+		"no authentication methods references, so replacement requests will be rejected wherever the policy requires '" +
+		policyTwoFactor + "'"
+	errFmtOIDCClientTokenExchangeUnknownClient = errFmtOIDCClientOption + "'%s' must only reference registered " +
+		"clients but the client '%s' does not exist"
+	errFmtOIDCClientTokenExchangeDuplicateClient = errFmtOIDCClientOption + "'%s' must only reference each client " +
+		"once but the client '%s' is referenced multiple times"
+	errFmtOIDCClientTokenExchangeClientWithoutGrantType = errFmtOIDCClientOption + "'%s' must only reference clients " +
+		"which have the '" + oidc.GrantTypeTokenExchange + "' value in their 'grant_types' option but the client " +
+		"'%s' does not"
+	errFmtOIDCClientTokenExchangeClientNotInAudience = errFmtOIDCClientOption + "'%s' references client '%s' which " +
+		"is not in the 'audience' option, so tokens issued to this client can never be exchanged by it"
+	errFmtOIDCClientTokenExchangeMayActWithAllActorTokens = errFmtOIDCClientOption + "'%s' can only be enabled when the " +
+		"'%s' option is configured, as an empty value permits every supported token type to be presented as an " +
+		"'actor_token' with the RFC8693 Section 4.4 'may_act' check disabled"
+	errFmtOIDCClientTokenExchangeRefreshTokenNotAllowed = errFmtOIDCClientOption + "'%s' can only contain the '%s' " +
+		"value when the '%s' option is enabled"
+	errFmtOIDCClientTokenExchangeRefreshTokenWithoutGrantType = errFmtOIDCClientOption + "'%s' can only contain the " +
+		"'%s' value when the 'grant_types' option contains '" + oidc.GrantTypeRefreshToken + "'"
+	errFmtOIDCClientTokenExchangeOptionNoEffect = errFmtOIDCClientOption + "'%s' has no effect when option '%s' is " +
+		"not enabled"
+	errFmtOIDCClientTokenExchangeMayActEmpty = errFmtOIDCClientOption + "'%s' must have at least one of the " +
+		"'client_id' or 'subject' options configured"
+	errFmtOIDCProviderTokenExchangeMaxActorChainDepth = "identity_providers: oidc: token_exchange: option " +
+		"'max_actor_chain_depth' must be greater than or equal to 1 but it's configured as '%d'"
+	errFmtOIDCProviderTokenExchangeInvalidTokenType = "identity_providers: oidc: token_exchange: option " +
+		"'token_types' must only contain the values %s but it has the value '%s'"
+	errFmtOIDCProviderTokenExchangeDuplicateTokenTypes = "identity_providers: oidc: token_exchange: option " +
+		"'token_types' must have unique values but the values %s are duplicated"
+	errFmtOIDCProviderTokenExchangeDefaultNotConfigured = "identity_providers: oidc: token_exchange: option " +
+		"'default_requested_token_type' must be one of the configured 'token_types' %s but it's configured as '%s'"
+	errFmtOIDCProviderTokenExchangeDefaultInvalid = "identity_providers: oidc: token_exchange: option " +
+		"'default_requested_token_type' must not be '%s'"
+	errFmtOIDCProviderTokenExchangeTxnTokensWithoutType = "identity_providers: oidc: token_exchange: option " +
+		"'transaction_tokens' must not be configured when 'token_types' does not include '" + oidc.TokenTypeTxnToken + "'"
+	errFmtOIDCProviderTokenExchangeTxnTokensTrustDomain = "identity_providers: oidc: token_exchange: option " +
+		"'transaction_tokens: trust_domain' is required when 'token_types' includes '" + oidc.TokenTypeTxnToken + "'"
+	errFmtOIDCProviderTokenExchangeTxnTokensLifespan = "identity_providers: oidc: token_exchange: option " +
+		"'transaction_tokens: lifespan' must be a positive duration but it's configured as '%s'"
+	errFmtOIDCProviderTokenExchangeTxnTokensChainLength = "identity_providers: oidc: token_exchange: option " +
+		"'transaction_tokens: replacement: max_chain_length' must be greater than or equal to 1 but it's configured as '%d'"
+	errFmtOIDCProviderTokenExchangeTxnTokensSigningAlg = "identity_providers: oidc: token_exchange: option " +
+		"'transaction_tokens: signing_algorithm' must be one of the algorithms of the configured 'jwks' %s but it's configured as '%s'"
 	errFmtOIDCClientUnknownScopeEntries = errFmtOIDCClientOption + "'%s' only expects the values " +
 		"%s but the unknown values %s are present and should generally only be used if a particular client requires a scope outside of our standard scopes"
 	errFmtOIDCClientInvalidEntriesScope = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
@@ -425,6 +483,8 @@ const (
 		"'grant_types' should only have the 'refresh_token' value if the client is also configured with the 'offline_access' scope"
 	errFmtOIDCClientInvalidGrantTypePublic = errFmtOIDCClientOption + "'grant_types' " +
 		"should only have the '%s' value if it is of the confidential client type but it's of the public client type"
+	errFmtOIDCClientInvalidGrantTypeAuthMethodNone = errFmtOIDCClientOption + "'grant_types' " +
+		"should only have the '%s' value if the client authenticates at the token endpoint but option 'token_endpoint_auth_method' is configured as 'none'"
 
 	errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType = errFmtOIDCClientOption +
 		"'%s' should only have the values %s if the client is also configured with a 'response_type' such as %s which respond with authorization codes"
@@ -734,46 +794,61 @@ var uriParserExclusiveClasses = [][2]string{
 var validDefault2FAMethods = []string{"totp", "webauthn", "mobile_push"}
 
 const (
-	attrOIDCKey                           = "key"
-	attrOIDCKeyID                         = "key_id"
-	attrOIDCKeyUse                        = "use"
-	attrOIDCAlgorithm                     = "algorithm"
-	attrOIDCScopes                        = "scopes"
-	attrOIDCResponseTypes                 = "response_types"
-	attrOIDCResponseModes                 = "response_modes"
-	attrOIDCGrantTypes                    = "grant_types"
-	attrOIDCRedirectURIs                  = "redirect_uris"
-	attrOIDCRequestURIs                   = "request_uris"
-	attrOIDCAudience                      = "audience"
-	attrOIDCResource                      = "resource"
-	attrOIDCIntrospectionAudience         = "introspection_audience"
-	attrOIDCRequestObjectSigningAlg       = "request_object_signing_alg"
-	attrOIDCTokenAuthMethod               = "token_endpoint_auth_method"
-	attrOIDCTokenAuthSigningAlg           = "token_endpoint_auth_signing_alg"
-	attrOIDCRevocationAuthMethod          = "revocation_endpoint_auth_method"
-	attrOIDCRevocationAuthSigningAlg      = "revocation_endpoint_auth_signing_alg"
-	attrOIDCIntrospectionAuthMethod       = "introspection_endpoint_auth_method"
-	attrOIDCIntrospectionAuthSigningAlg   = "introspection_endpoint_auth_signing_alg"
-	attrOIDCPARAuthMethod                 = "pushed_authorization_request_endpoint_auth_method"
-	attrOIDCPARAuthSigningAlg             = "pushed_authorization_request_endpoint_auth_signing_alg"
-	attrOIDCDiscoSigAlg                   = "discovery_signed_response_alg"
-	attrOIDCDiscoSigKID                   = "discovery_signed_response_key_id"
-	attrOIDCAuthorizationPrefix           = "authorization"
-	attrOIDCIDTokenPrefix                 = "id_token"
-	attrOIDCAccessTokenPrefix             = "access_token"
-	attrOIDCUserinfoPrefix                = "userinfo"
-	attrOIDCIntrospectionPrefix           = "introspection"
-	attrOIDCPKCEChallengeMethod           = "pkce_challenge_method"
-	attrOIDCApplicationType               = "application_type"
-	attrOIDCRequestedAudienceMode         = "requested_audience_mode"
-	attrOIDCRequestedResourceMode         = "requested_resource_mode"
-	attrOIDCAudienceStrategy              = "audience_strategy"
-	attrOIDCResourceStrategy              = "resource_strategy"
-	attrOIDCClientAssertionAllowEmptyType = "client_assertion_jwt_validation_header_allow_empty_type"
-	attrOIDCClientAssertionAllowTypes     = "client_assertion_jwt_validation_header_allow_types"
-	attrSessionAutheliaURL                = "authelia_url"
-	attrSessionDomain                     = "domain"
-	attrDefaultRedirectionURL             = "default_redirection_url"
+	attrOIDCKey                            = "key"
+	attrOIDCKeyID                          = "key_id"
+	attrOIDCKeyUse                         = "use"
+	attrOIDCAlgorithm                      = "algorithm"
+	attrOIDCScopes                         = "scopes"
+	attrOIDCResponseTypes                  = "response_types"
+	attrOIDCResponseModes                  = "response_modes"
+	attrOIDCGrantTypes                     = "grant_types"
+	attrOIDCRedirectURIs                   = "redirect_uris"
+	attrOIDCRequestURIs                    = "request_uris"
+	attrOIDCAudience                       = "audience"
+	attrOIDCResource                       = "resource"
+	attrOIDCIntrospectionAudience          = "introspection_audience"
+	attrOIDCRequestObjectSigningAlg        = "request_object_signing_alg"
+	attrOIDCTokenAuthMethod                = "token_endpoint_auth_method"
+	attrOIDCTokenAuthSigningAlg            = "token_endpoint_auth_signing_alg"
+	attrOIDCRevocationAuthMethod           = "revocation_endpoint_auth_method"
+	attrOIDCRevocationAuthSigningAlg       = "revocation_endpoint_auth_signing_alg"
+	attrOIDCIntrospectionAuthMethod        = "introspection_endpoint_auth_method"
+	attrOIDCIntrospectionAuthSigningAlg    = "introspection_endpoint_auth_signing_alg"
+	attrOIDCPARAuthMethod                  = "pushed_authorization_request_endpoint_auth_method"
+	attrOIDCPARAuthSigningAlg              = "pushed_authorization_request_endpoint_auth_signing_alg"
+	attrOIDCDiscoSigAlg                    = "discovery_signed_response_alg"
+	attrOIDCDiscoSigKID                    = "discovery_signed_response_key_id"
+	attrOIDCAuthorizationPrefix            = "authorization"
+	attrOIDCIDTokenPrefix                  = "id_token"
+	attrOIDCAccessTokenPrefix              = "access_token"
+	attrOIDCUserinfoPrefix                 = "userinfo"
+	attrOIDCIntrospectionPrefix            = "introspection"
+	attrOIDCPKCEChallengeMethod            = "pkce_challenge_method"
+	attrOIDCApplicationType                = "application_type"
+	attrOIDCRequestedAudienceMode          = "requested_audience_mode"
+	attrOIDCRequestedResourceMode          = "requested_resource_mode"
+	attrOIDCAudienceStrategy               = "audience_strategy"
+	attrOIDCResourceStrategy               = "resource_strategy"
+	attrOIDCClientAssertionAllowEmptyType  = "client_assertion_jwt_validation_header_allow_empty_type"
+	attrOIDCClientAssertionAllowTypes      = "client_assertion_jwt_validation_header_allow_types"
+	attrOIDCSubjectTokenTypesSupported     = "subject_token_types_supported"
+	attrOIDCSubjectTokenIssuersSupported   = "subject_token_issuers_supported"
+	attrOIDCActorTokenTypesSupported       = "actor_token_types_supported"
+	attrOIDCActorTokenIssuersSupported     = "actor_token_issuers_supported"
+	attrOIDCRequestTokenTypesSupported     = "request_token_types_supported"
+	attrOIDCSubjectTokenClientsSupported   = "subject_token_clients_supported"
+	attrOIDCActorTokenWithoutMayActAllowed = "actor_token_without_may_act_allowed"
+	attrSessionAutheliaURL                 = "authelia_url"
+	attrSessionDomain                      = "domain"
+	attrDefaultRedirectionURL              = "default_redirection_url"
+
+	attrOIDCActorTokenClientsSupported              = "actor_token_clients_supported"
+	attrOIDCTokenExchangeRefreshTokenAllowed        = "token_exchange_refresh_token_allowed"
+	attrOIDCOwnAccessTokenExchangeAllowed           = "own_access_token_exchange_allowed"
+	attrOIDCOwnAccessTokenExchangeTargetsRestricted = "own_access_token_exchange_targets_restricted"
+	attrOIDCImpersonationAllowed                    = "impersonation_allowed"
+	attrOIDCTokenExchangeMayAct                     = "token_exchange_may_act"
+	attrOIDCTokenExchangeTxnTokenReplacement        = "token_exchange_txn_token_replacement"
 )
 
 const (
@@ -800,7 +875,10 @@ var (
 	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
-	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}
+	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode, oidc.GrantTypeTokenExchange}
+	validOIDCTokenExchangeTokenTypes         = []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken, oidc.TokenTypeIDToken, oidc.TokenTypeTxnToken}
+
+	validOIDCClientTokenExchangeSubjectTokenTypesDefault = []string{oidc.TokenTypeAccessToken, oidc.TokenTypeRefreshToken}
 
 	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
