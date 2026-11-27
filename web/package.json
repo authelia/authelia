@@ -80,7 +80,7 @@
     "eslint-plugin-perfectionist": "5.14.0",
     "eslint-plugin-prettier": "5.5.7",
     "happy-dom": "21.0.4",
-    "lefthook": "2.2.3",
+    "lefthook": "2.2.4",
     "prettier": "3.10.1",
     "tailwindcss": "4.3.5",
     "typescript": "npm:@typescript/typescript6@6.0.2",
