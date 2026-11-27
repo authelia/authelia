@@ -2393,7 +2393,7 @@ func (ctx *CmdCtx) StorageCleanOAuth2RunE(cmd *cobra.Command, _ []string) (err e
 			return err
 		}
 
-		fmt.Printf("Dry run: %d stale OpenID Connect 1.0 consent session(s) responded to and expired before %s would be removed, along with the sessions which reference them.\n", count, before.Format(time.RFC3339))
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Dry run: %d stale OpenID Connect 1.0 consent session(s) responded to and expired before %s would be removed, along with the sessions which reference them.\n", count, before.Format(time.RFC3339))
 
 		return nil
 	}
@@ -2404,7 +2404,7 @@ func (ctx *CmdCtx) StorageCleanOAuth2RunE(cmd *cobra.Command, _ []string) (err e
 		return err
 	}
 
-	fmt.Printf("Removed %d stale OpenID Connect 1.0 consent session(s) responded to and expired before %s, along with the sessions which reference them.\n", deleted, before.Format(time.RFC3339))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Removed %d stale OpenID Connect 1.0 consent session(s) responded to and expired before %s, along with the sessions which reference them.\n", deleted, before.Format(time.RFC3339))
 
 	return nil
 }
