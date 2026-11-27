@@ -5,6 +5,7 @@
 package server
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -16,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+
+	"authelia.com/provider/oauth2/handler/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -159,6 +162,23 @@ func TestResolveOIDCConsentLogoURI(t *testing.T) {
 		assert.Equal(t, " https://logo.example.com", resolveOIDCConsentLogoURI(mock.Ctx))
 	})
 
+	t.Run("ShouldReturnEmptyForFlowIDWhenClientNotRegistered", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		setupTestCSPOIDCProvider(t, mock)
+
+		flowID := uuid.New()
+
+		mock.Ctx.Request.SetRequestURI(oidc.FrontendEndpointPathConsentDecision + "?flow_id=" + flowID.String())
+
+		mock.StorageMock.EXPECT().
+			LoadOAuth2ConsentSessionByChallengeID(gomock.Any(), flowID).
+			Return(&model.OAuth2ConsentSession{ClientID: "unknown"}, nil)
+
+		assert.Equal(t, "", resolveOIDCConsentLogoURI(mock.Ctx))
+	})
+
 	t.Run("ShouldReturnEmptyForFlowIDWhenClientHasNoLogo", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
@@ -213,6 +233,19 @@ func TestResolveOIDCConsentLogoURI(t *testing.T) {
 		assert.Equal(t, "", resolveOIDCConsentLogoURI(mock.Ctx))
 	})
 
+	t.Run("ShouldReturnEmptyForUserCodeWhenSignatureFails", func(t *testing.T) {
+		mock := mocks.NewMockAutheliaCtx(t)
+		defer mock.Close()
+
+		setupTestCSPOIDCProvider(t, mock)
+
+		mock.Ctx.Providers.OpenIDConnect.Strategy.Core = &testCSPErrUserCodeStrategy{CoreStrategy: mock.Ctx.Providers.OpenIDConnect.Strategy.Core}
+
+		mock.Ctx.Request.SetRequestURI(oidc.FrontendEndpointPathConsentDecision + "?user_code=BGKMRTVX")
+
+		assert.Equal(t, "", resolveOIDCConsentLogoURI(mock.Ctx))
+	})
+
 	t.Run("ShouldReturnEmptyForUserCodeOnNonConsentPath", func(t *testing.T) {
 		mock := mocks.NewMockAutheliaCtx(t)
 		defer mock.Close()
@@ -223,6 +256,14 @@ func TestResolveOIDCConsentLogoURI(t *testing.T) {
 
 		assert.Equal(t, "", resolveOIDCConsentLogoURI(mock.Ctx))
 	})
+}
+
+type testCSPErrUserCodeStrategy struct {
+	oauth2.CoreStrategy
+}
+
+func (s *testCSPErrUserCodeStrategy) RFC8628UserCodeSignature(_ context.Context, _ string) (string, error) {
+	return "", errors.New("signature failure")
 }
 
 const (

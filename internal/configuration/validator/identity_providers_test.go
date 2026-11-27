@@ -20,6 +20,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -858,6 +859,57 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 		},
 		{
+			name: "InvalidLogoURIMissingHost",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-nohost",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https:///logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-nohost': option 'logo_uri' with value 'https:///logo.png': must have a host",
+			},
+		},
+		{
+			name: "InvalidLogoURIMissingHostname",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-nohostname",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https://:443/logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-nohostname': option 'logo_uri' with value 'https://:443/logo.png': must have a host",
+			},
+		},
+		{
+			name: "InvalidLogoURIOpaque",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-opaque",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https:logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-opaque': option 'logo_uri' with value 'https:logo.png': must have a host",
+			},
+		},
+		{
 			name: "InvalidLogoURIFragmentAndUserInfo",
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
@@ -933,6 +985,70 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			}
 		})
 	}
+}
+
+//nolint:gosec // Test Credentials.
+func TestShouldWarnOnceWhenOIDCClientLogoURIIsNotImage(t *testing.T) {
+	var hits atomic.Int32
+
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		hits.Add(1)
+
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = w.Write([]byte("<html></html>"))
+	}))
+
+	t.Cleanup(srv.Close)
+
+	logo := srv.URL + "/logo.png"
+
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "client-logo-one",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: policyTwoFactor,
+						RedirectURIs:        []string{"https://google.com"},
+						LogoURI:             MustParseURL(logo),
+					},
+					{
+						ID:                  "client-logo-two",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: policyTwoFactor,
+						RedirectURIs:        []string{"https://google.com"},
+						LogoURI:             MustParseURL(logo),
+					},
+				},
+			},
+		},
+	}
+
+	ctx := NewValidateCtx()
+	ctx.tlsconfig = &tls.Config{
+		InsecureSkipVerify: true, //nolint:gosec
+		MinVersion:         tls.VersionTLS12,
+		MaxVersion:         tls.VersionTLS13,
+	}
+
+	ValidateIdentityProviders(ctx, config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+
+	warns := validator.Warnings()
+
+	require.Len(t, warns, 2)
+
+	for i, id := range []string{"client-logo-one", "client-logo-two"} {
+		assert.EqualError(t, warns[i], fmt.Sprintf("identity_providers: oidc: clients: client '%s': option 'logo_uri' with value '%s': failed to validate that the resource is an image as required by the OpenID Connect Dynamic Client Registration 1.0 specification: response Content-Type was 'text/html' which is not an image", id, logo))
+	}
+
+	assert.Equal(t, int32(1), hits.Load())
+	assert.Nil(t, ctx.cacheLogoURIProbes)
 }
 
 //nolint:gosec // Test Credentials.

@@ -405,6 +405,8 @@ const (
 		"'logo_uri' with value '%s': should be an absolute URI"
 	errFmtOIDCClientInvalidLogoURIScheme = errFmtOIDCClientOption +
 		"'logo_uri' with value '%s': must have the 'https' scheme but has the '%s' scheme"
+	errFmtOIDCClientInvalidLogoURIHost = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': must have a host"
 	errFmtOIDCClientInvalidLogoURI = errFmtOIDCClientOption +
 		"'logo_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
 	errFmtOIDCClientLogoURINotImage = errFmtOIDCClientOption +

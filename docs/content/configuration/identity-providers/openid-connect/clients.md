@@ -172,8 +172,10 @@ A friendly name for this client shown in the UI. This defaults to the same as th
 URL of an image displayed alongside the [client_name](#client_name) on the consent screen. Defined by
 [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata)
 and [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591#section-2). Must be an absolute HTTPS URL pointing to a
-valid image file; the image is fetched directly by the End-User's browser, so the URL must be reachable from the
-End-User's network.
+valid image file. The URL must be reachable from both the End-User's network and the Authelia server: the image is
+fetched directly by the End-User's browser when rendering the consent screen, and Authelia fetches it during
+configuration validation to verify it is an image. If Authelia cannot fetch the URL or the response is not an image, a
+warning is logged but startup is not prevented.
 
 When omitted, no logo is rendered and the consent screen layout is unchanged.
 

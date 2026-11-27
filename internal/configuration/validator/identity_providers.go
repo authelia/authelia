@@ -1120,12 +1120,17 @@ func validateOIDCClientLogoURI(ctx *ValidateCtx, c int, config *schema.IdentityP
 
 	valid := true
 
-	if !config.Clients[c].LogoURI.IsAbs() {
+	switch {
+	case !config.Clients[c].LogoURI.IsAbs():
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURIAbsolute, config.Clients[c].ID, config.Clients[c].LogoURI.String()))
 
 		valid = false
-	} else if config.Clients[c].LogoURI.Scheme != schemeHTTPS {
+	case config.Clients[c].LogoURI.Scheme != schemeHTTPS:
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURIScheme, config.Clients[c].ID, config.Clients[c].LogoURI.String(), config.Clients[c].LogoURI.Scheme))
+
+		valid = false
+	case config.Clients[c].LogoURI.Hostname() == "":
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidLogoURIHost, config.Clients[c].ID, config.Clients[c].LogoURI.String()))
 
 		valid = false
 	}

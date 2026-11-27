@@ -820,6 +820,31 @@ func TestValidateLogoURIIsImage(t *testing.T) {
 			true,
 		},
 		{
+			"ShouldRejectMissingContentTypeWithNonImageBody",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header()["Content-Type"] = nil
+					_, _ = w.Write([]byte("not an image"))
+				}))
+
+				t.Cleanup(srv.Close)
+
+				u, _ := url.Parse(srv.URL)
+
+				return u, srv.Client(), map[string]error{}
+			},
+			"response did not include a Content-Type header and the response body was not recognized as an image",
+			true,
+		},
+		{
+			"ShouldErrOnInvalidRequestURL",
+			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
+				return &url.URL{Scheme: "https", Host: "invalid host", Path: "/logo.png"}, &http.Client{}, map[string]error{}
+			},
+			"error occurred building request to 'https://invalid%20host/logo.png'",
+			true,
+		},
+		{
 			"ShouldReturnCachedResult",
 			func(t *testing.T) (*url.URL, *http.Client, map[string]error) {
 				u, _ := url.Parse("https://example.com/logo.png")

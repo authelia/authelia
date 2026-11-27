@@ -185,6 +185,14 @@ it("does not render a card header when there are no scopes", () => {
     expect(container.querySelector("[data-slot='card-header']")).toBeNull();
 });
 
+it("does not render a card header when the scopes are absent", () => {
+    const { container } = render(
+        <DecisionFormRequest response={response({ scopes: null })} claims={["name"]} onChangeClaims={vi.fn()} />,
+    );
+
+    expect(container.querySelector("[data-slot='card-header']")).toBeNull();
+});
+
 it("does not render a card when there is nothing to disclose", () => {
     const { container } = render(
         <DecisionFormRequest
