@@ -45,48 +45,6 @@ const (
 	tableEncryption = "encryption"
 )
 
-// Queries for cleaning stale OAuth 2.0 consent sessions. A session is stale once it has expired and the user has
-// responded to it: the response is what makes it finished, and the expiry is what makes it safe to remove. Rows
-// which have never been responded to are left alone as a flow may still be in progress against them. The expiry is
-// only the deadline for the consent decision, so rows which an access token or refresh token that may still be valid
-// references are left alone too, otherwise the cascade would remove it. The expiry of a token is only stored in its
-// encrypted session data, so a token is treated as valid while it is active, has not been revoked, and was issued
-// after the given time.
-const (
-	queryFmtCountStaleOAuth2ConsentSessions = `
-		SELECT COUNT(*)
-		FROM %[1]s
-		WHERE expires_at IS NOT NULL AND expires_at < ? AND responded_at IS NOT NULL AND responded_at < ?
-			AND NOT EXISTS (
-				SELECT 1
-				FROM %[2]s
-				WHERE %[2]s.challenge_id = %[1]s.challenge_id AND %[2]s.active = TRUE AND %[2]s.revoked = FALSE
-					AND %[2]s.requested_at > ?
-			)
-			AND NOT EXISTS (
-				SELECT 1
-				FROM %[3]s
-				WHERE %[3]s.challenge_id = %[1]s.challenge_id AND %[3]s.active = TRUE AND %[3]s.revoked = FALSE
-					AND %[3]s.requested_at > ?
-			);`
-
-	queryFmtDeleteStaleOAuth2ConsentSessions = `
-		DELETE FROM %[1]s
-		WHERE expires_at IS NOT NULL AND expires_at < ? AND responded_at IS NOT NULL AND responded_at < ?
-			AND NOT EXISTS (
-				SELECT 1
-				FROM %[2]s
-				WHERE %[2]s.challenge_id = %[1]s.challenge_id AND %[2]s.active = TRUE AND %[2]s.revoked = FALSE
-					AND %[2]s.requested_at > ?
-			)
-			AND NOT EXISTS (
-				SELECT 1
-				FROM %[3]s
-				WHERE %[3]s.challenge_id = %[1]s.challenge_id AND %[3]s.active = TRUE AND %[3]s.revoked = FALSE
-					AND %[3]s.requested_at > ?
-			);`
-)
-
 const (
 	tableAADPushedAuthorizationRequestSession = "oauth2_pushed_authorization_session"
 )
