@@ -132,6 +132,10 @@ func logOAuth2TokenExchange(ctx *middlewares.AutheliaCtx, requester oauthelia2.A
 		issued, _ := responder.GetExtra(oidc.FormParameterIssuedTokenType).(string)
 
 		setOAuth2TokenExchangeLogField(fields, oidc.FormParameterIssuedTokenType, issued)
+
+		if issued == oidc.TokenTypeIDJAG {
+			addOAuth2IDJAGLogFields(ctx, fields, requester)
+		}
 	}
 
 	entry := ctx.GetLogger().WithFields(fields)
@@ -183,27 +187,37 @@ func isOAuth2TokenExchangeOwnToken(requester oauthelia2.AccessRequester, client 
 }
 
 func handleOAuth2TokenExchangeConsent(ctx *middlewares.AutheliaCtx, requester oauthelia2.AccessRequester, client oidc.Client, session *oidc.Session) (details *authentication.UserDetailsExtended, err error) {
-	switch client.GetConsentPolicy().Mode {
-	case oidc.ClientConsentModeImplicit:
-		return nil, nil
-	case oidc.ClientConsentModePreConfigured:
+	if client.GetConsentPolicy().Mode == oidc.ClientConsentModePreConfigured {
 		if details, err = handleOAuth2TokenExchangeResolveSubject(ctx, requester, client, session); err != nil {
 			return nil, err
 		}
+	}
 
+	if err = handleOAuth2ClientConsentModePolicy(ctx, requester, client, details, "The client requires explicit user consent which cannot be obtained during a token exchange."); err != nil {
+		return nil, err
+	}
+
+	return details, nil
+}
+
+func handleOAuth2ClientConsentModePolicy(ctx *middlewares.AutheliaCtx, requester oauthelia2.AccessRequester, client oidc.Client, details *authentication.UserDetailsExtended, hintExplicit string) (err error) {
+	switch client.GetConsentPolicy().Mode {
+	case oidc.ClientConsentModeImplicit:
+		return nil
+	case oidc.ClientConsentModePreConfigured:
 		var consented bool
 
 		if consented, err = handleOAuth2TokenExchangePreConfiguredConsent(ctx, requester, client, details); err != nil {
-			return nil, oauthelia2.ErrServerError.WithWrap(err).WithDebugf("Error occurred looking up pre-configured consent: %+v", err)
+			return oauthelia2.ErrServerError.WithWrap(err).WithDebugf("Error occurred looking up pre-configured consent: %+v", err)
 		}
 
 		if !consented {
-			return nil, oauthelia2.ErrInvalidGrant.WithHint("The user has not consented to this client for the requested scopes.")
+			return oauthelia2.ErrInvalidGrant.WithHint("The user has not consented to this client for the requested scopes.")
 		}
 
-		return details, nil
+		return nil
 	default:
-		return nil, oauthelia2.ErrInvalidGrant.WithHint("The client requires explicit user consent which cannot be obtained during a token exchange.")
+		return oauthelia2.ErrInvalidGrant.WithHint(hintExplicit)
 	}
 }
 
@@ -238,7 +252,7 @@ func handleOAuth2TokenExchangePreConfiguredConsent(ctx *middlewares.AutheliaCtx,
 			return false, fmt.Errorf("error iterating rows: %w", err)
 		}
 
-		if config.CanConsentAt(now) && config.HasGrantsCovering(requester.GetRequestedScopes(), requester.GetRequestedAudience(), requester.GetRequestedResource()) {
+		if config.CanConsentAt(now) && config.HasGrantsCovering(requester.GetGrantedScopes(), requester.GetGrantedAudience(), requester.GetGrantedResource()) {
 			return true, nil
 		}
 	}
@@ -247,6 +261,13 @@ func handleOAuth2TokenExchangePreConfiguredConsent(ctx *middlewares.AutheliaCtx,
 }
 
 func handleOAuth2TokenExchangeResolveSubject(ctx *middlewares.AutheliaCtx, requester oauthelia2.AccessRequester, client oidc.Client, session *oidc.Session) (details *authentication.UserDetailsExtended, err error) {
+	return handleOAuth2ResolveSessionSubject(ctx, requester, client, session,
+		"Access Request encountered an error resolving the user of the 'subject_token'",
+		"The subject of the 'subject_token' could not be resolved.",
+	)
+}
+
+func handleOAuth2ResolveSessionSubject(ctx *middlewares.AutheliaCtx, requester oauthelia2.AccessRequester, client oidc.Client, session *oidc.Session, message, hint string) (details *authentication.UserDetailsExtended, err error) {
 	var (
 		detailer oidc.UserDetailer
 		ok       bool
@@ -260,15 +281,22 @@ func handleOAuth2TokenExchangeResolveSubject(ctx *middlewares.AutheliaCtx, reque
 		ctx.GetLogger().
 			WithFields(map[string]any{"oauth2_access_request_id": requester.GetID(), "client_id": client.GetID(), "subject": session.Subject}).
 			WithError(err).
-			Error("Access Request encountered an error resolving the user of the 'subject_token'")
+			Error(message)
 
-		return nil, oauthelia2.ErrInvalidGrant.WithHint("The subject of the 'subject_token' could not be resolved.")
+		return nil, oauthelia2.ErrInvalidGrant.WithHint(hint)
 	}
 
 	return details, nil
 }
 
 func handleOAuth2TokenExchangeAuthorizationPolicy(ctx *middlewares.AutheliaCtx, client oidc.Client, session *oidc.Session, details *authentication.UserDetailsExtended) (err error) {
+	return handleOAuth2SubjectTokenAuthorizationPolicy(ctx, client, session, details,
+		"The client's authorization policy does not permit this user.",
+		"The authentication level of the 'subject_token' is insufficient for the client's authorization policy.",
+	)
+}
+
+func handleOAuth2SubjectTokenAuthorizationPolicy(ctx *middlewares.AutheliaCtx, client oidc.Client, session *oidc.Session, details *authentication.UserDetailsExtended, hintDenied, hintInsufficient string) (err error) {
 	have := authentication.OneFactor
 
 	if session.DefaultSession != nil && session.Claims != nil && authorization.NewAuthenticationMethodsReferencesFromClaim(session.Claims.AuthenticationMethodsReferences).MultiFactorAuthentication() {
@@ -278,11 +306,11 @@ func handleOAuth2TokenExchangeAuthorizationPolicy(ctx *middlewares.AutheliaCtx, 
 	required := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: details.Username, Groups: details.Groups, IP: ctx.RemoteIP()})
 
 	if required == authorization.Denied {
-		return oauthelia2.ErrInvalidGrant.WithHint("The client's authorization policy does not permit this user.")
+		return oauthelia2.ErrInvalidGrant.WithHint(hintDenied)
 	}
 
 	if !authorization.IsAuthLevelSufficient(have, required) {
-		return oauthelia2.ErrInvalidGrant.WithHint("The authentication level of the 'subject_token' is insufficient for the client's authorization policy.")
+		return oauthelia2.ErrInvalidGrant.WithHint(hintInsufficient)
 	}
 
 	return nil

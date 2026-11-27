@@ -91,7 +91,9 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 		providers.Notifier = notification.NewFileNotifier(*config.Notifier.FileSystem)
 	}
 
-	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates)
+	if providers.OpenIDConnect, err = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates); err != nil {
+		errs = append(errs, err)
+	}
 
 	if providers.OpenIDConnect != nil {
 		providers.GarbageCollector.Register(providers.OpenIDConnect)

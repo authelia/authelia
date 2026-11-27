@@ -71,7 +71,7 @@ func TestHandlerRouterShouldRequireCSRFTokenForEveryStateChangingAPIRoute(t *tes
 	providers.Random = random.NewMathematical()
 	providers.Templates = provider
 	providers.Clock = clock.New()
-	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+	providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, nil, provider)
 
 	providers.Session, err = mocks.NewSessionProvider(config, providers.Clock, providers.Random)
 	require.NoError(t, err)

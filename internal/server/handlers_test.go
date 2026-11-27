@@ -360,7 +360,7 @@ func TestHandlerMainWithOptionalFeatures(t *testing.T) {
 			providers.Templates = provider
 
 			if tc.setOIDC {
-				providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+				providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, nil, provider)
 			}
 
 			handler, err := handlerMain(config, providers)
@@ -521,7 +521,7 @@ func TestHandlerMainShouldExposeDPoPNonceHeaderWhenDPoPIsEnabled(t *testing.T) {
 			providers := middlewares.NewProvidersBasic()
 			providers.Random = random.NewMathematical()
 			providers.Templates = provider
-			providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+			providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, nil, provider)
 
 			handler, err := handlerMain(config, providers)
 			require.NoError(t, err)
@@ -575,7 +575,7 @@ func TestHandlerMainShouldExposeDPoPNonceHeaderOnPushedAuthorizationRequestWhenD
 			providers := middlewares.NewProvidersBasic()
 			providers.Random = random.NewMathematical()
 			providers.Templates = provider
-			providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+			providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, nil, provider)
 
 			handler, err := handlerMain(config, providers)
 			require.NoError(t, err)
@@ -637,7 +637,7 @@ func TestHandlerMainShouldHandleCORSPreflightOnClientEndpoints(t *testing.T) {
 			providers := middlewares.NewProvidersBasic()
 			providers.Random = random.NewMathematical()
 			providers.Templates = provider
-			providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, nil, provider)
+			providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, nil, provider)
 
 			handler, err := handlerMain(config, providers)
 			require.NoError(t, err)

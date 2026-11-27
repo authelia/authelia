@@ -142,7 +142,7 @@ func TestHandleOAuth2AuthorizationConsentModeExplicitWithIDShouldRedirect(t *tes
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			mock.StorageMock.EXPECT().
 				LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(mock.Ctx), gomock.Eq(challenge)).
@@ -223,7 +223,7 @@ func TestHandleOAuth2AuthorizationConsentSessionUpdates(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(config, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			provider, err := mock.Ctx.GetSessionProvider()
 

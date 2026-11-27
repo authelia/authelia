@@ -328,7 +328,7 @@ func TestOpenIDConnectUserinfoDPoP(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			client, err := mock.Ctx.Providers.OpenIDConnect.GetRegisteredClient(mock.Ctx, "test-userinfo-client")
 			require.NoError(t, err)
@@ -523,7 +523,7 @@ func TestOpenIDConnectUserinfoChallengeScheme(t *testing.T) {
 				},
 			}
 
-			mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
+			mock.Ctx.Providers.OpenIDConnect, _ = oidc.NewOpenIDConnectProvider(&mock.Ctx.Configuration, mock.StorageMock, mock.Ctx.Providers.Templates)
 
 			token := "authelia_at_not-a-valid-token"
 

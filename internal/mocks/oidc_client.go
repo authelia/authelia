@@ -403,6 +403,35 @@ func (mr *MockOIDCClientMockRecorder) GetID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockOIDCClient)(nil).GetID))
 }
 
+// GetIDJAGRelationship mocks base method.
+func (m *MockOIDCClient) GetIDJAGRelationship(issuer string) (*oidc.IDJAGClientRelationship, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIDJAGRelationship", issuer)
+	ret0, _ := ret[0].(*oidc.IDJAGClientRelationship)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetIDJAGRelationship indicates an expected call of GetIDJAGRelationship.
+func (mr *MockOIDCClientMockRecorder) GetIDJAGRelationship(issuer any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDJAGRelationship", reflect.TypeOf((*MockOIDCClient)(nil).GetIDJAGRelationship), issuer)
+}
+
+// GetIDJAGResourceOptional mocks base method.
+func (m *MockOIDCClient) GetIDJAGResourceOptional() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIDJAGResourceOptional")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// GetIDJAGResourceOptional indicates an expected call of GetIDJAGResourceOptional.
+func (mr *MockOIDCClientMockRecorder) GetIDJAGResourceOptional() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDJAGResourceOptional", reflect.TypeOf((*MockOIDCClient)(nil).GetIDJAGResourceOptional))
+}
+
 // GetIDTokenEncryptedResponseAlg mocks base method.
 func (m *MockOIDCClient) GetIDTokenEncryptedResponseAlg() string {
 	m.ctrl.T.Helper()

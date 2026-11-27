@@ -1090,6 +1090,26 @@
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE"
   },
   {
+    "path": "identity_providers.oidc.identity_assertion_authorization_grant.access_token_allowance",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_IDENTITY_ASSERTION_AUTHORIZATION_GRANT_ACCESS_TOKEN_ALLOWANCE"
+  },
+  {
+    "path": "identity_providers.oidc.identity_assertion_authorization_grant.lifespan",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_IDENTITY_ASSERTION_AUTHORIZATION_GRANT_LIFESPAN"
+  },
+  {
+    "path": "identity_providers.oidc.identity_assertion_authorization_grant.resource_optional",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_IDENTITY_ASSERTION_AUTHORIZATION_GRANT_RESOURCE_OPTIONAL"
+  },
+  {
+    "path": "identity_providers.oidc.identity_assertion_authorization_grant.single_use",
+    "secret": false,
+    "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_IDENTITY_ASSERTION_AUTHORIZATION_GRANT_SINGLE_USE"
+  },
+  {
     "path": "identity_providers.oidc.lifespans.access_token",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_ACCESS_TOKEN"

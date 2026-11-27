@@ -6,6 +6,7 @@ package schema
 
 import (
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -75,6 +76,13 @@ func TestDefaultOpenIDConnectConfiguration(t *testing.T) {
 	t.Run("ShouldHaveExpectedPKCEEnforcement", func(t *testing.T) {
 		assert.Equal(t, "public_clients_only", DefaultOpenIDConnectConfiguration.EnforcePKCE)
 	})
+
+	t.Run("ShouldHaveExpectedIdentityAssertionAuthorizationGrant", func(t *testing.T) {
+		assert.Equal(t, 5*time.Minute, DefaultOpenIDConnectConfiguration.IdentityAssertionAuthorizationGrant.Lifespan)
+		assert.Nil(t, DefaultOpenIDConnectConfiguration.IdentityAssertionAuthorizationGrant.SingleUse)
+		assert.Equal(t, time.Duration(0), DefaultOpenIDConnectConfiguration.IdentityAssertionAuthorizationGrant.AccessTokenAllowance)
+		assert.False(t, DefaultOpenIDConnectConfiguration.IdentityAssertionAuthorizationGrant.ResourceOptional)
+	})
 }
 
 func TestDefaultOpenIDConnectPolicyConfiguration(t *testing.T) {
@@ -142,6 +150,7 @@ func TestIdentityProvidersOpenIDConnectClientTokenExchangePolicyJSONSchema(t *te
 
 	assert.Equal(t, tagged, mapping.Items.Enum)
 	assert.Equal(t, uniqueItems, mapping.UniqueItems)
+	assert.Contains(t, mapping.Items.Enum, "urn:ietf:params:oauth:token-type:id-jag")
 }
 
 func TestDefaultOpenIDConnectConfigurationTokenExchange(t *testing.T) {
@@ -173,7 +182,7 @@ func TestIdentityProvidersOpenIDConnectClientTokenExchangeSchemaEnums(t *testing
 	}{
 		{"SubjectTokenTypesSupported", all},
 		{"ActorTokenTypesSupported", all[:3]},
-		{"RequestTokenTypesSupported", all},
+		{"RequestTokenTypesSupported", append(slices.Clone(all), "urn:ietf:params:oauth:token-type:id-jag")},
 	}
 
 	for _, tc := range testCases {
@@ -201,6 +210,7 @@ func TestIdentityProvidersOpenIDConnectTokenExchangeSchemaEnums(t *testing.T) {
 		"urn:ietf:params:oauth:token-type:refresh_token",
 		"urn:ietf:params:oauth:token-type:id_token",
 		"urn:ietf:params:oauth:token-type:txn_token",
+		"urn:ietf:params:oauth:token-type:id-jag",
 	}
 
 	for _, name := range []string{"TokenTypes", "DefaultRequestedTokenType"} {
@@ -217,5 +227,28 @@ func TestIdentityProvidersOpenIDConnectTokenExchangeSchemaEnums(t *testing.T) {
 		}
 
 		assert.Equal(t, expected, actual, name)
+	}
+}
+
+func TestIdentityProvidersOpenIDConnectClientTokenExchangeSchemaEnumsIDJAG(t *testing.T) {
+	testCases := []struct {
+		name     string
+		typ      reflect.Type
+		expected bool
+	}{
+		{"SubjectTokenTypesSupported", reflect.TypeOf(IdentityProvidersOpenIDConnectClient{}), false},
+		{"ActorTokenTypesSupported", reflect.TypeOf(IdentityProvidersOpenIDConnectClient{}), false},
+		{"RequestTokenTypesSupported", reflect.TypeOf(IdentityProvidersOpenIDConnectClient{}), true},
+		{"RequestedTokenTypes", reflect.TypeOf(IdentityProvidersOpenIDConnectClientTokenExchangePolicy{}), true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			field, ok := tc.typ.FieldByName(tc.name)
+
+			require.True(t, ok)
+
+			assert.Equal(t, tc.expected, slices.Contains(strings.Split(field.Tag.Get("jsonschema"), ","), "enum=urn:ietf:params:oauth:token-type:id-jag"))
+		})
 	}
 }

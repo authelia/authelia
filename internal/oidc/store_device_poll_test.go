@@ -80,7 +80,7 @@ func TestDeviceCodePollAfterDenyShouldReturnAccessDenied(t *testing.T) {
 				},
 			},
 		},
-	}, provider)
+	}, provider, nil)
 
 	client := &oidc.RegisteredClient{ID: myclient}
 
@@ -159,7 +159,7 @@ func TestDeviceCodePollWhileClaimedShouldKeepClaim(t *testing.T) {
 				},
 			},
 		},
-	}, provider)
+	}, provider, nil)
 
 	client := &oidc.RegisteredClient{ID: myclient}
 

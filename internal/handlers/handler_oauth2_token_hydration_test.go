@@ -290,3 +290,30 @@ func newTestOIDCSessionWithAccessToken(subject string) (session *oidc.Session) {
 
 	return session
 }
+
+func TestGetOAuth2TokenJWTProfileScopes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		grant    string
+		expected oauthelia2.Arguments
+	}{
+		{"ShouldUseRequestedForAuthorizationCode", oidc.GrantTypeAuthorizationCode, oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail}},
+		{"ShouldUseRequestedForDeviceCode", oidc.GrantTypeDeviceCode, oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail}},
+		{"ShouldUseGrantedForRefreshToken", oidc.GrantTypeRefreshToken, oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile}},
+		{"ShouldUseGrantedForTokenExchange", oidc.GrantTypeTokenExchange, oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile}},
+		{"ShouldUseGrantedForJWTBearer", oidc.GrantTypeJWTBearer, oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile}},
+		{"ShouldUseGrantedForJWTDPoP", oidc.GrantTypeJWTDPoP, oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			requester := oauthelia2.NewAccessRequest(oidc.NewSession())
+			requester.GrantTypes = oauthelia2.Arguments{tc.grant}
+			requester.SetRequestedScopes(oauthelia2.Arguments{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail})
+			requester.GrantScope(oidc.ScopeOpenID)
+			requester.GrantScope(oidc.ScopeProfile)
+
+			assert.Equal(t, tc.expected, getOAuth2TokenJWTProfileScopes(requester))
+		})
+	}
+}

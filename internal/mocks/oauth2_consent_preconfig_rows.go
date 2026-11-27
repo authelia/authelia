@@ -27,6 +27,7 @@ CREATE TABLE oauth2_consent_preconfiguration (
 	revoked BOOLEAN NOT NULL DEFAULT FALSE,
 	scopes VARCHAR(511) NOT NULL,
 	audience VARCHAR(511) NULL,
+	resource TEXT NULL,
 	requested_claims TEXT NULL,
 	signature_claims VARCHAR(255) NULL,
 	granted_claims TEXT NULL,
@@ -49,12 +50,12 @@ func NewConsentPreConfigRows(t *testing.T, configs ...model.OAuth2ConsentPreConf
 	require.NoError(t, err)
 
 	for _, config := range configs {
-		_, err = db.NamedExec(`INSERT INTO oauth2_consent_preconfiguration (id, client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims, dpop_jkt)
-			VALUES (:id, :client_id, :subject, :created_at, :expires_at, :revoked, :scopes, :audience, :requested_claims, :signature_claims, :granted_claims, :dpop_jkt)`, config)
+		_, err = db.NamedExec(`INSERT INTO oauth2_consent_preconfiguration (id, client_id, subject, created_at, expires_at, revoked, scopes, audience, resource, requested_claims, signature_claims, granted_claims, dpop_jkt)
+			VALUES (:id, :client_id, :subject, :created_at, :expires_at, :revoked, :scopes, :audience, :resource, :requested_claims, :signature_claims, :granted_claims, :dpop_jkt)`, config)
 		require.NoError(t, err)
 	}
 
-	r, err := db.Queryx(`SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims, dpop_jkt FROM oauth2_consent_preconfiguration ORDER BY id`)
+	r, err := db.Queryx(`SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience, resource, requested_claims, signature_claims, granted_claims, dpop_jkt FROM oauth2_consent_preconfiguration ORDER BY id`)
 	require.NoError(t, err)
 
 	return storage.NewConsentPreConfigRows(r), func() {

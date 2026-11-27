@@ -14,13 +14,14 @@ import (
 )
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_NotConfigured(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(nil, nil, nil)
+	provider, err := oidc.NewOpenIDConnectProvider(nil, nil, nil)
 
+	assert.NoError(t, err)
 	assert.Nil(t, provider)
 }
 
 func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
+	provider, err := oidc.NewOpenIDConnectProvider(&schema.Configuration{
 		IdentityProviders: schema.IdentityProviders{
 			OIDC: &schema.IdentityProvidersOpenIDConnect{
 				IssuerCertificateChain: schema.X509CertificateChain{},
@@ -59,5 +60,6 @@ func TestOpenIDConnectProvider_NewOpenIDConnectProvider_GoodConfiguration(t *tes
 		},
 	}, nil, nil)
 
+	assert.NoError(t, err)
 	assert.NotNil(t, provider)
 }
