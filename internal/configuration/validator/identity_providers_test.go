@@ -20,6 +20,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -328,11 +329,12 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name    string
-		clients []schema.IdentityProvidersOpenIDConnectClient
-		warns   []string
-		errors  []string
-		test    func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient)
+		name        string
+		clients     []schema.IdentityProvidersOpenIDConnectClient
+		clientsFunc func(t *testing.T) []schema.IdentityProvidersOpenIDConnectClient
+		warns       []string
+		errors      []string
+		test        func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient)
 	}{
 		{
 			name: "EmptyIDAndSecret",
@@ -764,17 +766,185 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				assert.Equal(t, "exact", actual[0].ResourceStrategy)
 			},
 		},
+		{
+			name: "ValidLogoURIHTTPSURL",
+			clientsFunc: func(t *testing.T) []schema.IdentityProvidersOpenIDConnectClient {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", "image/png")
+					_, _ = w.Write([]byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a})
+				}))
+
+				t.Cleanup(srv.Close)
+
+				return []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "client-logo-https",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: policyTwoFactor,
+						RedirectURIs: []string{
+							"https://google.com",
+						},
+						LogoURI: mustParseURL(srv.URL + "/logo.png"),
+					},
+				}
+			},
+			warns: []string{},
+		},
+		{
+			name: "EmptyLogoURI",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-empty",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL(""),
+				},
+			},
+			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
+				assert.Nil(t, actual[0].LogoURI)
+			},
+		},
+		{
+			name: "InvalidLogoURIHTTPScheme",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-http",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("http://example.com/logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-http': option 'logo_uri' with value 'http://example.com/logo.png': must have the 'https' scheme but has the 'http' scheme",
+			},
+		},
+		{
+			name: "InvalidLogoURIDataScheme",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-data",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("data:image/png;base64,iVBORw0KGgo="),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-data': option 'logo_uri' with value 'data:image/png;base64,iVBORw0KGgo=': must have the 'https' scheme but has the 'data' scheme",
+			},
+		},
+		{
+			name: "InvalidLogoURINotAbsolute",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-rel",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("/relative/logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-rel': option 'logo_uri' with value '/relative/logo.png': should be an absolute URI",
+			},
+		},
+		{
+			name: "InvalidLogoURIMissingHost",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-nohost",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https:///logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-nohost': option 'logo_uri' with value 'https:///logo.png': must have a host",
+			},
+		},
+		{
+			name: "InvalidLogoURIMissingHostname",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-nohostname",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https://:443/logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-nohostname': option 'logo_uri' with value 'https://:443/logo.png': must have a host",
+			},
+		},
+		{
+			name: "InvalidLogoURIOpaque",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-opaque",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https:logo.png"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-opaque': option 'logo_uri' with value 'https:logo.png': must have a host",
+			},
+		},
+		{
+			name: "InvalidLogoURIFragmentAndUserInfo",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-logo-bad",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RedirectURIs: []string{
+						"https://google.com",
+					},
+					LogoURI: mustParseURL("https://user:pass@example.com/logo.png#frag"),
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-logo-bad': option 'logo_uri' with value 'https://user:xxxxx@example.com/logo.png#frag': must not have a fragment but it has a fragment with the value 'frag'",
+				"identity_providers: oidc: clients: client 'client-logo-bad': option 'logo_uri' with value 'https://user:xxxxx@example.com/logo.png#frag': must not have a username but it has a username with the value 'user'",
+				"identity_providers: oidc: clients: client 'client-logo-bad': option 'logo_uri' with value 'https://user:xxxxx@example.com/logo.png#frag': must not have a password but it has a password with the value '<redacted>'",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
+
+			clients := tc.clients
+			if tc.clientsFunc != nil {
+				clients = tc.clientsFunc(t)
+			}
+
 			config := &schema.Configuration{
 				IdentityProviders: schema.IdentityProviders{
 					OIDC: &schema.IdentityProvidersOpenIDConnect{
 						HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
 						IssuerPrivateKey: keyRSA2048,
-						Clients:          tc.clients,
+						Clients:          clients,
 					},
 				},
 			}
@@ -804,7 +974,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 			warns := validator.Warnings()
 
-			if len(tc.warns) != 0 {
+			if tc.warns != nil {
 				require.Len(t, warns, len(tc.warns))
 
 				for i, errStr := range tc.warns {
@@ -815,6 +985,70 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			}
 		})
 	}
+}
+
+//nolint:gosec // Test Credentials.
+func TestShouldWarnOnceWhenOIDCClientLogoURIIsNotImage(t *testing.T) {
+	var hits atomic.Int32
+
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		hits.Add(1)
+
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = w.Write([]byte("<html></html>"))
+	}))
+
+	t.Cleanup(srv.Close)
+
+	logo := srv.URL + "/logo.png"
+
+	validator := schema.NewStructValidator()
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "client-logo-one",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: policyTwoFactor,
+						RedirectURIs:        []string{"https://google.com"},
+						LogoURI:             MustParseURL(logo),
+					},
+					{
+						ID:                  "client-logo-two",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: policyTwoFactor,
+						RedirectURIs:        []string{"https://google.com"},
+						LogoURI:             MustParseURL(logo),
+					},
+				},
+			},
+		},
+	}
+
+	ctx := NewValidateCtx()
+	ctx.tlsconfig = &tls.Config{
+		InsecureSkipVerify: true, //nolint:gosec
+		MinVersion:         tls.VersionTLS12,
+		MaxVersion:         tls.VersionTLS13,
+	}
+
+	ValidateIdentityProviders(ctx, config, validator)
+
+	assert.Len(t, validator.Errors(), 0)
+
+	warns := validator.Warnings()
+
+	require.Len(t, warns, 2)
+
+	for i, id := range []string{"client-logo-one", "client-logo-two"} {
+		assert.EqualError(t, warns[i], fmt.Sprintf("identity_providers: oidc: clients: client '%s': option 'logo_uri' with value '%s': failed to validate that the resource is an image as required by the OpenID Connect Dynamic Client Registration 1.0 specification: response Content-Type was 'text/html' which is not an image", id, logo))
+	}
+
+	assert.Equal(t, int32(1), hits.Load())
+	assert.Nil(t, ctx.cacheLogoURIProbes)
 }
 
 //nolint:gosec // Test Credentials.

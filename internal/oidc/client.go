@@ -26,6 +26,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		Name:                config.Name,
 		ClientSecret:        &ClientSecretDigest{PasswordDigest: config.Secret},
 		SectorIdentifierURI: config.SectorIdentifierURI,
+		LogoURI:             config.LogoURI,
 		Public:              config.Public,
 		ApplicationType:     config.ApplicationType,
 
@@ -137,6 +138,11 @@ func (c *RegisteredClient) GetName() (name string) {
 	}
 
 	return c.Name
+}
+
+// GetLogoURI returns the logo_uri value for the client, or nil when no logo is configured.
+func (c *RegisteredClient) GetLogoURI() (logo *url.URL) {
+	return c.LogoURI
 }
 
 // GetClientSecret returns the oauth2.ClientSecret.
@@ -590,6 +596,10 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 		ClientID:          c.ID,
 		ClientDescription: c.Name,
 		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured && !disablePreConf,
+	}
+
+	if c.LogoURI != nil {
+		body.ClientLogoURI = c.LogoURI.String()
 	}
 
 	if session != nil {

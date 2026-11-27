@@ -1,2 +1,2 @@
-<p><strong>Placeholder Value:</strong>  <code>{{ hugo.Data.misc.csp.nonce }}</code></p>
+<p><strong>Placeholders:</strong> <code>{{ hugo.Data.misc.csp.nonce }}</code> is the per-request nonce, substituted on every response. <code>{{ hugo.Data.misc.csp.oidc_client_logo_uris }}</code> is replaced with the active OIDC consent client's logo origin (e.g., <code>https://example.com</code>) and is empty on non-consent routes; only this extra origin token is removed when empty, the static <code>img-src</code> entries (such as <code>'self'</code> and <code>data:</code>) and every other directive in the template remain in place.</p>
 <p><strong>Default Template:</strong> <code>{{ hugo.Data.misc.csp.default }}</code></p>

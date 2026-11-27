@@ -401,6 +401,16 @@ const (
 	errFmtOIDCClientApplicationTypeNativeImplicit = errFmtOIDCClientOption +
 		"'grant_types' must not include 'implicit' when option 'application_type' is 'native' as the implicit flow " +
 		"can not be protected by PKCE but it's included and the response types are %s"
+	errFmtOIDCClientInvalidLogoURIAbsolute = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': should be an absolute URI"
+	errFmtOIDCClientInvalidLogoURIScheme = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': must have the 'https' scheme but has the '%s' scheme"
+	errFmtOIDCClientInvalidLogoURIHost = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': must have a host"
+	errFmtOIDCClientInvalidLogoURI = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
+	errFmtOIDCClientLogoURINotImage = errFmtOIDCClientOption +
+		"'logo_uri' with value '%s': failed to validate that the resource is an image as required by the OpenID Connect Dynamic Client Registration 1.0 specification: %w"
 	errFmtOIDCClientInvalidGrantTypeMatch = errFmtOIDCClientOption +
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
 	errFmtOIDCClientResponseModesMissingDefault = errFmtOIDCClientOption +
