@@ -7,6 +7,7 @@ package session
 import (
 	"net"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -483,13 +484,136 @@ func TestDefaultAuthzStrategy_GetShouldAnchorRemoteNetwork(t *testing.T) {
 
 			if tc.anonymous {
 				assert.True(t, actual.IsAnonymous())
+				assert.Empty(t, repository.data)
 			} else {
 				assert.Equal(t, testUsername, actual.Username)
+				assert.NotEmpty(t, repository.data)
 			}
-
-			assert.NotEmpty(t, repository.data)
 		})
 	}
+}
+
+func TestDefaultStrategy_GetShouldReturnErrorWhenUnanchoredSessionCannotBeDestroyed(t *testing.T) {
+	repository := &erroringRepository{testRepository: newTestRepository()}
+	strategy := newTestStrategyWithRepository(t, repository, func(config *schema.SessionCookie) {
+		config.AnchorRemoteIP = testAnchorNetwork
+	})
+
+	ctx := newTestContext()
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	repository.errDelete = errTestFailure
+
+	next := newTestContext()
+	next.remoteIP = testOtherRemoteIP
+	next.cookies[testNameSession] = ctx.cookies[testNameSession]
+
+	actual, err := strategy.Get(next)
+
+	assert.Nil(t, actual)
+	assert.ErrorIs(t, err, errTestFailure)
+	assert.EqualError(t, err, "error occurred destroying session not anchored to the network of the remote IP: error occurred deleting session from backend: bad stuff")
+	assert.Empty(t, next.cleared)
+	assert.NotEmpty(t, repository.data)
+}
+
+func TestDefaultStrategy_SaveShouldNotAnchorWithoutRemoteIP(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, func(config *schema.SessionCookie) {
+		config.AnchorRemoteIP = testAnchorNetwork
+	})
+
+	ctx := newTestContext()
+	ctx.remoteIP = nil
+
+	userSession := strategy.NewDefault()
+	userSession.Username = testUsername
+
+	require.NoError(t, strategy.Save(ctx, &userSession))
+
+	assert.Nil(t, userSession.RemoteNetwork)
+	assert.Zero(t, userSession.RemoteNetworkBits)
+
+	next := newTestContext()
+	next.remoteIP = nil
+	next.cookies[testNameSession] = ctx.cookies[testNameSession]
+
+	actual, err := strategy.Get(next)
+
+	require.NoError(t, err)
+	assert.True(t, actual.IsAnonymous())
+	assert.Empty(t, repository.data)
+}
+
+func TestDefaultAuthzStrategy_SaveActivityShouldDestroyUnanchoredSession(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, func(config *schema.SessionCookie) {
+		config.AnchorRemoteIP = testAnchorNetwork
+	})
+
+	saved := newTestSavedContext(t, strategy, testUsername)
+
+	ctx := newTestAuthzContext(saved)
+	ctx.remoteIP = testOtherRemoteIP
+
+	userSession := strategy.New(testUsername)
+	userSession.RefreshTTL = time.Unix(200, 0)
+
+	require.NoError(t, strategy.Authz().SaveActivity(ctx, &userSession))
+
+	assert.Empty(t, repository.data)
+
+	actual, err := strategy.Get(saved)
+
+	require.NoError(t, err)
+	assert.True(t, actual.IsAnonymous())
+}
+
+func TestDefaultAuthzStrategy_DestroyShouldDestroyUnanchoredSession(t *testing.T) {
+	repository := newTestRepository()
+	strategy := newTestStrategyWithRepository(t, repository, func(config *schema.SessionCookie) {
+		config.AnchorRemoteIP = testAnchorNetwork
+	})
+
+	saved := newTestSavedContext(t, strategy, testUsername)
+
+	ctx := newTestAuthzContext(saved)
+	ctx.remoteIP = testOtherRemoteIP
+
+	require.NoError(t, strategy.Authz().Destroy(ctx))
+
+	require.Len(t, ctx.cleared, 3)
+	assert.Empty(t, repository.data)
+
+	actual, err := strategy.Get(saved)
+
+	require.NoError(t, err)
+	assert.True(t, actual.IsAnonymous())
+}
+
+func TestDefaultAuthzStrategy_GetShouldReturnErrorWhenUnanchoredSessionCannotBeDestroyed(t *testing.T) {
+	repository := &erroringRepository{testRepository: newTestRepository()}
+	strategy := newTestStrategyWithRepository(t, repository, func(config *schema.SessionCookie) {
+		config.AnchorRemoteIP = testAnchorNetwork
+	})
+
+	saved := newTestSavedContext(t, strategy, testUsername)
+
+	repository.errDelete = errTestFailure
+
+	ctx := newTestAuthzContext(saved)
+	ctx.remoteIP = testOtherRemoteIP
+
+	actual, err := strategy.Authz().Get(ctx)
+
+	assert.Nil(t, actual)
+	assert.ErrorIs(t, err, errTestFailure)
+	assert.EqualError(t, err, "error occurred destroying session not anchored to the network of the remote IP: error occurred deleting session from backend: bad stuff")
+	assert.NotEmpty(t, repository.data)
 }
 
 var (
