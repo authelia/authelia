@@ -454,6 +454,7 @@ var Keys = []string{
 	"identity_providers.oidc.special_use_address_guard.disable",
 	"identity_validation.elevated_session.characters",
 	"identity_validation.elevated_session.code_lifespan",
+	"identity_validation.elevated_session.disable_remote_ip_check",
 	"identity_validation.elevated_session.elevation_lifespan",
 	"identity_validation.elevated_session.require_second_factor",
 	"identity_validation.elevated_session.skip_second_factor",
