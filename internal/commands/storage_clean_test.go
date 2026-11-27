@@ -52,6 +52,30 @@ func TestStorageCleanBefore(t *testing.T) {
 			time.Time{},
 			"error parsing the value of the --before flag: could not parse 'not a duration' as a duration",
 		},
+		{
+			"ShouldRaiseErrorOnANegativeDuration",
+			"-1h",
+			time.Time{},
+			"error parsing the value of the --before flag: could not parse '-1h' as a duration: the duration must not be signed",
+		},
+		{
+			"ShouldRaiseErrorOnANegativeMinuteDuration",
+			"-5m",
+			time.Time{},
+			"error parsing the value of the --before flag: could not parse '-5m' as a duration: the duration must not be signed",
+		},
+		{
+			"ShouldRaiseErrorOnANegativeNumber",
+			"-5",
+			time.Time{},
+			"error parsing the value of the --before flag: could not parse '-5' as a duration: the duration must not be signed",
+		},
+		{
+			"ShouldRaiseErrorOnAPositivelySignedDuration",
+			" +1 day",
+			time.Time{},
+			"error parsing the value of the --before flag: could not parse ' +1 day' as a duration: the duration must not be signed",
+		},
 	}
 
 	for _, tc := range testCases {

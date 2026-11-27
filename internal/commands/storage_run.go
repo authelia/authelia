@@ -2420,6 +2420,11 @@ func storageCleanBefore(cmd *cobra.Command, now time.Time) (before time.Time, er
 		return now, nil
 	}
 
+	// The duration parser discards a leading sign, which would silently turn '-1h' into '1h'.
+	if strings.HasPrefix(strings.TrimSpace(raw), "-") || strings.HasPrefix(strings.TrimSpace(raw), "+") {
+		return before, fmt.Errorf("error parsing the value of the --%s flag: could not parse '%s' as a duration: the duration must not be signed", cmdFlagNameBefore, raw)
+	}
+
 	var duration time.Duration
 
 	if duration, err = utils.ParseDurationString(raw); err != nil {
