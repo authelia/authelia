@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Authelia
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+version: 2
+
+secret:
+  ignored_matches:
+    - name: 'api/openapi.yml: RFC 9449 example DPoP proof'
+      match: 'f15ea5de07c50126051d9f38572f1a25612e2fe749ec0e1b9995be80d179c4b2'
+...
