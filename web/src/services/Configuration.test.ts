@@ -32,6 +32,7 @@ it("gets configuration and transforms available methods", async () => {
     const result = await getConfiguration();
     expect(Get).toHaveBeenCalledWith("/configuration");
     expect(result.available_methods).toBeInstanceOf(Set);
+    expect(result.second_factor_enabled).toBe(true);
     expect(result.available_methods.has(SecondFactorMethod.TOTP)).toBe(true);
     expect(result.available_methods.has(SecondFactorMethod.WebAuthn)).toBe(true);
     expect(result.password_change_disabled).toBe(false);

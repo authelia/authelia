@@ -274,6 +274,82 @@ it("OneFactor with only passkey registration available navigates to /authenticat
     expect(mockNavigate).toHaveBeenNthCalledWith(1, "/authenticated", false);
 });
 
+it("OneFactor passkey login without second factor rules navigates to /authenticated", async () => {
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: false, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        {
+            available_methods: new Set([2]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+            second_factor_enabled: false,
+        },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: true, method: 2 },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/authenticated", false);
+});
+
+it("OneFactor with second factor rules but no usable methods navigates to /authenticated", async () => {
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        {
+            available_methods: new Set(),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+            second_factor_enabled: true,
+        },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: false, method: 2 },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/authenticated", false);
+});
+
 it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
     vi.mocked(useAutheliaState).mockReturnValue([
         { authentication_level: 1, factor_knowledge: true, username: "test" },
@@ -888,6 +964,29 @@ describe("safe redirection", () => {
 
         await waitFor(() => expect(mockCreateErrorNotification).toHaveBeenCalled());
         expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
+    it("redirects at one factor level when only passkey registration is available", async () => {
+        mocks.redirectionURL = "https://app.example.com";
+        vi.mocked(checkSafeRedirection).mockResolvedValue({ ok: true } as any);
+        vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
+        vi.mocked(useConfiguration).mockReturnValue([
+            {
+                available_methods: new Set([2]),
+                password_change_disabled: false,
+                password_reset_disabled: false,
+                recovery_codes_disabled: false,
+                second_factor_enabled: false,
+            },
+            vi.fn(),
+            false,
+            undefined,
+        ]);
+        vi.mocked(useUserInfoPOST).mockReturnValue([userInfo, mocks.fetchUserInfo, false, undefined]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mocks.redirector).toHaveBeenCalledWith("https://app.example.com"));
     });
 
     it("redirects at one factor level when no second factor methods exist", async () => {

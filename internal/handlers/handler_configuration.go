@@ -19,7 +19,7 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	// SecondFactorEnabled tells the portal whether signing in may require a second factor, which only the access
-	// control rules decide. AvailableMethods are the methods users can register and use, which also covers session
+	// control rules and the OpenID Connect client authorization policies decide. AvailableMethods are the methods users can register and use, which also covers session
 	// elevation and passkey logins.
 	body.SecondFactorEnabled = ctx.Providers.Authorizer.IsSecondFactorEnabled()
 

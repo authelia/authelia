@@ -1066,3 +1066,33 @@ func TestWebAuthnRelyingPartyConfigurationGET(t *testing.T) {
 		})
 	}
 }
+
+func TestWebAuthnRelyingPartyConfigurationGETPasskeyLoginOnly(t *testing.T) {
+	testCases := []struct {
+		name     string
+		host     string
+		expected []string
+	}{
+		{"ShouldOfferWebAuthnOnRelyingPartyOrigin", tRelyingPartyHost, []string{model.SecondFactorMethodWebAuthn}},
+		{"ShouldOfferNothingOnUnlistedOrigin", tRelatedOriginHost, []string{}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+
+			defer mock.Close()
+
+			mock.Ctx.Configuration.WebAuthn = *tWebAuthnRelyingPartyConfig(nil, tRelyingPartyHost)
+			mock.Ctx.Configuration.WebAuthn.EnablePasskeyLogin = true
+			mock.Ctx.Configuration.AccessControl = schema.AccessControl{DefaultPolicy: "one_factor"}
+			mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&mock.Ctx.Configuration)
+
+			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, tc.host)
+
+			ConfigurationGET(mock.Ctx)
+
+			mock.Assert200OK(t, configurationBody{AvailableMethods: tc.expected})
+		})
+	}
+}

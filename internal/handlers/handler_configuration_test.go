@@ -457,3 +457,25 @@ func (s *ConfigurationHandlerFixture) TestShouldReportSecondFactorEnabledOnlyFro
 		SecondFactorEnabled: true,
 	})
 }
+
+func (s *ConfigurationHandlerFixture) TestShouldKeepAllMethodsForElevationWithPasskeyLogin() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		IdentityValidation: schema.IdentityValidation{
+			ElevatedSession: schema.IdentityValidationElevatedSession{RequireSecondFactor: true},
+		},
+		DuoAPI:   schema.DuoAPI{Disable: false},
+		TOTP:     schema.TOTP{Disable: false},
+		WebAuthn: schema.WebAuthn{Disable: false, EnablePasskeyLogin: true},
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+		},
+	}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
+	})
+}

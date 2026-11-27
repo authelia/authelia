@@ -165,7 +165,9 @@ const TwoFactorAuthenticationView = function () {
                     )}
                 </div>
             ) : null}
-            {!renderSecondFactorDisabled() && configuration?.recovery_codes_disabled === false ? (
+            {!renderSecondFactorDisabled() &&
+            configuration?.second_factor_enabled &&
+            configuration?.recovery_codes_disabled === false ? (
                 <div className="w-full">
                     <RecoveryCodesPanel info={userInfo} />
                 </div>

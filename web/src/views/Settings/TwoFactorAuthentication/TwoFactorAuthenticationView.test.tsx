@@ -87,6 +87,10 @@ vi.mock("@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel", () =
     ),
 }));
 
+vi.mock("@views/Settings/TwoFactorAuthentication/RecoveryCodesPanel", () => ({
+    default: () => <div data-testid="recovery-codes-panel" />,
+}));
+
 const bothMethods = { available_methods: new Set([SecondFactorMethod.TOTP, SecondFactorMethod.WebAuthn]) };
 const userInfo = {
     has_duo: false,
@@ -109,6 +113,31 @@ beforeEach(() => {
 });
 
 describe("rendering", () => {
+    it("shows WebAuthn registration but no recovery codes when only passkey login uses WebAuthn", () => {
+        mocks.configuration = {
+            available_methods: new Set([SecondFactorMethod.WebAuthn]),
+            recovery_codes_disabled: false,
+            second_factor_enabled: false,
+        };
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.getByTestId("webauthn-panel")).toBeInTheDocument();
+        expect(screen.queryByTestId("recovery-codes-panel")).not.toBeInTheDocument();
+    });
+
+    it("shows recovery codes when a second factor can be required", () => {
+        mocks.configuration = {
+            available_methods: new Set([SecondFactorMethod.TOTP, SecondFactorMethod.WebAuthn]),
+            recovery_codes_disabled: false,
+            second_factor_enabled: true,
+        };
+
+        render(<TwoFactorAuthenticationView />);
+
+        expect(screen.getByTestId("recovery-codes-panel")).toBeInTheDocument();
+    });
+
     it("renders OTP panel, WebAuthn panel, and options panel", () => {
         render(<TwoFactorAuthenticationView />);
         expect(screen.getByTestId("otp-panel")).toBeInTheDocument();
