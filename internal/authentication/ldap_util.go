@@ -271,3 +271,30 @@ func fmtLDAPVersions(versions []int) string {
 		return strings.Join(parts[:n-1], ", ") + ", and " + parts[n-1]
 	}
 }
+
+func isLDAPNetworkError(err error) bool {
+	switch e := err.(type) {
+	case nil:
+		return false
+	case *ldap.Error:
+		return e.ResultCode == ldap.ErrorNetwork
+	case interface{ Unwrap() []error }:
+		errs := e.Unwrap()
+
+		if len(errs) == 0 {
+			return false
+		}
+
+		for _, child := range errs {
+			if !isLDAPNetworkError(child) {
+				return false
+			}
+		}
+
+		return true
+	case interface{ Unwrap() error }:
+		return isLDAPNetworkError(e.Unwrap())
+	default:
+		return false
+	}
+}
