@@ -64,6 +64,7 @@ authelia storage --help
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
 * [authelia storage bans](authelia_storage_bans.md)	 - Manages user and ip bans
 * [authelia storage cache](authelia_storage_cache.md)	 - Manage storage cache
+* [authelia storage clean](authelia_storage_clean.md)	 - Removes stale rows from the database
 * [authelia storage encryption](authelia_storage_encryption.md)	 - Manage storage encryption
 * [authelia storage logs](authelia_storage_logs.md)	 - Manage various types of logs
 * [authelia storage migrate](authelia_storage_migrate.md)	 - Perform or list migrations

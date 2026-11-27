@@ -200,6 +200,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateOAuth2ConsentSessionBinding:               fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionBinding, tableOAuth2ConsentSession),
 		sqlSelectOAuth2ConsentSessionByChallengeID:         fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
 
+		sqlCountStaleOAuth2ConsentSessions:  fmt.Sprintf(queryFmtCountStaleOAuth2ConsentSessions, tableOAuth2ConsentSession),
+		sqlDeleteStaleOAuth2ConsentSessions: fmt.Sprintf(queryFmtDeleteStaleOAuth2ConsentSessions, tableOAuth2ConsentSession),
+
 		sqlInsertOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AccessTokenSession),
 		sqlSelectOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2AccessTokenSession),
 		sqlRevokeOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtRevokeOAuth2Session, tableOAuth2AccessTokenSession),
@@ -421,6 +424,9 @@ type SQLProvider struct {
 	sqlUpdateOAuth2ConsentSessionGranted               string
 	sqlUpdateOAuth2ConsentSessionBinding               string
 	sqlSelectOAuth2ConsentSessionByChallengeID         string
+
+	sqlCountStaleOAuth2ConsentSessions  string
+	sqlDeleteStaleOAuth2ConsentSessions string
 
 	// Table: oauth2_authorization_code_session.
 	sqlInsertOAuth2AuthorizeCodeSession                string
@@ -2363,3 +2369,31 @@ func (p *SQLProvider) DeleteCachedData(ctx context.Context, name string) (err er
 var (
 	_ Provider = (*SQLProvider)(nil)
 )
+
+// CountStaleOAuth2ConsentSessions returns the number of consent sessions which have expired before the given time
+// and which the user has already responded to.
+func (p *SQLProvider) CountStaleOAuth2ConsentSessions(ctx context.Context, before time.Time) (count int, err error) {
+	if err = p.conn(ctx).GetContext(ctx, &count, p.sqlCountStaleOAuth2ConsentSessions, before, before); err != nil {
+		return 0, fmt.Errorf("error counting stale oauth2 consent sessions: %w", err)
+	}
+
+	return count, nil
+}
+
+// DeleteStaleOAuth2ConsentSessions deletes the consent sessions which have expired before the given time and which
+// the user has already responded to. The session tables which reference them cascade.
+func (p *SQLProvider) DeleteStaleOAuth2ConsentSessions(ctx context.Context, before time.Time) (deleted int, err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteStaleOAuth2ConsentSessions, before, before); err != nil {
+		return 0, fmt.Errorf("error deleting stale oauth2 consent sessions: %w", err)
+	}
+
+	var affected int64
+
+	if affected, err = result.RowsAffected(); err != nil {
+		return 0, fmt.Errorf("error determining the number of stale oauth2 consent sessions deleted: %w", err)
+	}
+
+	return int(affected), nil
+}
