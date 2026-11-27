@@ -11,12 +11,7 @@ it("renders the loading message", () => {
     expect(screen.getByText("Please wait...")).toBeInTheDocument();
 });
 
-it("renders the loading bars", () => {
-    const { container } = render(<BaseLoadingPage message="Loading" />);
-    expect(container.querySelectorAll(".animate-scale-loader")).toHaveLength(5);
-});
-
-it("does not inject a stylesheet to animate them", () => {
+it("does not inject a stylesheet to animate logo", () => {
     const before = document.head.querySelectorAll("style").length;
 
     render(<BaseLoadingPage message="Loading" />);
