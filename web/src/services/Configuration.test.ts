@@ -23,6 +23,7 @@ it("gets configuration and transforms available methods", async () => {
         password_change_disabled: false,
         password_reset_disabled: true,
         recovery_codes_disabled: true,
+        second_factor_enabled: true,
     });
     (toSecondFactorMethod as any).mockImplementation((m: string) =>
         m === "totp" ? SecondFactorMethod.TOTP : SecondFactorMethod.WebAuthn,

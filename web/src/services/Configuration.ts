@@ -9,6 +9,7 @@ import { Method2FA, toSecondFactorMethod } from "@services/UserInfo";
 
 interface ConfigurationPayload {
     available_methods: Method2FA[];
+    second_factor_enabled: boolean;
     password_change_disabled: boolean;
     password_reset_disabled: boolean;
     recovery_codes_disabled: boolean;

@@ -137,7 +137,7 @@ const LoginPortal = function (props: Props) {
 
     const authenticationComplete =
         state !== undefined &&
-        ((configuration?.available_methods?.size === 0 &&
+        ((configuration?.second_factor_enabled === false &&
             state.authentication_level >= AuthenticationLevel.OneFactor) ||
             state.authentication_level === AuthenticationLevel.TwoFactor);
 
@@ -215,7 +215,7 @@ const LoginPortal = function (props: Props) {
                 navigate(IndexRoute);
             }
         } else if (state!.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
-            if (configuration.available_methods.size === 0) {
+            if (!configuration.second_factor_enabled) {
                 navigate(AuthenticatedRoute, false);
             } else {
                 const method = resolveSecondFactorMethod(

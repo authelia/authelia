@@ -79,6 +79,7 @@ type bodyExternalIdentityPending struct {
 
 type configurationBody struct {
 	AvailableMethods       MethodList `json:"available_methods"`
+	SecondFactorEnabled    bool       `json:"second_factor_enabled"`
 	PasswordChangeDisabled bool       `json:"password_change_disabled"`
 	PasswordResetDisabled  bool       `json:"password_reset_disabled"`
 	RecoveryCodesDisabled  bool       `json:"recovery_codes_disabled"`

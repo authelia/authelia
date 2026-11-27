@@ -58,7 +58,8 @@ func (s *ConfigurationHandlerFixture) TestShouldHaveAllConfiguredMethods() {
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"totp", "webauthn", "mobile_push"},
+		AvailableMethods:    []string{"totp", "webauthn", "mobile_push"},
+		SecondFactorEnabled: true,
 	})
 }
 
@@ -88,7 +89,8 @@ func (s *ConfigurationHandlerFixture) TestShouldRemoveTOTPFromAvailableMethodsWh
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"webauthn", "mobile_push"},
+		AvailableMethods:    []string{"webauthn", "mobile_push"},
+		SecondFactorEnabled: true,
 	})
 }
 
@@ -118,7 +120,8 @@ func (s *ConfigurationHandlerFixture) TestShouldRemoveWebAuthnFromAvailableMetho
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"totp", "mobile_push"},
+		AvailableMethods:    []string{"totp", "mobile_push"},
+		SecondFactorEnabled: true,
 	})
 }
 
@@ -148,7 +151,8 @@ func (s *ConfigurationHandlerFixture) TestShouldRemoveDuoFromAvailableMethodsWhe
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{"totp", "webauthn"},
+		AvailableMethods:    []string{"totp", "webauthn"},
+		SecondFactorEnabled: true,
 	})
 }
 
@@ -208,7 +212,8 @@ func (s *ConfigurationHandlerFixture) TestShouldRemoveAllMethodsWhenAllDisabledO
 	ConfigurationGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), configurationBody{
-		AvailableMethods: []string{},
+		AvailableMethods:    []string{},
+		SecondFactorEnabled: true,
 	})
 }
 
@@ -269,6 +274,7 @@ func (s *ConfigurationHandlerFixture) TestDisablePasswordResetChangeOptions() {
 
 			mock.Assert200OK(s.T(), configurationBody{
 				AvailableMethods:       []string{},
+				SecondFactorEnabled:    true,
 				PasswordChangeDisabled: tc.passwordChangeDisable,
 				PasswordResetDisabled:  tc.passwordResetDisable,
 			})
@@ -387,5 +393,67 @@ func (s *ConfigurationHandlerFixture) TestShouldRespectDisabledMethodsWhenOnlyEl
 
 	s.mock.Assert200OK(s.T(), configurationBody{
 		AvailableMethods: []string{"webauthn"},
+	})
+}
+
+func (s *ConfigurationHandlerFixture) TestShouldOfferWebAuthnRegistrationForPasskeyLoginWithoutSecondFactorRules() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		DuoAPI:   schema.DuoAPI{Disable: false},
+		TOTP:     schema.TOTP{Disable: false},
+		WebAuthn: schema.WebAuthn{Disable: false, EnablePasskeyLogin: true},
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+		},
+	}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods: []string{"webauthn"},
+	})
+}
+
+func (s *ConfigurationHandlerFixture) TestShouldNotOfferWebAuthnRegistrationForPasskeyLoginWhenWebAuthnDisabled() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		WebAuthn: schema.WebAuthn{Disable: true, EnablePasskeyLogin: true},
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+		},
+	}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods: []string{},
+	})
+}
+
+func (s *ConfigurationHandlerFixture) TestShouldReportSecondFactorEnabledOnlyFromAccessControl() {
+	s.mock.Ctx.Configuration = schema.Configuration{
+		TOTP:     schema.TOTP{Disable: false},
+		WebAuthn: schema.WebAuthn{Disable: false, EnablePasskeyLogin: true},
+		DuoAPI:   schema.DuoAPI{Disable: true},
+		AccessControl: schema.AccessControl{
+			DefaultPolicy: "one_factor",
+			Rules: []schema.AccessControlRule{
+				{
+					Domains: []string{"secure.example.com"},
+					Policy:  "two_factor",
+				},
+			},
+		},
+	}
+
+	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
+
+	ConfigurationGET(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), configurationBody{
+		AvailableMethods:    []string{"totp", "webauthn"},
+		SecondFactorEnabled: true,
 	})
 }

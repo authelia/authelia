@@ -1062,7 +1062,7 @@ func TestWebAuthnRelyingPartyConfigurationGET(t *testing.T) {
 
 			ConfigurationGET(mock.Ctx)
 
-			mock.Assert200OK(t, configurationBody{AvailableMethods: tc.expected})
+			mock.Assert200OK(t, configurationBody{AvailableMethods: tc.expected, SecondFactorEnabled: true})
 		})
 	}
 }

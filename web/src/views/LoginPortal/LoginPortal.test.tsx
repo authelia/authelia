@@ -211,6 +211,7 @@ it("OneFactor with no 2FA methods navigates to /authenticated", async () => {
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: false,
         },
         vi.fn(),
         false,
@@ -218,6 +219,44 @@ it("OneFactor with no 2FA methods navigates to /authenticated", async () => {
     ]);
     vi.mocked(useUserInfoPOST).mockReturnValue([
         { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: false, method: 1 },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+
+    render(
+        <MemoryRouter>
+            <LoginPortal {...defaultProps} />
+        </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "/authenticated", false);
+});
+
+it("OneFactor with only passkey registration available navigates to /authenticated", async () => {
+    vi.mocked(useAutheliaState).mockReturnValue([
+        { authentication_level: 1, factor_knowledge: true, username: "test" },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useConfiguration).mockReturnValue([
+        {
+            available_methods: new Set([2]),
+            password_change_disabled: false,
+            password_reset_disabled: false,
+            recovery_codes_disabled: false,
+            second_factor_enabled: false,
+        },
+        vi.fn(),
+        false,
+        undefined,
+    ]);
+    vi.mocked(useUserInfoPOST).mockReturnValue([
+        { display_name: "test", emails: [], has_duo: false, has_totp: false, has_webauthn: true, method: 2 },
         vi.fn(),
         false,
         undefined,
@@ -248,6 +287,7 @@ it("OneFactor with TOTP preferred navigates to /2fa/totp", async () => {
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -285,6 +325,7 @@ it("OneFactor with unavailable WebAuthn preferred navigates to the registered av
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -322,6 +363,7 @@ it("OneFactor with unavailable WebAuthn preferred and no registered available me
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -359,6 +401,7 @@ it("OneFactor with WebAuthn preferred navigates to /2fa/webauthn", async () => {
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -396,6 +439,7 @@ it("OneFactor with MobilePush preferred navigates to /2fa/push", async () => {
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -433,6 +477,7 @@ it("OneFactor with factor_knowledge false navigates to /2fa/password", async () 
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -470,6 +515,7 @@ it("localStorageMethod overrides userInfo.method", async () => {
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -515,6 +561,7 @@ it("resumes the external identity link on the link page", async () => {
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -568,6 +615,7 @@ it("does not redirect or navigate while the external identity link start is pend
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -627,6 +675,7 @@ it("does not resume the OpenID Connect linking flow when the parameter is absent
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -667,6 +716,7 @@ it("does not resume the external identity link while a second factor is owed", a
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -706,6 +756,7 @@ it("ignores the external identity link parameter on the index page", async () =>
             password_change_disabled: false,
             password_reset_disabled: false,
             recovery_codes_disabled: false,
+            second_factor_enabled: true,
         },
         vi.fn(),
         false,
@@ -849,6 +900,7 @@ describe("safe redirection", () => {
                 password_change_disabled: false,
                 password_reset_disabled: false,
                 recovery_codes_disabled: false,
+                second_factor_enabled: false,
             },
             vi.fn(),
             false,
@@ -969,6 +1021,7 @@ describe("second factor route", () => {
                 password_change_disabled: false,
                 password_reset_disabled: false,
                 recovery_codes_disabled: false,
+                second_factor_enabled: true,
             },
             vi.fn(),
             false,
@@ -1025,6 +1078,7 @@ describe("second factor route", () => {
                 password_change_disabled: false,
                 password_reset_disabled: false,
                 recovery_codes_disabled: false,
+                second_factor_enabled: true,
             },
             vi.fn(),
             false,
@@ -1067,6 +1121,7 @@ describe("authenticated route", () => {
                 password_change_disabled: false,
                 password_reset_disabled: false,
                 recovery_codes_disabled: false,
+                second_factor_enabled: false,
             },
             vi.fn(),
             false,
