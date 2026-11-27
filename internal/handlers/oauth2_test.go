@@ -300,14 +300,14 @@ func setupTestOIDCSessionStore(t *testing.T, mock *mocks.MockAutheliaCtx) (store
 		})
 
 	mock.StorageMock.EXPECT().
-		LoadOAuth2RefreshTokenSessionAccessSignature(gomock.Any(), gomock.Any()).
+		LoadOAuth2RefreshTokenSessionState(gomock.Any(), gomock.Any()).
 		AnyTimes().
-		DoAndReturn(func(_ context.Context, signature string) (accessSignature string, err error) {
+		DoAndReturn(func(_ context.Context, signature string) (state *model.OAuth2RefreshTokenSessionState, err error) {
 			if s, ok := sessions[storage.OAuth2SessionTypeRefreshToken][signature]; ok {
-				return s.AccessSignature, nil
+				return &model.OAuth2RefreshTokenSessionState{AccessSignature: s.AccessSignature, Active: s.Active, Revoked: s.Revoked, GraceDeadline: s.GraceDeadline}, nil
 			}
 
-			return "", sql.ErrNoRows
+			return nil, sql.ErrNoRows
 		})
 
 	mock.StorageMock.EXPECT().

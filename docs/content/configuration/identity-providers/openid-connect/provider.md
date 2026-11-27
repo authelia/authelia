@@ -109,6 +109,7 @@ identity_providers:
       id_token: '1h'
       refresh_token: '90m'
       refresh_token_maximum: 0
+      refresh_token_grace_period: 0
     token_exchange:
       max_actor_chain_depth: 8
       token_types:
@@ -735,6 +736,21 @@ Setting a maximum is required for browser-based applications by
 clients. A value lower than the [refresh_token](#refresh_token) lifespan shortens the lifespan of every refresh token
 of the grant.
 
+#### refresh_token_grace_period
+
+{{< confkey type="string,integer" syntax="duration" default="0 seconds" required="no" >}}
+
+The default time a rotated refresh token remains redeemable after it is first redeemed. Each redemption within this
+period issues a new access token and refresh token, which allows a client to retry a refresh token request whose
+response was lost. Once the period ends, redeeming the refresh token is treated as a replay and revokes every token of
+the authorization grant. The value `0` disables the grace period so a refresh token can only be redeemed once.
+
+The grace period never extends past the expiration of the refresh token, does not apply to clients with refresh token
+rotation disabled, and does not apply to public clients unless their refresh tokens are sender-constrained via DPoP or
+mutual TLS, as recommended by [RFC9700 Section 4.14.2](https://datatracker.ietf.org/doc/html/rfc9700#section-4.14.2).
+It should be kept short, as a few seconds is generally sufficient to recover from a lost response. The maximum value
+is `10 seconds`.
+
 #### id_token
 
 {{< confkey type="string,integer" syntax="duration" default="1 hour" required="no" >}}
@@ -769,9 +785,10 @@ If a value is omitted it automatically uses the next value in the precedence tre
 The key for the custom lifespan itself is the name of the lifespan, which is used when configuring the client
 [lifespan](clients.md#lifespan) option. In the example we name the lifespan `lifespan_name`.
 
-The `refresh_token_maximum` option applies to the whole authorization grant rather than an individual token, so it is
-only available directly in the custom lifespan and not per grant type. When it is omitted or `0` the global
-[refresh_token_maximum](#refresh_token_maximum) value is used.
+The `refresh_token_maximum` and `refresh_token_grace_period` options apply to the whole authorization grant rather
+than an individual token, so they are only available directly in the custom lifespan and not per grant type. When they
+are omitted or `0` the global [refresh_token_maximum](#refresh_token_maximum) and
+[refresh_token_grace_period](#refresh_token_grace_period) values are used respectively.
 
 ##### Example
 
@@ -786,6 +803,7 @@ identity_providers:
       access_token: '1h'
       refresh_token: '90m'
       refresh_token_maximum: '30d'
+      refresh_token_grace_period: '0s'
       id_token: '1h'
       authorize_code: '1m'
       device_code: '10m'
@@ -794,6 +812,7 @@ identity_providers:
           access_token: '1h'
           refresh_token: '90m'
           refresh_token_maximum: '7d'
+          refresh_token_grace_period: '10s'
           id_token: '1h'
           authorize_code: '1m'
           device_code: '10m'

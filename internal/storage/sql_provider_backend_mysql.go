@@ -41,6 +41,10 @@ func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	// MySQL doesn't support a conditional ON CONFLICT operation but has an ON DUPLICATE KEY operation instead.
 	provider.sqlUpsertOAuth2DPoPProof = fmt.Sprintf(queryFmtUpsertOAuth2DPoPProofMySQL, tableOAuth2DPoPProof)
 
+	// A locking read is required as a consistent read in a REPEATABLE READ transaction may not observe the state a
+	// concurrent rotation of the refresh token committed.
+	provider.sqlSelectOAuth2RefreshTokenSessionState = fmt.Sprintf(queryFmtSelectOAuth2RefreshTokenSessionStateForUpdate, tableOAuth2RefreshTokenSession)
+
 	return provider, nil
 }
 
