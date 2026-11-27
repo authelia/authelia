@@ -2374,9 +2374,13 @@ func (ctx *CmdCtx) StorageCleanOAuth2RunE(cmd *cobra.Command, _ []string) (err e
 		before time.Time
 	)
 
-	if before, err = storageCleanBefore(cmd, ctx.providers.Clock.Now()); err != nil {
+	now := ctx.providers.Clock.Now()
+
+	if before, err = storageCleanBefore(cmd, now); err != nil {
 		return err
 	}
+
+	accessIssuedAfter, refreshIssuedAfter := storageCleanOAuth2IssuedAfter(ctx.config.IdentityProviders.OIDC, now)
 
 	if dryRun, err = cmd.Flags().GetBool(cmdFlagNameDryRun); err != nil {
 		return err
@@ -2389,7 +2393,7 @@ func (ctx *CmdCtx) StorageCleanOAuth2RunE(cmd *cobra.Command, _ []string) (err e
 	if dryRun {
 		var count int
 
-		if count, err = ctx.providers.StorageProvider.CountStaleOAuth2ConsentSessions(ctx, before); err != nil {
+		if count, err = ctx.providers.StorageProvider.CountStaleOAuth2ConsentSessions(ctx, before, accessIssuedAfter, refreshIssuedAfter); err != nil {
 			return err
 		}
 
@@ -2400,13 +2404,64 @@ func (ctx *CmdCtx) StorageCleanOAuth2RunE(cmd *cobra.Command, _ []string) (err e
 
 	var deleted int
 
-	if deleted, err = ctx.providers.StorageProvider.DeleteStaleOAuth2ConsentSessions(ctx, before); err != nil {
+	if deleted, err = ctx.providers.StorageProvider.DeleteStaleOAuth2ConsentSessions(ctx, before, accessIssuedAfter, refreshIssuedAfter); err != nil {
 		return err
 	}
 
 	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Removed %d stale OpenID Connect 1.0 consent session(s) responded to and expired before %s, along with the sessions which reference them.\n", deleted, before.Format(time.RFC3339))
 
 	return nil
+}
+
+func storageCleanOAuth2IssuedAfter(config *schema.IdentityProvidersOpenIDConnect, now time.Time) (access, refresh time.Time) {
+	var lifespans schema.IdentityProvidersOpenIDConnectLifespans
+
+	if config != nil {
+		lifespans = config.Lifespans
+	}
+
+	defaults := schema.DefaultOpenIDConnectConfiguration.Lifespans
+
+	access = storageCleanTokenIssuedAfter(lifespans, defaults.AccessToken, now, func(token schema.IdentityProvidersOpenIDConnectLifespanToken) time.Duration {
+		return token.AccessToken
+	})
+
+	refresh = storageCleanTokenIssuedAfter(lifespans, defaults.RefreshToken, now, func(token schema.IdentityProvidersOpenIDConnectLifespanToken) time.Duration {
+		return token.RefreshToken
+	})
+
+	return access, refresh
+}
+
+func storageCleanTokenIssuedAfter(lifespans schema.IdentityProvidersOpenIDConnectLifespans, fallback time.Duration, now time.Time, lifespan func(token schema.IdentityProvidersOpenIDConnectLifespanToken) time.Duration) time.Time {
+	longest := lifespan(lifespans.IdentityProvidersOpenIDConnectLifespanToken)
+
+	switch {
+	case longest < 0:
+		// A negative global lifespan issues tokens which never expire, so every active token may still be valid.
+		return time.Time{}
+	case longest == 0:
+		longest = fallback
+	}
+
+	// A custom or per grant lifespan only applies when it is positive, otherwise the global lifespan applies.
+	for _, custom := range lifespans.Custom {
+		for _, token := range []schema.IdentityProvidersOpenIDConnectLifespanToken{
+			custom.IdentityProvidersOpenIDConnectLifespanToken,
+			custom.Grants.AuthorizeCode,
+			custom.Grants.DeviceCode,
+			custom.Grants.Implicit,
+			custom.Grants.ClientCredentials,
+			custom.Grants.RefreshToken,
+			custom.Grants.JWTBearer,
+		} {
+			if value := lifespan(token); value > longest {
+				longest = value
+			}
+		}
+	}
+
+	return now.Add(-longest)
 }
 
 func storageCleanBefore(cmd *cobra.Command, now time.Time) (before time.Time, err error) {

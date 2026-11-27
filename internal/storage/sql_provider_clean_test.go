@@ -29,6 +29,7 @@ func (r cleanResult) RowsAffected() (int64, error) { return r.affected, r.err }
 
 func TestSQLProviderCountStaleOAuth2ConsentSessions(t *testing.T) {
 	before := time.Date(2026, 9, 10, 12, 0, 0, 0, time.UTC)
+	access, refresh := before.Add(-time.Hour), before.Add(-time.Hour*24)
 
 	testCases := []struct {
 		name     string
@@ -58,9 +59,9 @@ func TestSQLProviderCountStaleOAuth2ConsentSessions(t *testing.T) {
 			db := mocks.NewMockSQLXDB(ctrl)
 			p := storage.NewSQLProviderForTesting(db)
 
-			db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), before, before).Return(tc.have)
+			db.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), before, before, access, refresh).Return(tc.have)
 
-			count, err := p.CountStaleOAuth2ConsentSessions(context.Background(), before)
+			count, err := p.CountStaleOAuth2ConsentSessions(context.Background(), before, access, refresh)
 
 			if tc.err == "" {
 				require.NoError(t, err)
@@ -75,6 +76,7 @@ func TestSQLProviderCountStaleOAuth2ConsentSessions(t *testing.T) {
 
 func TestSQLProviderDeleteStaleOAuth2ConsentSessions(t *testing.T) {
 	before := time.Date(2026, 9, 10, 12, 0, 0, 0, time.UTC)
+	access, refresh := before.Add(-time.Hour), before.Add(-time.Hour*24)
 
 	testCases := []struct {
 		name     string
@@ -121,9 +123,9 @@ func TestSQLProviderDeleteStaleOAuth2ConsentSessions(t *testing.T) {
 			db := mocks.NewMockSQLXDB(ctrl)
 			p := storage.NewSQLProviderForTesting(db)
 
-			db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), before, before).Return(tc.result, tc.have)
+			db.EXPECT().ExecContext(gomock.Any(), gomock.Any(), before, before, access, refresh).Return(tc.result, tc.have)
 
-			deleted, err := p.DeleteStaleOAuth2ConsentSessions(context.Background(), before)
+			deleted, err := p.DeleteStaleOAuth2ConsentSessions(context.Background(), before, access, refresh)
 
 			if tc.err == "" {
 				require.NoError(t, err)

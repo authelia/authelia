@@ -200,8 +200,8 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateOAuth2ConsentSessionBinding:               fmt.Sprintf(queryFmtUpdateOAuth2ConsentSessionBinding, tableOAuth2ConsentSession),
 		sqlSelectOAuth2ConsentSessionByChallengeID:         fmt.Sprintf(queryFmtSelectOAuth2ConsentSessionByChallengeID, tableOAuth2ConsentSession),
 
-		sqlCountStaleOAuth2ConsentSessions:  fmt.Sprintf(queryFmtCountStaleOAuth2ConsentSessions, tableOAuth2ConsentSession, tableOAuth2RefreshTokenSession),
-		sqlDeleteStaleOAuth2ConsentSessions: fmt.Sprintf(queryFmtDeleteStaleOAuth2ConsentSessions, tableOAuth2ConsentSession, tableOAuth2RefreshTokenSession),
+		sqlCountStaleOAuth2ConsentSessions:  fmt.Sprintf(queryFmtCountStaleOAuth2ConsentSessions, tableOAuth2ConsentSession, tableOAuth2AccessTokenSession, tableOAuth2RefreshTokenSession),
+		sqlDeleteStaleOAuth2ConsentSessions: fmt.Sprintf(queryFmtDeleteStaleOAuth2ConsentSessions, tableOAuth2ConsentSession, tableOAuth2AccessTokenSession, tableOAuth2RefreshTokenSession),
 
 		sqlInsertOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtInsertOAuth2Session, tableOAuth2AccessTokenSession),
 		sqlSelectOAuth2AccessTokenSession:                fmt.Sprintf(queryFmtSelectOAuth2Session, tableOAuth2AccessTokenSession),
@@ -2371,9 +2371,10 @@ var (
 )
 
 // CountStaleOAuth2ConsentSessions returns the number of consent sessions which have expired before the given time
-// and which the user has already responded to.
-func (p *SQLProvider) CountStaleOAuth2ConsentSessions(ctx context.Context, before time.Time) (count int, err error) {
-	if err = p.conn(ctx).GetContext(ctx, &count, p.sqlCountStaleOAuth2ConsentSessions, before, before); err != nil {
+// and which the user has already responded to, excluding those referenced by an active access token issued after
+// accessIssuedAfter or an active refresh token issued after refreshIssuedAfter.
+func (p *SQLProvider) CountStaleOAuth2ConsentSessions(ctx context.Context, before, accessIssuedAfter, refreshIssuedAfter time.Time) (count int, err error) {
+	if err = p.conn(ctx).GetContext(ctx, &count, p.sqlCountStaleOAuth2ConsentSessions, before, before, accessIssuedAfter, refreshIssuedAfter); err != nil {
 		return 0, fmt.Errorf("error counting stale oauth2 consent sessions: %w", err)
 	}
 
@@ -2381,11 +2382,13 @@ func (p *SQLProvider) CountStaleOAuth2ConsentSessions(ctx context.Context, befor
 }
 
 // DeleteStaleOAuth2ConsentSessions deletes the consent sessions which have expired before the given time and which
-// the user has already responded to. The session tables which reference them cascade.
-func (p *SQLProvider) DeleteStaleOAuth2ConsentSessions(ctx context.Context, before time.Time) (deleted int, err error) {
+// the user has already responded to, excluding those referenced by an active access token issued after
+// accessIssuedAfter or an active refresh token issued after refreshIssuedAfter. The session tables which reference
+// them cascade.
+func (p *SQLProvider) DeleteStaleOAuth2ConsentSessions(ctx context.Context, before, accessIssuedAfter, refreshIssuedAfter time.Time) (deleted int, err error) {
 	var result sql.Result
 
-	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteStaleOAuth2ConsentSessions, before, before); err != nil {
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteStaleOAuth2ConsentSessions, before, before, accessIssuedAfter, refreshIssuedAfter); err != nil {
 		return 0, fmt.Errorf("error deleting stale oauth2 consent sessions: %w", err)
 	}
 

@@ -25,8 +25,10 @@ Removes stale OpenID Connect 1.0 sessions.
 A consent session is stale once it has expired and the user has already responded to it. Removing it also removes
 the authorization code, access token, refresh token, PKCE, device code, and OpenID Connect sessions which reference
 it. A session the user has never responded to is never removed as a flow may still be in progress against it.
-A session which an active refresh token still references is never removed either, as the expiry of a consent session
-is only the deadline for responding to it and removing it would remove the refresh token with it.
+A session which an access token or refresh token that may still be valid references is never removed either, as the
+expiry of a consent session is only the deadline for responding to it and removing it would remove those tokens with
+it. A token is treated as valid until it is revoked or the longest lifespan configured for its type has passed since
+it was issued, so a configuration which issues refresh tokens that never expire keeps them until they are revoked.
 
 ```
 authelia storage clean oauth2 [flags]

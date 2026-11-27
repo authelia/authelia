@@ -16,6 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/clock"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
@@ -101,6 +102,7 @@ func TestStorageCleanBefore(t *testing.T) {
 
 func TestStorageCleanOAuth2RunE(t *testing.T) {
 	now := time.Date(2026, 9, 10, 12, 0, 0, 0, time.UTC)
+	access, refresh := now.Add(-time.Hour), now.Add(-time.Minute*90)
 
 	testCases := []struct {
 		name     string
@@ -113,7 +115,7 @@ func TestStorageCleanOAuth2RunE(t *testing.T) {
 			"ShouldRemoveStaleSessions",
 			nil,
 			func(store *mocks.MockStorage) {
-				store.EXPECT().DeleteStaleOAuth2ConsentSessions(gomock.Any(), now).Return(3, nil)
+				store.EXPECT().DeleteStaleOAuth2ConsentSessions(gomock.Any(), now, access, refresh).Return(3, nil)
 			},
 			"Removed 3 stale OpenID Connect 1.0 consent session(s) responded to and expired before 2026-09-10T12:00:00Z, along with the sessions which reference them.\n",
 			"",
@@ -122,7 +124,7 @@ func TestStorageCleanOAuth2RunE(t *testing.T) {
 			"ShouldRemoveStaleSessionsBeforeTheDuration",
 			map[string]string{cmdFlagNameBefore: "30 days"},
 			func(store *mocks.MockStorage) {
-				store.EXPECT().DeleteStaleOAuth2ConsentSessions(gomock.Any(), now.Add(-time.Hour*24*30)).Return(1, nil)
+				store.EXPECT().DeleteStaleOAuth2ConsentSessions(gomock.Any(), now.Add(-time.Hour*24*30), access, refresh).Return(1, nil)
 			},
 			"Removed 1 stale OpenID Connect 1.0 consent session(s) responded to and expired before 2026-08-11T12:00:00Z, along with the sessions which reference them.\n",
 			"",
@@ -131,7 +133,7 @@ func TestStorageCleanOAuth2RunE(t *testing.T) {
 			"ShouldCountStaleSessionsOnDryRun",
 			map[string]string{cmdFlagNameDryRun: "true"},
 			func(store *mocks.MockStorage) {
-				store.EXPECT().CountStaleOAuth2ConsentSessions(gomock.Any(), now).Return(5, nil)
+				store.EXPECT().CountStaleOAuth2ConsentSessions(gomock.Any(), now, access, refresh).Return(5, nil)
 			},
 			"Dry run: 5 stale OpenID Connect 1.0 consent session(s) responded to and expired before 2026-09-10T12:00:00Z would be removed, along with the sessions which reference them.\n",
 			"",
@@ -140,7 +142,7 @@ func TestStorageCleanOAuth2RunE(t *testing.T) {
 			"ShouldRaiseErrorOnRemoveError",
 			nil,
 			func(store *mocks.MockStorage) {
-				store.EXPECT().DeleteStaleOAuth2ConsentSessions(gomock.Any(), now).Return(0, errors.New("delete failed"))
+				store.EXPECT().DeleteStaleOAuth2ConsentSessions(gomock.Any(), now, access, refresh).Return(0, errors.New("delete failed"))
 			},
 			"",
 			"delete failed",
@@ -149,7 +151,7 @@ func TestStorageCleanOAuth2RunE(t *testing.T) {
 			"ShouldRaiseErrorOnCountError",
 			map[string]string{cmdFlagNameDryRun: "true"},
 			func(store *mocks.MockStorage) {
-				store.EXPECT().CountStaleOAuth2ConsentSessions(gomock.Any(), now).Return(0, errors.New("count failed"))
+				store.EXPECT().CountStaleOAuth2ConsentSessions(gomock.Any(), now, access, refresh).Return(0, errors.New("count failed"))
 			},
 			"",
 			"count failed",
@@ -196,6 +198,99 @@ func TestStorageCleanOAuth2RunE(t *testing.T) {
 			}
 
 			assert.Equal(t, tc.expected, buf.String())
+		})
+	}
+}
+
+func TestStorageCleanOAuth2IssuedAfter(t *testing.T) {
+	now := time.Date(2026, 9, 10, 12, 0, 0, 0, time.UTC)
+
+	testCases := []struct {
+		name            string
+		have            *schema.IdentityProvidersOpenIDConnect
+		access, refresh time.Time
+	}{
+		{
+			"ShouldUseTheDefaultsWithoutOpenIDConnect",
+			nil,
+			now.Add(-time.Hour),
+			now.Add(-time.Minute * 90),
+		},
+		{
+			"ShouldUseTheDefaultsWhenTheLifespansAreNotSet",
+			&schema.IdentityProvidersOpenIDConnect{},
+			now.Add(-time.Hour),
+			now.Add(-time.Minute * 90),
+		},
+		{
+			"ShouldUseTheGlobalLifespans",
+			&schema.IdentityProvidersOpenIDConnect{
+				Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+					IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
+						AccessToken:  time.Minute * 5,
+						RefreshToken: time.Hour * 24 * 30,
+					},
+				},
+			},
+			now.Add(-time.Minute * 5),
+			now.Add(-time.Hour * 24 * 30),
+		},
+		{
+			"ShouldUseTheLongestCustomAndGrantLifespans",
+			&schema.IdentityProvidersOpenIDConnect{
+				Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+					IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
+						AccessToken:  time.Hour,
+						RefreshToken: time.Hour * 2,
+					},
+					Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
+						"short": {
+							IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
+								AccessToken:  time.Minute,
+								RefreshToken: time.Minute,
+							},
+						},
+						"long": {
+							IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
+								AccessToken: time.Hour * 3,
+							},
+							Grants: schema.IdentityProvidersOpenIDConnectLifespanGrants{
+								JWTBearer: schema.IdentityProvidersOpenIDConnectLifespanToken{
+									RefreshToken: time.Hour * 24 * 7,
+								},
+							},
+						},
+						"negative": {
+							IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
+								RefreshToken: -1,
+							},
+						},
+					},
+				},
+			},
+			now.Add(-time.Hour * 3),
+			now.Add(-time.Hour * 24 * 7),
+		},
+		{
+			"ShouldKeepEveryActiveTokenWhenTheGlobalLifespanNeverExpires",
+			&schema.IdentityProvidersOpenIDConnect{
+				Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+					IdentityProvidersOpenIDConnectLifespanToken: schema.IdentityProvidersOpenIDConnectLifespanToken{
+						RefreshToken: -1,
+					},
+				},
+			},
+			now.Add(-time.Hour),
+			time.Time{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			access, refresh := storageCleanOAuth2IssuedAfter(tc.have, now)
+
+			assert.Equal(t, tc.access, access)
+			assert.Equal(t, tc.refresh, refresh)
 		})
 	}
 }
