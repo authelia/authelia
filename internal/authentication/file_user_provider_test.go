@@ -800,6 +800,51 @@ func TestFileUserProviderConcurrentUpdatesShouldNotRevertEachOther(t *testing.T)
 	})
 }
 
+type failingSaveFileUserDatabase struct {
+	FileUserProviderDatabase
+
+	fail bool
+}
+
+func (d *failingSaveFileUserDatabase) Save() (err error) {
+	if d.fail {
+		return fmt.Errorf("failed to mock the save")
+	}
+
+	return d.FileUserProviderDatabase.Save()
+}
+
+func TestFileUserProviderClearExtraAttributeShouldRestoreTheAttributeWhenTheSaveFails(t *testing.T) {
+	WithDatabase(t, UserDatabaseContentExtra, func(path string) {
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Path = path
+		config.ExtraAttributes = map[string]schema.AuthenticationBackendExtraAttribute{"example": {ValueType: "string"}}
+
+		provider := NewFileUserProvider(&config)
+		require.NoError(t, provider.StartupCheck())
+
+		database := &failingSaveFileUserDatabase{FileUserProviderDatabase: provider.database, fail: true}
+		provider.database = database
+
+		assert.EqualError(t, provider.ClearExtraAttribute("john", "example"), "operation failed : failed to mock the save")
+
+		details, err := provider.GetDetailsExtended("john")
+		require.NoError(t, err)
+		assert.Equal(t, "123", details.Extra["example"])
+
+		database.fail = false
+
+		require.NoError(t, provider.ClearExtraAttribute("john", "example"))
+
+		reloaded := NewFileUserDatabase(path, false, false, getExtra(&config))
+		require.NoError(t, reloaded.Load())
+
+		stored, err := reloaded.GetUserDetails("john")
+		require.NoError(t, err)
+		assert.Empty(t, stored.Extra)
+	})
+}
+
 func TestFileUserProviderGetDetailsExtendedShouldNotShareExtra(t *testing.T) {
 	WithDatabase(t, UserDatabaseContentExtra, func(path string) {
 		config := DefaultFileAuthenticationBackendConfiguration
