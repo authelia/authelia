@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import CopyButton from "@components/CopyButton";
 
@@ -93,6 +93,11 @@ it("does not copy if value is empty", () => {
 });
 
 it("does not copy again while already copied", async () => {
+    vi.useFakeTimers();
+    onTestFinished(() => {
+        vi.useRealTimers();
+    });
+
     render(
         <CopyButton tooltip="copy" value="test" childrenCopied="Copied" msTimeoutCopying={50} msTimeoutCopied={200}>
             Copy
@@ -100,7 +105,8 @@ it("does not copy again while already copied", async () => {
     );
     const button = screen.getByRole("button");
     fireEvent.click(button);
-    await waitFor(() => expect(screen.getByText("Copied")).toBeInTheDocument(), { timeout: 200 });
+    await act(() => vi.advanceTimersByTimeAsync(100));
+    expect(screen.getByText("Copied")).toBeInTheDocument();
     mockWriteText.mockClear();
     fireEvent.click(button);
     expect(mockWriteText).not.toHaveBeenCalled();
