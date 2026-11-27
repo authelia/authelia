@@ -1976,6 +1976,22 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "CSRF")
 				return
 			}
+		case "ip":
+			{
+				var zb0002 []byte
+				zb0002, err = dc.ReadBytes([]byte(z.RemoteNetwork))
+				if err != nil {
+					err = msgp.WrapError(err, "RemoteNetwork")
+					return
+				}
+				z.RemoteNetwork = net.IP(zb0002)
+			}
+		case "ipb":
+			z.RemoteNetworkBits, err = dc.ReadUint8()
+			if err != nil {
+				err = msgp.WrapError(err, "RemoteNetworkBits")
+				return
+			}
 		case "u":
 			z.Username, err = dc.ReadString()
 			if err != nil {
@@ -2030,14 +2046,14 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.WebAuthn == nil {
 					z.WebAuthn = new(WebAuthn)
 				}
-				var zb0002 uint32
-				zb0002, err = dc.ReadMapHeader()
+				var zb0003 uint32
+				zb0003, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "WebAuthn")
 					return
 				}
-				for zb0002 > 0 {
-					zb0002--
+				for zb0003 > 0 {
+					zb0003--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "WebAuthn")
@@ -2089,14 +2105,14 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.WebAuthnConditional == nil {
 					z.WebAuthnConditional = new(WebAuthn)
 				}
-				var zb0003 uint32
-				zb0003, err = dc.ReadMapHeader()
+				var zb0004 uint32
+				zb0004, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "WebAuthnConditional")
 					return
 				}
-				for zb0003 > 0 {
-					zb0003--
+				for zb0004 > 0 {
+					zb0004--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "WebAuthnConditional")
@@ -2234,52 +2250,60 @@ func (z *UserSession) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 	// check for omitted fields
-	zb0001Len := uint32(18)
-	var zb0001Mask uint32 /* 18 bits */
+	zb0001Len := uint32(20)
+	var zb0001Mask uint32 /* 20 bits */
 	_ = zb0001Mask
 	if z.CSRF == nil {
 		zb0001Len--
 		zb0001Mask |= 0x4
 	}
-	if z.Username == "" {
+	if z.RemoteNetwork == nil {
 		zb0001Len--
 		zb0001Mask |= 0x8
 	}
+	if z.RemoteNetworkBits == 0 {
+		zb0001Len--
+		zb0001Mask |= 0x10
+	}
+	if z.Username == "" {
+		zb0001Len--
+		zb0001Mask |= 0x20
+	}
 	if z.Expires == 0 {
-		zb0001Len--
-		zb0001Mask |= 0x40
-	}
-	if z.FirstFactorAuthnTimestamp == 0 {
-		zb0001Len--
-		zb0001Mask |= 0x80
-	}
-	if z.SecondFactorAuthnTimestamp == 0 {
 		zb0001Len--
 		zb0001Mask |= 0x100
 	}
-	if z.WebAuthn == nil {
+	if z.FirstFactorAuthnTimestamp == 0 {
+		zb0001Len--
+		zb0001Mask |= 0x200
+	}
+	if z.SecondFactorAuthnTimestamp == 0 {
 		zb0001Len--
 		zb0001Mask |= 0x400
 	}
-	if z.WebAuthnConditional == nil {
-		zb0001Len--
-		zb0001Mask |= 0x800
-	}
-	if z.TOTP == nil {
+	if z.WebAuthn == nil {
 		zb0001Len--
 		zb0001Mask |= 0x1000
 	}
-	if z.PasswordResetUsername == nil {
+	if z.WebAuthnConditional == nil {
 		zb0001Len--
 		zb0001Mask |= 0x2000
 	}
+	if z.TOTP == nil {
+		zb0001Len--
+		zb0001Mask |= 0x4000
+	}
+	if z.PasswordResetUsername == nil {
+		zb0001Len--
+		zb0001Mask |= 0x8000
+	}
 	if z.ExternalIdentity == nil {
 		zb0001Len--
-		zb0001Mask |= 0x10000
+		zb0001Mask |= 0x40000
 	}
 	if z.ExternalIdentityPending == nil {
 		zb0001Len--
-		zb0001Mask |= 0x20000
+		zb0001Mask |= 0x80000
 	}
 	// variable map header, size zb0001Len
 	err = en.WriteMapHeader(zb0001Len)
@@ -2322,6 +2346,30 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			}
 		}
 		if (zb0001Mask & 0x8) == 0 { // if not omitted
+			// write "ip"
+			err = en.Append(0xa2, 0x69, 0x70)
+			if err != nil {
+				return
+			}
+			err = en.WriteBytes([]byte(z.RemoteNetwork))
+			if err != nil {
+				err = msgp.WrapError(err, "RemoteNetwork")
+				return
+			}
+		}
+		if (zb0001Mask & 0x10) == 0 { // if not omitted
+			// write "ipb"
+			err = en.Append(0xa3, 0x69, 0x70, 0x62)
+			if err != nil {
+				return
+			}
+			err = en.WriteUint8(z.RemoteNetworkBits)
+			if err != nil {
+				err = msgp.WrapError(err, "RemoteNetworkBits")
+				return
+			}
+		}
+		if (zb0001Mask & 0x20) == 0 { // if not omitted
 			// write "u"
 			err = en.Append(0xa1, 0x75)
 			if err != nil {
@@ -2353,7 +2401,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "LastActivity")
 			return
 		}
-		if (zb0001Mask & 0x40) == 0 { // if not omitted
+		if (zb0001Mask & 0x100) == 0 { // if not omitted
 			// write "x"
 			err = en.Append(0xa1, 0x78)
 			if err != nil {
@@ -2365,7 +2413,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				return
 			}
 		}
-		if (zb0001Mask & 0x80) == 0 { // if not omitted
+		if (zb0001Mask & 0x200) == 0 { // if not omitted
 			// write "ffa"
 			err = en.Append(0xa3, 0x66, 0x66, 0x61)
 			if err != nil {
@@ -2377,7 +2425,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				return
 			}
 		}
-		if (zb0001Mask & 0x100) == 0 { // if not omitted
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
 			// write "mfa"
 			err = en.Append(0xa3, 0x6d, 0x66, 0x61)
 			if err != nil {
@@ -2399,7 +2447,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "AuthenticationMethodRefs")
 			return
 		}
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		if (zb0001Mask & 0x1000) == 0 { // if not omitted
 			// write "wa"
 			err = en.Append(0xa2, 0x77, 0x61)
 			if err != nil {
@@ -2459,7 +2507,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x800) == 0 { // if not omitted
+		if (zb0001Mask & 0x2000) == 0 { // if not omitted
 			// write "wac"
 			err = en.Append(0xa3, 0x77, 0x61, 0x63)
 			if err != nil {
@@ -2519,7 +2567,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x1000) == 0 { // if not omitted
+		if (zb0001Mask & 0x4000) == 0 { // if not omitted
 			// write "otp"
 			err = en.Append(0xa3, 0x6f, 0x74, 0x70)
 			if err != nil {
@@ -2538,7 +2586,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x2000) == 0 { // if not omitted
+		if (zb0001Mask & 0x8000) == 0 { // if not omitted
 			// write "pru"
 			err = en.Append(0xa3, 0x70, 0x72, 0x75)
 			if err != nil {
@@ -2577,7 +2625,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "Elevations")
 			return
 		}
-		if (zb0001Mask & 0x10000) == 0 { // if not omitted
+		if (zb0001Mask & 0x40000) == 0 { // if not omitted
 			// write "eid"
 			err = en.Append(0xa3, 0x65, 0x69, 0x64)
 			if err != nil {
@@ -2596,7 +2644,7 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x20000) == 0 { // if not omitted
+		if (zb0001Mask & 0x80000) == 0 { // if not omitted
 			// write "eidp"
 			err = en.Append(0xa4, 0x65, 0x69, 0x64, 0x70)
 			if err != nil {
@@ -2623,52 +2671,60 @@ func (z *UserSession) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// check for omitted fields
-	zb0001Len := uint32(18)
-	var zb0001Mask uint32 /* 18 bits */
+	zb0001Len := uint32(20)
+	var zb0001Mask uint32 /* 20 bits */
 	_ = zb0001Mask
 	if z.CSRF == nil {
 		zb0001Len--
 		zb0001Mask |= 0x4
 	}
-	if z.Username == "" {
+	if z.RemoteNetwork == nil {
 		zb0001Len--
 		zb0001Mask |= 0x8
 	}
+	if z.RemoteNetworkBits == 0 {
+		zb0001Len--
+		zb0001Mask |= 0x10
+	}
+	if z.Username == "" {
+		zb0001Len--
+		zb0001Mask |= 0x20
+	}
 	if z.Expires == 0 {
-		zb0001Len--
-		zb0001Mask |= 0x40
-	}
-	if z.FirstFactorAuthnTimestamp == 0 {
-		zb0001Len--
-		zb0001Mask |= 0x80
-	}
-	if z.SecondFactorAuthnTimestamp == 0 {
 		zb0001Len--
 		zb0001Mask |= 0x100
 	}
-	if z.WebAuthn == nil {
+	if z.FirstFactorAuthnTimestamp == 0 {
+		zb0001Len--
+		zb0001Mask |= 0x200
+	}
+	if z.SecondFactorAuthnTimestamp == 0 {
 		zb0001Len--
 		zb0001Mask |= 0x400
 	}
-	if z.WebAuthnConditional == nil {
-		zb0001Len--
-		zb0001Mask |= 0x800
-	}
-	if z.TOTP == nil {
+	if z.WebAuthn == nil {
 		zb0001Len--
 		zb0001Mask |= 0x1000
 	}
-	if z.PasswordResetUsername == nil {
+	if z.WebAuthnConditional == nil {
 		zb0001Len--
 		zb0001Mask |= 0x2000
 	}
+	if z.TOTP == nil {
+		zb0001Len--
+		zb0001Mask |= 0x4000
+	}
+	if z.PasswordResetUsername == nil {
+		zb0001Len--
+		zb0001Mask |= 0x8000
+	}
 	if z.ExternalIdentity == nil {
 		zb0001Len--
-		zb0001Mask |= 0x10000
+		zb0001Mask |= 0x40000
 	}
 	if z.ExternalIdentityPending == nil {
 		zb0001Len--
-		zb0001Mask |= 0x20000
+		zb0001Mask |= 0x80000
 	}
 	// variable map header, size zb0001Len
 	o = msgp.AppendMapHeader(o, zb0001Len)
@@ -2687,6 +2743,16 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 			o = msgp.AppendBytes(o, z.CSRF)
 		}
 		if (zb0001Mask & 0x8) == 0 { // if not omitted
+			// string "ip"
+			o = append(o, 0xa2, 0x69, 0x70)
+			o = msgp.AppendBytes(o, []byte(z.RemoteNetwork))
+		}
+		if (zb0001Mask & 0x10) == 0 { // if not omitted
+			// string "ipb"
+			o = append(o, 0xa3, 0x69, 0x70, 0x62)
+			o = msgp.AppendUint8(o, z.RemoteNetworkBits)
+		}
+		if (zb0001Mask & 0x20) == 0 { // if not omitted
 			// string "u"
 			o = append(o, 0xa1, 0x75)
 			o = msgp.AppendString(o, z.Username)
@@ -2697,17 +2763,17 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "act"
 		o = append(o, 0xa3, 0x61, 0x63, 0x74)
 		o = msgp.AppendInt64(o, z.LastActivity)
-		if (zb0001Mask & 0x40) == 0 { // if not omitted
+		if (zb0001Mask & 0x100) == 0 { // if not omitted
 			// string "x"
 			o = append(o, 0xa1, 0x78)
 			o = msgp.AppendInt64(o, z.Expires)
 		}
-		if (zb0001Mask & 0x80) == 0 { // if not omitted
+		if (zb0001Mask & 0x200) == 0 { // if not omitted
 			// string "ffa"
 			o = append(o, 0xa3, 0x66, 0x66, 0x61)
 			o = msgp.AppendInt64(o, z.FirstFactorAuthnTimestamp)
 		}
-		if (zb0001Mask & 0x100) == 0 { // if not omitted
+		if (zb0001Mask & 0x400) == 0 { // if not omitted
 			// string "mfa"
 			o = append(o, 0xa3, 0x6d, 0x66, 0x61)
 			o = msgp.AppendInt64(o, z.SecondFactorAuthnTimestamp)
@@ -2719,7 +2785,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 			err = msgp.WrapError(err, "AuthenticationMethodRefs")
 			return
 		}
-		if (zb0001Mask & 0x400) == 0 { // if not omitted
+		if (zb0001Mask & 0x1000) == 0 { // if not omitted
 			// string "wa"
 			o = append(o, 0xa2, 0x77, 0x61)
 			if z.WebAuthn == nil {
@@ -2757,7 +2823,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x800) == 0 { // if not omitted
+		if (zb0001Mask & 0x2000) == 0 { // if not omitted
 			// string "wac"
 			o = append(o, 0xa3, 0x77, 0x61, 0x63)
 			if z.WebAuthnConditional == nil {
@@ -2795,7 +2861,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x1000) == 0 { // if not omitted
+		if (zb0001Mask & 0x4000) == 0 { // if not omitted
 			// string "otp"
 			o = append(o, 0xa3, 0x6f, 0x74, 0x70)
 			if z.TOTP == nil {
@@ -2808,7 +2874,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x2000) == 0 { // if not omitted
+		if (zb0001Mask & 0x8000) == 0 { // if not omitted
 			// string "pru"
 			o = append(o, 0xa3, 0x70, 0x72, 0x75)
 			if z.PasswordResetUsername == nil {
@@ -2827,7 +2893,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 			err = msgp.WrapError(err, "Elevations")
 			return
 		}
-		if (zb0001Mask & 0x10000) == 0 { // if not omitted
+		if (zb0001Mask & 0x40000) == 0 { // if not omitted
 			// string "eid"
 			o = append(o, 0xa3, 0x65, 0x69, 0x64)
 			if z.ExternalIdentity == nil {
@@ -2840,7 +2906,7 @@ func (z *UserSession) MarshalMsg(b []byte) (o []byte, err error) {
 				}
 			}
 		}
-		if (zb0001Mask & 0x20000) == 0 { // if not omitted
+		if (zb0001Mask & 0x80000) == 0 { // if not omitted
 			// string "eidp"
 			o = append(o, 0xa4, 0x65, 0x69, 0x64, 0x70)
 			if z.ExternalIdentityPending == nil {
@@ -2891,6 +2957,22 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			z.CSRF, bts, err = msgp.ReadBytesBytes(bts, z.CSRF)
 			if err != nil {
 				err = msgp.WrapError(err, "CSRF")
+				return
+			}
+		case "ip":
+			{
+				var zb0002 []byte
+				zb0002, bts, err = msgp.ReadBytesBytes(bts, []byte(z.RemoteNetwork))
+				if err != nil {
+					err = msgp.WrapError(err, "RemoteNetwork")
+					return
+				}
+				z.RemoteNetwork = net.IP(zb0002)
+			}
+		case "ipb":
+			z.RemoteNetworkBits, bts, err = msgp.ReadUint8Bytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "RemoteNetworkBits")
 				return
 			}
 		case "u":
@@ -2946,14 +3028,14 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.WebAuthn == nil {
 					z.WebAuthn = new(WebAuthn)
 				}
-				var zb0002 uint32
-				zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "WebAuthn")
 					return
 				}
-				for zb0002 > 0 {
-					zb0002--
+				for zb0003 > 0 {
+					zb0003--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "WebAuthn")
@@ -3003,14 +3085,14 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.WebAuthnConditional == nil {
 					z.WebAuthnConditional = new(WebAuthn)
 				}
-				var zb0003 uint32
-				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0004 uint32
+				zb0004, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "WebAuthnConditional")
 					return
 				}
-				for zb0003 > 0 {
-					zb0003--
+				for zb0004 > 0 {
+					zb0004--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "WebAuthnConditional")
@@ -3143,7 +3225,7 @@ func (z *UserSession) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserSession) Msgsize() (s int) {
-	s = 3 + 2 + msgp.StringPrefixSize + len(z.CookieDomain) + 2 + msgp.StringPrefixSize + len(z.PublicID) + 5 + msgp.BytesPrefixSize + len(z.CSRF) + 2 + msgp.StringPrefixSize + len(z.Username) + 2 + msgp.BoolSize + 4 + msgp.Int64Size + 2 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + (*MessagePackAMR)(&z.AuthenticationMethodRefs).Msgsize() + 3
+	s = 3 + 2 + msgp.StringPrefixSize + len(z.CookieDomain) + 2 + msgp.StringPrefixSize + len(z.PublicID) + 5 + msgp.BytesPrefixSize + len(z.CSRF) + 3 + msgp.BytesPrefixSize + len([]byte(z.RemoteNetwork)) + 4 + msgp.Uint8Size + 2 + msgp.StringPrefixSize + len(z.Username) + 2 + msgp.BoolSize + 4 + msgp.Int64Size + 2 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + msgp.Int64Size + 4 + (*MessagePackAMR)(&z.AuthenticationMethodRefs).Msgsize() + 3
 	if z.WebAuthn == nil {
 		s += msgp.NilSize
 	} else {

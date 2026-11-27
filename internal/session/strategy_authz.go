@@ -228,7 +228,25 @@ func (a *DefaultAuthzStrategy) resolveRecord(ctx Context) (sid, aid string, sess
 		return "", aid, nil, nil, nil
 	}
 
+	if unanchored, err := p.destroyUnanchoredAuthz(ctx, sid, session); unanchored || err != nil {
+		return "", aid, nil, nil, err
+	}
+
 	return sid, aid, session, record, nil
+}
+
+func (p *DefaultStrategy) destroyUnanchoredAuthz(ctx Context, sid string, session *UserSession) (unanchored bool, err error) {
+	if p.config.AnchorRemoteIP == nil || isAnchored(session, ctx.RemoteIP()) {
+		return false, nil
+	}
+
+	logContext(ctx).Debug("Session authz cookie resolves to a network which isn't anchored to the remote IP")
+
+	if err = p.destroyByID(ctx, sid, session); err != nil {
+		return true, fmt.Errorf("error occurred destroying session not anchored to the network of the remote IP: %w", err)
+	}
+
+	return true, nil
 }
 
 var (

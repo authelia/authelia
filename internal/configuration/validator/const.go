@@ -541,6 +541,7 @@ const (
 	errFmtCacheRedisConnectionLifetimeJitter = "cache: %s: option 'connection_lifetime_jitter' must not be greater than option 'connection_lifetime' but they're configured as '%s' and '%s' respectively"
 
 	errFmtSessionDomainMustBeRoot                        = "session: domain config %s: option 'domain' must be the domain you wish to protect not a wildcard domain but it's configured as '%s'"
+	errFmtSessionDomainAnchorRemoteIPMask                = "session: domain config %s: option 'anchor_remote_ip' option '%s' must be between 1 and %d but it's configured as %d"
 	errFmtSessionDomainSameSite                          = "session: domain config %s: option 'same_site' must be one of %s but it's configured as '%s'"
 	errFmtSessionDomainOptionRequired                    = "session: domain config %s: option '%s' is required"
 	errFmtSessionDomainNamePrefix                        = "session: domain config %s: option 'name' must not start with '%s' as the cookie name prefixes are added automatically but it's configured as '%s'"

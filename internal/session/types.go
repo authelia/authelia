@@ -6,6 +6,7 @@ package session
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"time"
 
@@ -43,6 +44,10 @@ type Context interface {
 	// IsAuthzEndpointRequest returns true when the request is being handled by an authorization endpoint, which are
 	// the only endpoints the authorization cookie is honored on and the only endpoints the session cookie is not.
 	IsAuthzEndpointRequest() bool
+
+	// RemoteIP returns the remote IP of the request, which sessions are anchored to when the session cookie
+	// configuration enables it.
+	RemoteIP() net.IP
 }
 
 // CachingContext is an optional interface a Context may implement to retain the session it loaded for the duration of
