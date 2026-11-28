@@ -73,7 +73,8 @@ authentication_backend:
   password_change:
     required_attribute: 'must_change_password'
   ldap:
-    address: 'ldaps://openldap'
+    address: 'ldap://ldap.example.com'
+    start_tls: true
     pooling:
       enable: true
       count: 4

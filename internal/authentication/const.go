@@ -151,6 +151,9 @@ var (
 	// ErrLDAPHealthCheckFailedEntryCount is returned when the RootDSE search performed during the LDAP health check returns an unexpected number of entries.
 	ErrLDAPHealthCheckFailedEntryCount = errors.New("incorrect number entries found when performing RootDSE search")
 
+	// ErrLDAPStartTLSTimeout is returned when the TLS handshake performed as part of StartTLS does not complete in time.
+	ErrLDAPStartTLSTimeout = errors.New("timeout exceeded performing the tls handshake")
+
 	// ErrPoolClosed is returned by acquisition attempts made against a pool which is closing or closed.
 	ErrPoolClosed = NewPoolCtxErr(errors.New("error acquiring client: the pool is closed"))
 
