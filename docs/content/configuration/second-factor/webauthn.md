@@ -87,6 +87,10 @@ be prompted for their password by default if the request requires multi-factor a
 
 Please see the note about how this operates in relation to [remember_me](../session/introduction.md#remember_me-1)
 
+Enabling this option also makes WebAuthn available for registration in the user settings even when no
+[access control](../security/access-control.md) rule uses the `two_factor` policy, so users can register the Passkeys
+they sign in with. This does not make the portal ask for a second factor at sign in.
+
 ### experimental_enable_passkey_uv_two_factors
 
 {{< confkey type="boolean" default="false" required="no" >}}

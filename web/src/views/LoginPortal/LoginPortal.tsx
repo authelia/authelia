@@ -136,10 +136,13 @@ const LoginPortal = function (props: Props) {
     const linkProvider = location.pathname === IndexRoute ? undefined : linkProviderParam;
     const linkPage = location.pathname === ExternalIdentityLinkRoute && !!linkProvider;
 
+    const secondFactorNotRequired =
+        configuration !== undefined &&
+        (!configuration.second_factor_enabled || configuration.available_methods.size === 0);
+
     const authenticationComplete =
         state !== undefined &&
-        ((configuration?.available_methods?.size === 0 &&
-            state.authentication_level >= AuthenticationLevel.OneFactor) ||
+        ((secondFactorNotRequired && state.authentication_level >= AuthenticationLevel.OneFactor) ||
             state.authentication_level === AuthenticationLevel.TwoFactor);
 
     const handleExternalIdentityLink = useCallback(async () => {
@@ -216,7 +219,7 @@ const LoginPortal = function (props: Props) {
                 navigate(IndexRoute);
             }
         } else if (state!.authentication_level >= AuthenticationLevel.OneFactor && userInfo && configuration) {
-            if (configuration.available_methods.size === 0) {
+            if (secondFactorNotRequired) {
                 navigate(AuthenticatedRoute, false);
             } else {
                 const method = resolveSecondFactorMethod(
@@ -236,7 +239,7 @@ const LoginPortal = function (props: Props) {
                 }
             }
         }
-    }, [state, userInfo, configuration, navigate, localStorageMethod, linkPage]);
+    }, [state, userInfo, configuration, secondFactorNotRequired, navigate, localStorageMethod, linkPage]);
 
     useEffect(() => {
         (async function () {
