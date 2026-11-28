@@ -72,8 +72,8 @@ const DefaultMethodContainer = function (props: Props) {
                     {translate("Select a Device")}
                 </button>
             ) : null}
-            {(props.onRegisterClick && props.title !== "Push Notification") ||
-            (props.onRegisterClick && props.title === "Push Notification" && props.duoSelfEnrollment) ? (
+            {(props.onRegisterClick && props.title !== translate("Push Notification")) ||
+            (props.onRegisterClick && props.title === translate("Push Notification") && props.duoSelfEnrollment) ? (
                 <button
                     id={"register-link"}
                     className="text-base text-primary underline-offset-4 hover:underline"

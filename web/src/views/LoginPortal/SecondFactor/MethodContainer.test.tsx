@@ -6,10 +6,13 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import MethodContainer, { State } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
-vi.mock("react-i18next", () => ({
-    useTranslation: () => ({ t: (key: string) => key }),
+const mocks = vi.hoisted(() => ({
+    translations: {} as Record<string, string>,
 }));
 
+vi.mock("react-i18next", () => ({
+    useTranslation: () => ({ t: (key: string) => mocks.translations[key] ?? key }),
+}));
 vi.mock("@components/InformationIcon", () => ({
     default: () => <div data-testid="info-icon" />,
 }));
@@ -256,4 +259,62 @@ it("renders the self enrollment prompt for push notifications", () => {
     );
 
     expect(screen.getByText("Register your first device by clicking on the link below")).toBeInTheDocument();
+});
+
+it("omits the register link for push notifications without self enrollment when the title is translated", () => {
+    // Regression: the guard used to compare the translated title against the
+    // literal "Push Notification". On a non-English locale the translated title
+    // never equals the literal, so the guard short-circuited and the register
+    // link rendered even with duoSelfEnrollment disabled (clicking it opened
+    // window.open("") — a blank tab, since the enroll URL stays empty).
+    mocks.translations["Push Notification"] = "推送通知";
+
+    try {
+        render(
+            <MethodContainer
+                id="test"
+                title="推送通知"
+                duoSelfEnrollment={false}
+                registered={false}
+                explanation=""
+                state={State.NOT_REGISTERED}
+                onRegisterClick={vi.fn()}
+            >
+                <div />
+            </MethodContainer>,
+        );
+
+        expect(document.getElementById("register-link")).toBeNull();
+        expect(screen.getByText("Contact your administrator to register a device")).toBeInTheDocument();
+    } finally {
+        delete mocks.translations["Push Notification"];
+    }
+});
+
+it("renders the register link for push notifications with self enrollment when the title is translated", () => {
+    const onRegisterClick = vi.fn();
+
+    mocks.translations["Push Notification"] = "推送通知";
+
+    try {
+        render(
+            <MethodContainer
+                id="test"
+                title="推送通知"
+                duoSelfEnrollment={true}
+                registered={false}
+                explanation=""
+                state={State.NOT_REGISTERED}
+                onRegisterClick={onRegisterClick}
+            >
+                <div />
+            </MethodContainer>,
+        );
+
+        fireEvent.click(document.getElementById("register-link") as HTMLElement);
+
+        expect(onRegisterClick).toHaveBeenCalledTimes(1);
+    } finally {
+        delete mocks.translations["Push Notification"];
+    }
 });
