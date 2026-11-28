@@ -28,7 +28,7 @@ seo:
 - [Authelia]
   - [v4.39.28](https://github.com/authelia/authelia/releases/tag/v4.39.28)
 - [openCloud]
-  - [v7.2.4](https://github.com/opencloud-eu/opencloud/releases/tag/v7.2.4)
+  - [v9.1.1](https://github.com/opencloud-eu/opencloud/releases/tag/v9.1.1)
 
 {{% oidc-common %}}
 
@@ -58,6 +58,13 @@ The following YAML configuration is an example **Authelia** [client configuratio
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
+    cors:
+      # cors needed for opencloud web because the web client is a public SPA and exchanges the code from the browser
+      allowed_origins:
+        - 'https://opencloud.{{< sitevar name="domain" nojs="example.com" >}}'      
+      endpoints:
+        - token
+
     clients:
       - client_id: 'opencloud'
         client_name: 'openCloud'
@@ -68,7 +75,6 @@ identity_providers:
         pkce_challenge_method: 'S256'
         scopes:
           - 'openid'
-          - 'offline_access'
           - 'groups'
           - 'profile'
           - 'email'
@@ -80,7 +86,9 @@ identity_providers:
           - 'code'
         grant_types:
           - 'authorization_code'
-          - 'refresh_token'
+        audience:
+          - 'opencloud'
+        requested_audience_mode: 'implicit'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
@@ -104,6 +112,9 @@ identity_providers:
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
+        audience:
+          - 'opencloud-android'
+        requested_audience_mode: 'implicit'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
@@ -128,6 +139,9 @@ identity_providers:
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
+        audience:
+          - 'opencloud-desktop'
+        requested_audience_mode: 'implicit'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
@@ -150,6 +164,9 @@ identity_providers:
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
+        audience:
+          - 'opencloud-ios'
+        requested_audience_mode: 'implicit'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
@@ -177,6 +194,7 @@ variables:
 ```shell {title=".env"}
 OC_OIDC_ISSUER="https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
 PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD="jwt"
+PROXY_OIDC_AUDIENCES="opencloud,opencloud-android,opencloud-desktop,opencloud-ios"
 PROXY_OIDC_REWRITE_WELLKNOWN="true"
 PROXY_AUTOPROVISION_ACCOUNTS="true"
 PROXY_AUTOPROVISION_CLAIM_USERNAME="preferred_username"
@@ -185,7 +203,7 @@ PROXY_AUTOPROVISION_CLAIM_DISPLAYNAME="name"
 PROXY_AUTOPROVISION_CLAIM_GROUPS="groups"
 PROXY_CSP_CONFIG_FILE_LOCATION="/etc/opencloud/csp.yaml"
 WEBFINGER_WEB_OIDC_CLIENT_ID="opencloud"
-WEBFINGER_WEB_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
+WEBFINGER_WEB_OIDC_CLIENT_SCOPES="openid profile email groups"
 WEBFINGER_ANDROID_OIDC_CLIENT_ID="opencloud-android"
 WEBFINGER_ANDROID_OIDC_CLIENT_SCOPES="openid profile email groups offline_access"
 WEBFINGER_IOS_OIDC_CLIENT_ID="opencloud-ios"
@@ -205,6 +223,7 @@ services:
     environment:
       OC_OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD: 'jwt'
+      PROXY_OIDC_AUDIENCES: 'opencloud,opencloud-android,opencloud-desktop,opencloud-ios'
       PROXY_OIDC_REWRITE_WELLKNOWN: 'true'
       PROXY_AUTOPROVISION_ACCOUNTS: 'true'
       PROXY_AUTOPROVISION_CLAIM_USERNAME: 'preferred_username'
@@ -272,6 +291,7 @@ directives:
     - '''self'''
   media-src:
     - '''self'''
+    - 'blob:'
   object-src:
     - '''self'''
     - 'blob:'
@@ -282,6 +302,7 @@ directives:
   style-src:
     - '''self'''
     - '''unsafe-inline'''
+    - 'blob:'
   worker-src:
     - '''self'''
     - 'blob:'
