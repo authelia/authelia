@@ -9,6 +9,7 @@ import (
 	_ "embed" // Embed the users_database.template files.
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +35,7 @@ type FileUserProvider struct {
 	hash          algorithm.Hash
 	database      FileUserProviderDatabase
 	mutex         sync.Mutex
+	write         sync.Mutex
 	timeoutReload time.Time
 	digest        *[sha256.Size]byte
 }
@@ -157,6 +159,10 @@ func (p *FileUserProvider) GetDetailsExtendedCached(username string) (details *U
 
 // UpdatePassword update the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
+	p.write.Lock()
+
+	defer p.write.Unlock()
+
 	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
@@ -192,6 +198,10 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 
 // ChangePassword implements the UserProvider interface.
 func (p *FileUserProvider) ChangePassword(username string, oldPassword string, newPassword string) (err error) {
+	p.write.Lock()
+
+	defer p.write.Unlock()
+
 	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
@@ -236,6 +246,49 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
+		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+	}
+
+	return nil
+}
+
+// ClearExtraAttribute implements the UserProvider interface.
+func (p *FileUserProvider) ClearExtraAttribute(username string, attribute string) (err error) {
+	p.write.Lock()
+
+	defer p.write.Unlock()
+
+	var details FileUserDatabaseUserDetails
+
+	if details, err = p.database.GetUserDetails(username); err != nil {
+		return fmt.Errorf("%w : %v", ErrUserNotFound, err)
+	}
+
+	if details.Disabled {
+		return ErrUserNotFound
+	}
+
+	if _, ok := details.Extra[attribute]; !ok {
+		return nil
+	}
+
+	original := details
+
+	details.Extra = maps.Clone(details.Extra)
+
+	delete(details.Extra, attribute)
+
+	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
+
+	if err = p.database.Save(); err != nil {
+		p.database.SetUserDetails(original.Username, &original)
+
 		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
 	}
 

@@ -143,6 +143,10 @@ func (s *CookieSessionAuthnStrategy) Get(ctx AuthzContext, manager session.Authz
 			invalid = true
 		default:
 			modified = handleAuthnCookieRefreshTTL(ctx, &userSession, s.refresh)
+
+			if invalid, err = handleAuthnCookiePasswordChangeRequired(ctx, &userSession, details, s.refresh, modified, s.extended); err != nil {
+				return authn, fmt.Errorf("failed to determine if the user must change their password: %w", err)
+			}
 		}
 	}
 
@@ -484,6 +488,14 @@ func handleGetBasic(ctx AuthzContext, delayer middlewares.Delayer, authn *Authn,
 		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", header, details.Username)
 	}
 
+	var required bool
+
+	if required, err = isPasswordChangeRequired(ctx, details.Username, true); err != nil {
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to determine if user '%s' parsed from the %s header must change their password: %w", details.Username, header, err)
+	} else if required {
+		return nil, authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: the user must change their password before authenticating", details.Username, header)
+	}
+
 	if !cached {
 		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
 	}
@@ -505,6 +517,30 @@ func handleAuthnCookieRefreshTTL(ctx AuthzContext, userSession *session.UserSess
 	userSession.RefreshTTL = now.Add(refresh.Value())
 
 	return true
+}
+
+func handleAuthnCookiePasswordChangeRequired(ctx AuthzContext, userSession *session.UserSession, details authentication.UserDetailsExtended, refresh schema.RefreshIntervalDuration, refreshed, extended bool) (required bool, err error) {
+	if userSession.IsAnonymous() || (!refreshed && !refresh.Always()) {
+		return false, nil
+	}
+
+	username := userSession.Username
+
+	if extended {
+		required, err = isPasswordChangeRequiredDetails(ctx, &details)
+	} else {
+		required, err = isPasswordChangeRequired(ctx, username, true)
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	if required {
+		ctx.GetLogger().WithField("username", username).Info("Destroying the session of the user as the backend requires them to change their password")
+	}
+
+	return required, nil
 }
 
 func handleAuthnCookieValidate(ctx AuthzContext, userSession *session.UserSession) (invalid bool) {

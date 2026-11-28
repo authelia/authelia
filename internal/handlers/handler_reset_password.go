@@ -210,6 +210,8 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	ctx.GetLogger().Debugf("Password of user %s has been reset", username)
 
+	handleClearPasswordChangeRequired(ctx, username)
+
 	userSession.PasswordResetUsername = nil
 
 	if err = ctx.SaveSession(&userSession); err != nil {

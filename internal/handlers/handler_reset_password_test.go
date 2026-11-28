@@ -22,6 +22,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -512,6 +513,40 @@ func TestResetPasswordPOST(t *testing.T) {
 				require.NoError(t, err)
 				assert.Nil(t, us.PasswordResetUsername)
 			},
+		},
+		{
+			"ShouldClearTheRequiredPasswordChangeAttribute",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				setTestPasswordResetUsername(t, mock)
+
+				mock.Ctx.Providers.UserAttributeResolver = &expression.UserAttributes{}
+				mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.RequiredAttribute = "pwd_reset"
+				mock.Ctx.Configuration.AuthenticationBackend.PasswordChange.ClearAttribute = "pwd_reset"
+
+				mock.Ctx.Request.SetBodyString(`{"password":"password123"}`)
+
+				gomock.InOrder(
+					mock.UserProviderMock.
+						EXPECT().
+						UpdatePassword(testUsername, "password123").
+						Return(nil),
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetailsExtended(testUsername).
+						Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Username: testUsername}, Extra: map[string]any{"pwd_reset": true}}, nil),
+					mock.UserProviderMock.
+						EXPECT().
+						ClearExtraAttribute(testUsername, "pwd_reset").
+						Return(nil),
+					mock.UserProviderMock.
+						EXPECT().
+						GetDetails(testUsername).
+						Return(nil, fmt.Errorf("failed to get details")),
+				)
+			},
+			`{"status":"OK"}`,
+			fasthttp.StatusOK,
+			nil,
 		},
 		{
 			"ShouldHandleUserWithoutEmail",

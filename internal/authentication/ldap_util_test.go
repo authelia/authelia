@@ -5,6 +5,8 @@
 package authentication
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
@@ -358,6 +360,66 @@ func TestFmtLDAPVersions(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, fmtLDAPVersions(tc.versions))
+		})
+	}
+}
+
+func TestLDAPIsActiveDirectoryPasswordChangeRequired(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     error
+		expected bool
+	}{
+		{
+			"ShouldNotDetectANilError",
+			nil,
+			false,
+		},
+		{
+			"ShouldNotDetectAnErrorWhichIsNotAnLDAPError",
+			errors.New("authentication failed"),
+			false,
+		},
+		{
+			"ShouldDetectPasswordMustChange",
+			&ldap.Error{ResultCode: ldap.LDAPResultInvalidCredentials, Err: errors.New("80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 773, v1db1")},
+			true,
+		},
+		{
+			"ShouldDetectPasswordExpired",
+			&ldap.Error{ResultCode: ldap.LDAPResultInvalidCredentials, Err: errors.New("80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 532, v1db1")},
+			true,
+		},
+		{
+			"ShouldDetectAWrappedError",
+			fmt.Errorf("error occurred performing bind: %w", &ldap.Error{ResultCode: ldap.LDAPResultInvalidCredentials, Err: errors.New("80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 773, v1db1")}),
+			true,
+		},
+		{
+			"ShouldNotDetectAnIncorrectPassword",
+			&ldap.Error{ResultCode: ldap.LDAPResultInvalidCredentials, Err: errors.New("80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 52e, v1db1")},
+			false,
+		},
+		{
+			"ShouldNotDetectADisabledAccount",
+			&ldap.Error{ResultCode: ldap.LDAPResultInvalidCredentials, Err: errors.New("80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 533, v1db1")},
+			false,
+		},
+		{
+			"ShouldNotDetectACodeWithoutTheDataPrefix",
+			&ldap.Error{ResultCode: ldap.LDAPResultInvalidCredentials, Err: errors.New("80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error")},
+			false,
+		},
+		{
+			"ShouldNotDetectTheCodeUnderAnotherResultCode",
+			&ldap.Error{ResultCode: ldap.LDAPResultUnwillingToPerform, Err: errors.New("80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 773, v1db1")},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, ldapIsActiveDirectoryPasswordChangeRequired(tc.have))
 		})
 	}
 }

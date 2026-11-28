@@ -374,9 +374,12 @@ func handleExternalIdentityCallbackLinked(ctx *middlewares.AutheliaCtx, provider
 		return
 	}
 
-	var details *authentication.UserDetails
+	var (
+		details  *authentication.UserDetails
+		extended *authentication.UserDetailsExtended
+	)
 
-	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil || details == nil {
+	if details, extended, err = getFirstFactorUserDetails(ctx, username); err != nil || details == nil {
 		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, flow.TargetURL, flow.RequestMethod, err)
 
 		externalIdentityRedirect(ctx, pathExternalIdentityError)
@@ -388,6 +391,34 @@ func handleExternalIdentityCallbackLinked(ctx *middlewares.AutheliaCtx, provider
 
 	if sessionProvider, err = externalIdentityResetSession(ctx, log, username); err != nil {
 		externalIdentityRedirect(ctx, pathExternalIdentityError)
+
+		return
+	}
+
+	var required bool
+
+	if required, err = isPasswordChangeRequiredDetails(ctx, extended); err != nil {
+		log.WithError(err).Errorf("%s: error occurred determining if a password change is required", logFmtErrExternalIdentityCallback)
+
+		externalIdentityRedirect(ctx, pathExternalIdentityError)
+
+		return
+	}
+
+	if required {
+		userSession := setPasswordChangeRequiredSession(ctx, sessionProvider, details.Username)
+
+		if err = ctx.SaveSession(&userSession); err != nil {
+			log.WithError(err).Errorf("%s: %s", logFmtErrExternalIdentityCallback, errStrUserSessionDataSave)
+
+			externalIdentityRedirect(ctx, pathExternalIdentityError)
+
+			return
+		}
+
+		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, flow.TargetURL, flow.RequestMethod, nil)
+
+		externalIdentityRedirect(ctx, pathRoot)
 
 		return
 	}

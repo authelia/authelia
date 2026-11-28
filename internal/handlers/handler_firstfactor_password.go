@@ -30,8 +30,9 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 		bodyJSON := bodyFirstFactorRequest{}
 
 		var (
-			details *authentication.UserDetails
-			err     error
+			details  *authentication.UserDetails
+			extended *authentication.UserDetailsExtended
+			err      error
 		)
 		if err = ctx.ParseBody(&bodyJSON); err != nil {
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -41,7 +42,7 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 			return
 		}
 
-		if details, err = ctx.Providers.UserProvider.GetDetails(bodyJSON.Username); err != nil || details == nil {
+		if details, extended, err = getFirstFactorUserDetails(ctx, bodyJSON.Username); err != nil || details == nil {
 			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeUnknown, "", nil), regulation.AuthType1FA, err)
 
 			ctx.GetLogger().WithError(err).Errorf("Error occurred getting details for user with username input '%s' which usually indicates they do not exist", bodyJSON.Username)
@@ -67,8 +68,16 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 			return
 		}
 
+		var changeRequired bool
+
 		userPasswordOk, err := ctx.Providers.UserProvider.CheckUserPassword(details.Username, bodyJSON.Password)
-		if err != nil {
+
+		switch {
+		case err == nil:
+			break
+		case errors.Is(err, authentication.ErrPasswordChangeRequired) && !ctx.Configuration.AuthenticationBackend.PasswordChange.Disable:
+			userPasswordOk, changeRequired = true, true
+		default:
 			if isRegulatorSkippedErr(err) {
 				ctx.GetLogger().WithError(err).Errorf("Unsuccessful %s authentication attempt by user '%s'", regulation.AuthType1FA, details.Username)
 			} else {
@@ -112,11 +121,40 @@ func FirstFactorPasswordPOST(delayer middlewares.Delayer) middlewares.RequestHan
 			return
 		}
 
-		userSession := provider.New(details.Username)
-
 		keepMeLoggedIn := !provider.GetConfig().DisableRememberMe && bodyJSON.KeepMeLoggedIn != nil && *bodyJSON.KeepMeLoggedIn
 
 		ctx.GetLogger().Tracef(logFmtTraceProfileDetails, details.Username, details.Groups, details.Emails)
+
+		if !changeRequired {
+			if changeRequired, err = isPasswordChangeRequiredDetails(ctx, extended); err != nil {
+				ctx.GetLogger().WithError(err).WithFields(map[string]any{"username": details.Username}).
+					Error("Error occurred determining if a password change is required")
+
+				respondUnauthorized(ctx, messageAuthenticationFailed)
+
+				return
+			}
+		}
+
+		if changeRequired {
+			userSession := setPasswordChangeRequiredSession(ctx, provider, details.Username)
+
+			if err = provider.Save(ctx, &userSession); err != nil {
+				ctx.GetLogger().WithError(err).Errorf(logFmtErrSessionSave, "password change required", regulation.AuthType1FA, logFmtActionAuthentication, details.Username)
+
+				respondUnauthorized(ctx, messageAuthenticationFailed)
+
+				return
+			}
+
+			successful = true
+
+			ctx.ReplyOK()
+
+			return
+		}
+
+		userSession := provider.New(details.Username)
 
 		userSession.SetOneFactorPassword(ctx.GetClock().Now(), keepMeLoggedIn)
 

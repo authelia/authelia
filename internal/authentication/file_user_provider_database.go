@@ -7,6 +7,7 @@ package authentication
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -304,7 +305,7 @@ func (m FileUserDatabaseUserDetails) ToExtendedUserDetails() (details *UserDetai
 		PhoneNumber:    m.PhoneNumber,
 		PhoneExtension: m.PhoneExtension,
 		UserDetails:    m.ToUserDetails(),
-		Extra:          m.Extra,
+		Extra:          maps.Clone(m.Extra),
 	}
 
 	if m.Address != nil {

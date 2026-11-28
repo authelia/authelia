@@ -31,9 +31,14 @@ func StateGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	stateResponse := StateResponse{
-		Username:            userSession.Username,
-		AuthenticationLevel: userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA),
-		FactorKnowledge:     userSession.AuthenticationMethodRefs.FactorKnowledge(),
+		Username:               userSession.Username,
+		AuthenticationLevel:    userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA),
+		FactorKnowledge:        userSession.AuthenticationMethodRefs.FactorKnowledge(),
+		PasswordChangeRequired: userSession.IsPasswordChangeRequired(),
+	}
+
+	if stateResponse.PasswordChangeRequired {
+		stateResponse.Username = *userSession.PasswordChangeRequiredUsername
 	}
 
 	if uri := ctx.GetDefaultRedirectionURL(); uri != nil {

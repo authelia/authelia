@@ -90,6 +90,14 @@ const (
 )
 
 const (
+	errFmtAuthBackendPasswordChangeRequiredAttributeUnknown    = "authentication_backend: password_change: option 'required_attribute' is configured as '%s' but that attribute is not defined"
+	errFmtAuthBackendPasswordChangeRequiredAttributeNotBoolean = "authentication_backend: password_change: option 'required_attribute' is configured as '%s' but that attribute is not a single valued boolean extra attribute or a user attribute definition"
+	errFmtAuthBackendPasswordChangeRequiredAttributeDisabled   = "authentication_backend: password_change: option 'required_attribute' can't be configured when option 'disable' is true"
+	errFmtAuthBackendPasswordChangeClearAttributeUnknown       = "authentication_backend: password_change: option 'clear_attribute' is configured as '%s' but that attribute is not a configured extra attribute"
+	errFmtAuthBackendPasswordChangeClearAttributeRequired      = "authentication_backend: password_change: option 'clear_attribute' can't be configured without option 'required_attribute'"
+)
+
+const (
 	errFmtDefinitionsUserAttributesReservedOrDefined = "definitions: user_attributes: %s: attribute name '%s' is either reserved or already defined in the authentication backend"
 	errFmtDefinitionsURIParsersName                  = "definitions: uri_parsers: %s: option '%s' must only include the values %s but has '%s'"
 	errFmtDefinitionsURIParsersConflict              = "definitions: uri_parsers: %s: the value '%s' can't be in both the 'allow' and 'reject' options"

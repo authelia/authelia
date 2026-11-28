@@ -40,6 +40,8 @@ authentication_backend:
     custom_url: ''
   password_change:
     disable: false
+    required_attribute: ''
+    clear_attribute: ''
   registration:
     custom_url: ''
 ```
@@ -82,11 +84,134 @@ other than nothing or an empty string.
 
 ### password_change
 
-#### disable
+#### disable {#password-change-disable}
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
 This setting controls if users can change their password from the web frontend or not.
+
+#### required_attribute
+
+{{< confkey type="string" required="no" >}}
+
+The name of a user attribute which, when it resolves to `true`, requires the user change their password before they
+are permitted to authenticate. A user who signs in with the correct password is held at the portal and offered the
+password change form; the session they hold carries no authentication level and no identity, so the password they
+signed in with opens nothing until it has been replaced.
+
+The attribute is checked on every way a user can sign in or be authorized:
+
+- A password sign in at the portal holds the user.
+- A [passkey](../second-factor/webauthn.md#enable_passkey_login) sign in holds the user in the same way, even though no password was entered.
+- An [external identity](external-identity.md) sign in holds the user in the same way.
+- A request authorized with credentials in the `Authorization` or `Proxy-Authorization` header is refused.
+- An existing session is checked again each time its user details are refreshed, as set by
+  [refresh_interval](#refresh_interval), and is ended when the attribute has become `true`. A
+  [refresh_interval](#refresh_interval) of `disable` disables this check, and `always` performs it on every request. If the check can't be completed, for example because
+  the backend is unavailable, the request is refused and the check is attempted again on the next request.
+
+The attribute is normally one you define in
+[definitions.user_attributes](../definitions/user-attributes.md), which is what lets this work across directory
+servers that signal the same thing differently:
+
+```yaml {title="configuration.yml"}
+definitions:
+  user_attributes:
+    must_change_password:
+      expression: 'pwdReset == "TRUE"'
+
+authentication_backend:
+  password_change:
+    required_attribute: 'must_change_password'
+  ldap:
+    attributes:
+      extra:
+        pwdReset:
+          value_type: 'string'
+```
+
+OpenLDAP writes a `pwdReset` boolean and FreeIPA records a timestamp, so the comparison belongs in your expression
+rather than in Authelia. An [extra attribute](file.md#extra_attributes) which is already a boolean needs no
+expression at all and can be named here directly, which is how the [file](file.md) provider usually carries this in
+the `extra` section of a user:
+
+```yaml {title="configuration.yml"}
+authentication_backend:
+  password_change:
+    required_attribute: 'pwd_reset'
+  file:
+    extra_attributes:
+      pwd_reset:
+        value_type: 'boolean'
+```
+
+This option can't be configured when [disable](#password-change-disable) is `true`, as the user would be held with no way to perform
+the change. It must name either a [user attribute definition](../definitions/user-attributes.md) or a single valued extra
+attribute with a `value_type` of `boolean`; any other attribute is refused at startup. A definition is an expression
+whose result can only be known at sign in, so if it resolves to something other than a boolean the sign in is
+refused and the error is logged, rather than letting a user through who may be required to change their password.
+
+This option is not how [Active Directory](ldap.md#implementation) is handled, which is described below.
+
+#### clear_attribute
+
+{{< confkey type="string" required="no" >}}
+
+The name of an extra attribute which is cleared from the authentication backend once the user has performed the
+password change that [required_attribute](#required_attribute) held them for. It is also cleared after the user
+changes their password from the settings page or resets a forgotten password, as either replaces the password the
+attribute was flagging.
+
+Most directory servers clear the signal themselves: OpenLDAP removes `pwdReset` and Active Directory sets
+`pwdLastSet` when the user changes their own password. Those backends do not need this option at all. It exists for
+the ones which do not, most notably the [file](file.md) provider, where the attribute is a static value in the
+user's `extra` section and the user would otherwise be held again on their next sign in.
+
+```yaml {title="configuration.yml"}
+authentication_backend:
+  password_change:
+    required_attribute: 'pwd_reset'
+    clear_attribute: 'pwd_reset'
+  file:
+    extra_attributes:
+      pwd_reset:
+        value_type: 'boolean'
+```
+
+With the [ldap](ldap.md) provider the [user](ldap.md#user) Authelia binds as needs write access to this attribute,
+and an attribute which is already absent is treated as cleared.
+
+This always names an extra attribute configured on the authentication backend, never a user attribute definition,
+as a definition is an expression which can be read but not written. It is only attempted while the user would still
+be held, so configuring it against a backend which clears the attribute itself results in no write at all. A
+failure to clear it is logged as an error rather than returned to the user: their password was changed either way,
+the held session is ended as it would be after a successful clear, and the only consequence is that they are held
+again the next time they authenticate.
+
+#### Active Directory
+
+Active Directory needs neither of the options above. It refuses a simple bind outright for a user who must change
+their password, and says so in the bind response rather than in an attribute, so there is nothing for an expression
+to read: the sign in never gets that far. Authelia recognizes the two responses which mean the password itself was
+accepted, `ERROR_PASSWORD_MUST_CHANGE` and `ERROR_PASSWORD_EXPIRED`, and holds the user for a password change on
+either. A wrong password produces a different response and is refused as it always was.
+
+This is also why the default [users_filter](ldap.md#users_filter) for this implementation depends on
+[disable](#password-change-disable). A user the filter excludes is never found, so they are refused before a bind is ever attempted
+and the response which would have held them is never seen. While password change is enabled the default admits
+them; disabling it adds `(!(pwdLastSet=0))` back, which excludes them again, because there would be no form for
+them to be held at. Writing [users_filter](ldap.md#users_filter) out yourself opts out of both and it is used
+exactly as given.
+
+Nothing needs to clear the signal afterwards, as the directory stamps `pwdLastSet` itself when the password is
+changed, which is what that clause tests.
+
+Because the default admits these users while password change is enabled, setting "User must change password at next
+logon" on a user who is already signed in does not end their session. Previously the next lookup at
+[refresh_interval](#refresh_interval) found no such user and ended it; that lookup now succeeds, so the session
+remains until it expires or the user signs out, and they are held for the change at their next sign in. To end their
+sessions when the flag is set, write [users_filter](ldap.md#users_filter) out with the `(!(pwdLastSet=0))` clause, at
+the cost of those users being refused rather than held.
 
 ### registration
 
