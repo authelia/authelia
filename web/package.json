@@ -72,7 +72,7 @@
     "@vitest/coverage-istanbul": "5.1.2",
     "@vitest/ui": "5.1.2",
     "eslint": "10.15.0",
-    "eslint-config-prettier": "10.1.8",
+    "eslint-config-prettier": "10.1.9",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-formatter-visualstudio": "9.0.1",
     "eslint-import-resolver-typescript": "4.4.5",
