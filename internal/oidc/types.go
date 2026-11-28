@@ -140,6 +140,7 @@ type RegisteredClient struct {
 	AllowMultipleAuthenticationMethods      bool
 	ClientCredentialsFlowAllowImplicitScope bool
 	DPoPBoundAccessTokens                   bool
+	DPoPStrictRefreshTokenBinding           bool
 
 	ClientAssertionJWTValidationHeaderAllowEmptyType bool
 	ClientAssertionJWTValidationHeaderAllowTypes     []string
@@ -380,6 +381,10 @@ var (
 	_ oauthelia2.RefreshTokenMaximumLifespanClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshTokenRotationClient                               = (*RegisteredClient)(nil)
 	_ oauthelia2.RFC8628VerificationURICompleteClient                     = (*RegisteredClient)(nil)
+	_ oauthelia2.DPoPClient                                               = (*RegisteredClient)(nil)
+	_ oauthelia2.DPoPStrictRefreshTokenBindingClient                      = (*RegisteredClient)(nil)
+
+	_ oauthelia2.DPoPBoundSession = (*Session)(nil)
 
 	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
 	_ RequesterFormSession = (*model.OAuth2DeviceCodeSession)(nil)

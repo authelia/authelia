@@ -89,6 +89,10 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 
 	providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, providers.StorageProvider, providers.Templates)
 
+	if providers.OpenIDConnect != nil {
+		providers.GarbageCollector.Register(providers.OpenIDConnect)
+	}
+
 	if config.Telemetry.Metrics.Enabled {
 		var prom *metrics.Prometheus
 

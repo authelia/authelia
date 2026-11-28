@@ -613,6 +613,18 @@ func (p *testBearerIntrospectionProvider) GetResourceStrategy(_ context.Context)
 	return nil
 }
 
+func (p *testBearerIntrospectionProvider) GetDPoPStrategy(_ context.Context) oauthelia2.DPoPStrategy {
+	return nil
+}
+
+func (p *testBearerIntrospectionProvider) GetDPoPNonceRequired(_ context.Context) bool {
+	return false
+}
+
+func (p *testBearerIntrospectionProvider) GetDPoPEnforce(_ context.Context) bool {
+	return false
+}
+
 func (p *testBearerIntrospectionProvider) GetRegisteredClient(_ context.Context, _ string) (oidc.Client, error) {
 	return p.client, nil
 }
@@ -679,7 +691,7 @@ func TestHandleVerifyGETAuthorizationBearerIntrospectionAudience(t *testing.T) {
 
 			require.NoError(t, authn.Header.Authorization.ParseBearer("abc123"))
 
-			_, clientID, _, _, err := handleVerifyGETAuthorizationBearerIntrospection(context.Background(), provider, authn, &object)
+			_, clientID, _, _, err := handleVerifyGETAuthorizationBearerIntrospection(context.Background(), provider, authn, &object, nil)
 
 			if tc.expected == "" {
 				assert.NoError(t, err)
