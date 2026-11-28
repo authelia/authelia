@@ -136,6 +136,8 @@ func (s *OneFactorOnlySuite) TestShouldStayOnPortalWhenAMethodCanBeRegistered() 
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
+	navigations := s.doRecordNavigations(ctx, s.Page)
+
 	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	require.NoError(s.T(), s.doMarkDocument(s.Context(ctx), "portalDocument"))
 
@@ -144,11 +146,14 @@ func (s *OneFactorOnlySuite) TestShouldStayOnPortalWhenAMethodCanBeRegistered() 
 	s.doOpenSettings(s.T(), s.Context(ctx))
 	s.doOpenSettingsMenuClickTwoFactor(s.T(), s.Context(ctx))
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "webauthn-credential-add")
+	require.False(s.T(), s.CheckElementExistsLocatedByID(s.T(), s.Context(ctx), "recovery-codes-panel"))
 
 	marked, ok := s.isMarkedDocument(s.Context(ctx), "portalDocument")
 	require.True(s.T(), ok)
 	require.True(s.T(), marked)
 	require.True(s.T(), strings.HasPrefix(s.pageURL(s.Context(ctx)), GetLoginBaseURL(BaseDomain)))
+	require.NotEmpty(s.T(), navigations())
+	s.verifyNavigationsStayedOn(s.T(), navigations(), GetLoginBaseURL(BaseDomain))
 }
 
 func TestOneFactorOnlySuite(t *testing.T) {

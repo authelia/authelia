@@ -188,9 +188,12 @@ func (s *StandaloneWebDriverSuite) TestShouldStayOnPortalToRegisterDeviceWhenTar
 	require.NoError(s.T(), err)
 
 	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
+	s.DeleteOneTimePassword(username)
 
 	s.doVisitLoginPage(s.T(), s.Context(ctx), BaseDomain, fmt.Sprintf("%s/secret.html", AdminBaseURL))
 	require.NoError(s.T(), s.doMarkDocument(s.Context(ctx), "portalDocument"))
+
+	navigations := s.doRecordNavigations(ctx, s.Page)
 
 	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), username, password, false)
 
@@ -201,6 +204,8 @@ func (s *StandaloneWebDriverSuite) TestShouldStayOnPortalToRegisterDeviceWhenTar
 	require.True(s.T(), ok)
 	require.True(s.T(), marked)
 	require.True(s.T(), strings.HasPrefix(s.pageURL(s.Context(ctx)), GetLoginBaseURL(BaseDomain)))
+
+	s.verifyNavigationsStayedOn(s.T(), navigations(), GetLoginBaseURL(BaseDomain))
 
 	s.doOpenSettingsAndRegisterTOTP(s.T(), s.Context(ctx), username)
 	s.doLogout(s.T(), s.Context(ctx))

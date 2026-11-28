@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -199,6 +200,39 @@ func (rs *RodSession) isMarkedDocument(page *rod.Page, mark string) (marked, ok 
 	}
 
 	return result.Value.Bool(), true
+}
+
+func (rs *RodSession) doRecordNavigations(ctx context.Context, page *rod.Page) func() []string {
+	var (
+		mutex sync.Mutex
+		urls  []string
+	)
+
+	wait := page.Context(ctx).EachEvent(func(e *proto.PageFrameNavigated) {
+		if e.Frame.ParentID != "" {
+			return
+		}
+
+		mutex.Lock()
+		defer mutex.Unlock()
+
+		urls = append(urls, e.Frame.URL)
+	})
+
+	go wait()
+
+	return func() []string {
+		mutex.Lock()
+		defer mutex.Unlock()
+
+		return append([]string(nil), urls...)
+	}
+}
+
+func (rs *RodSession) verifyNavigationsStayedOn(t *testing.T, navigations []string, prefix string) {
+	for _, navigation := range navigations {
+		require.True(t, strings.HasPrefix(navigation, prefix), "navigated away from %s to %s", prefix, navigation)
+	}
 }
 
 func isURLPath(uri, expected string) bool {
