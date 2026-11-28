@@ -20,6 +20,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -506,7 +508,10 @@ func (s *StandaloneSuite) TestResetPasswordScenario() {
 }
 
 func (s *StandaloneSuite) TestChangePasswordScenario() {
-	suite.Run(s.T(), NewChangePasswordScenario(NewPasswordChangeRequiredFileBackend()))
+	suite.Run(s.T(), NewChangePasswordScenario(NewPasswordChangeRequiredFileBackend(map[string]expression.ExtraAttribute{
+		"employee_id":                   schema.AuthenticationBackendExtraAttribute{ValueType: "integer"},
+		passwordChangeRequiredAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "boolean"},
+	})))
 }
 
 func (s *StandaloneSuite) TestRequestMethodScenario() {

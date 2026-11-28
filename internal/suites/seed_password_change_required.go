@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -48,15 +47,17 @@ type PasswordChangeRequiredBackend interface {
 	Reset(t *testing.T)
 }
 
-// NewPasswordChangeRequiredFileBackend returns a PasswordChangeRequiredBackend for a suite using the file provider.
-func NewPasswordChangeRequiredFileBackend() PasswordChangeRequiredBackend {
-	return &PasswordChangeRequiredFileBackend{}
+// NewPasswordChangeRequiredFileBackend returns a PasswordChangeRequiredBackend for a suite using the file provider. The
+// extra attributes must match the ones the suite configures, as the user database can't be decoded without them.
+func NewPasswordChangeRequiredFileBackend(extra map[string]expression.ExtraAttribute) PasswordChangeRequiredBackend {
+	return &PasswordChangeRequiredFileBackend{extra: extra}
 }
 
 // PasswordChangeRequiredFileBackend adjusts the user database of a suite using the file provider.
 type PasswordChangeRequiredFileBackend struct {
 	path     string
 	snapshot []byte
+	extra    map[string]expression.ExtraAttribute
 }
 
 // Prepare implements the PasswordChangeRequiredBackend interface.
@@ -69,9 +70,7 @@ func (b *PasswordChangeRequiredFileBackend) Prepare(t *testing.T) {
 
 	require.NoError(t, err)
 
-	database := authentication.NewFileUserDatabase(b.path, false, false, map[string]expression.ExtraAttribute{
-		passwordChangeRequiredAttribute: schema.AuthenticationBackendExtraAttribute{ValueType: "boolean"},
-	})
+	database := authentication.NewFileUserDatabase(b.path, false, false, b.extra)
 
 	require.NoError(t, database.Load())
 
