@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: mariadb
-          image: mariadb:13.0.2
+          image: mariadb:13.1.2
           ports:
             - containerPort: 3306
           readinessProbe:
