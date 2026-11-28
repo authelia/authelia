@@ -172,8 +172,8 @@ github.com/prometheus/common v0.72.0 h1:tAYsE+sPJxIncDAobm4H5aQjmox9ZxEIIqPbiffa
 github.com/prometheus/common v0.72.0/go.mod h1:77NWqAQ2tXT7BIK40qjJdw5Acrsrg1TlHAnsQi3i6mk=
 github.com/prometheus/procfs v0.22.0 h1:6q9+/JL9IKAPbCmBrv9n5O5Ty3NKnciV5X7YGw0oics=
 github.com/prometheus/procfs v0.22.0/go.mod h1:CvmFr/GVhIjIvWJZW3tgkODBQMRIf0EyWMQLHCHab58=
-github.com/redis/go-redis/v9 v9.24.0 h1:X1AnQHWaSfMeggDQm7UFad1YwJmoZxVm5XkaP0kr6nQ=
-github.com/redis/go-redis/v9 v9.24.0/go.mod h1:ted97kpLnB4S2KJkTkw+7GzRjgkFnU909IIrksu+ut4=
+github.com/redis/go-redis/v9 v9.24.1 h1:WZ9a1QO2mkLFLYyQ1IPFvS4xBuCuZy9eXtIxppdj/Z0=
+github.com/redis/go-redis/v9 v9.24.1/go.mod h1:ted97kpLnB4S2KJkTkw+7GzRjgkFnU909IIrksu+ut4=
 github.com/rpadovani/sqlx-v2 v0.1.2 h1:b3vS9chZw6Vd8wmJGDD7kSLPv8guHG3KVWN40pywaUY=
 github.com/rpadovani/sqlx-v2 v0.1.2/go.mod h1:MfQU/DTI+/Tk9cFAMkAFchkWX/RPva53hL9+Y9J1Jdk=
 github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
