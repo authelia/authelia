@@ -109,22 +109,35 @@ func (i *Issuer) GetPublicJSONWebKeys(ctx Context) (jwks *jose.JSONWebKeySet) {
 	}
 }
 
-// GetIssuerJWK returns the JSON Web Key which matches the given kid, alg, and use.
+// GetIssuerJWK returns the JSON Web Key which matches the alg and use values, and the kid value when it is not empty.
+// When more than one key matches the first is returned. The identifier named by the alg value is preferred, and when
+// no key matches it a key configured with the paired Edwards-curve identifier is returned with the alg value
+// requested, as EdDSA from RFC 8037 Section 3.1 and Ed25519 from RFC 9864 Section 2.2 name the same algorithm for an
+// Ed25519 key.
 func (i *Issuer) GetIssuerJWK(ctx context.Context, kid, alg, use string) (jwk *jose.JSONWebKey, err error) {
 	return i.searchJWKS(kid, alg, use, false)
 }
 
-// GetIssuerStrictJWK returns the JSON Web Key which strictly matches the given kid, alg, and use.
+// GetIssuerStrictJWK returns the JSON Web Key which matches the alg and use values, and the kid value when it is not
+// empty, with the same Edwards-curve identifier resolution as GetIssuerJWK. It differs in that a lookup which more
+// than one key matches returns an error, so an alg value reported by GetIssuerSigningAlgValues may still return an
+// error here. The paired identifier is only considered when no key matches the alg value, so this ambiguity is never
+// resolved through it.
 func (i *Issuer) GetIssuerStrictJWK(ctx context.Context, kid, alg, use string) (jwk *jose.JSONWebKey, err error) {
 	return i.searchJWKS(kid, alg, use, true)
 }
 
-// GetIssuerSigningAlgValues returns the sorted unique algorithms of the keys with a use of sig, excluding none.
+// GetIssuerSigningAlgValues returns the sorted unique algorithms of the keys with a use of sig, excluding none. A key
+// configured with either of the EdDSA and Ed25519 identifiers reports both, per RFC 8037 Section 3.1 and RFC 9864
+// Section 2.2. Every value reported resolves with GetIssuerJWK given an empty kid and a use of sig, and every alg
+// value which resolves that way is reported.
 func (i *Issuer) GetIssuerSigningAlgValues(ctx context.Context) (algs []string) {
 	return i.keyAlgValues(KeyUseSignature)
 }
 
-// GetIssuerDecryptionAlgValues returns the sorted unique algorithms of the keys with a use of enc.
+// GetIssuerDecryptionAlgValues returns the sorted unique algorithms of the keys with a use of enc. No identifier is
+// paired for these keys, so the values are exactly those which resolve with GetIssuerJWK given an empty kid and a use
+// of enc.
 func (i *Issuer) GetIssuerDecryptionAlgValues(ctx context.Context) (algs []string) {
 	return i.keyAlgValues(KeyUseEncryption)
 }
@@ -140,6 +153,14 @@ func (i *Issuer) keyAlgValues(use string) (algs []string) {
 		}
 
 		algs = append(algs, key.Algorithm)
+
+		if use != KeyUseSignature {
+			continue
+		}
+
+		if paired, ok := SigningAlgEdwardsPair(key.Algorithm); ok {
+			algs = append(algs, paired)
+		}
 	}
 
 	slices.Sort(algs)
@@ -153,7 +174,7 @@ func (i *Issuer) searchJWKS(kid, alg, use string, strict bool) (jwk *jose.JSONWe
 	}
 
 	paired, ok := SigningAlgEdwardsPair(alg)
-	if !ok {
+	if !ok || i.hasKey(kid, alg, use) {
 		return nil, err
 	}
 
@@ -166,4 +187,11 @@ func (i *Issuer) searchJWKS(kid, alg, use string, strict bool) (jwk *jose.JSONWe
 	edwards.Algorithm = alg
 
 	return &edwards, nil
+}
+
+// hasKey returns true when a key matches the alg and use values, and the kid value when it is not empty.
+func (i *Issuer) hasKey(kid, alg, use string) bool {
+	return slices.ContainsFunc(i.jwks.Keys, func(key jose.JSONWebKey) bool {
+		return key.Algorithm == alg && key.Use == use && (kid == "" || key.KeyID == kid)
+	})
 }
