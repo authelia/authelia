@@ -9,6 +9,6 @@ overrides:
   glob: 14.0.6
   minimatch: 11.0.9
   next: 16.4.6
-  postcss: 8.5.33
+  postcss: 8.5.34
   source-map-js: 1.2.4
   zod: 4.6.7
