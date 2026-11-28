@@ -18,16 +18,12 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 		PasswordResetDisabled:  false,
 	}
 
-	// SecondFactorEnabled tells the portal whether signing in may require a second factor, which only the access
-	// control rules and the OpenID Connect client authorization policies decide. AvailableMethods are the methods users can register and use, which also covers session
-	// elevation and passkey logins.
 	body.SecondFactorEnabled = ctx.Providers.Authorizer.IsSecondFactorEnabled()
 
 	switch {
 	case secondFactorUsable(ctx):
 		body.AvailableMethods = ctx.AvailableSecondFactorMethods()
 	case passkeyRegistrationUsable(ctx):
-		// Nothing requires a second factor, but users still need a way to register the passkeys they sign in with.
 		body.AvailableMethods = MethodList{model.SecondFactorMethodWebAuthn}
 	}
 
@@ -59,9 +55,6 @@ func secondFactorUsable(ctx *middlewares.AutheliaCtx) bool {
 	return elevation.RequireSecondFactor || elevation.SkipSecondFactor
 }
 
-// passkeyRegistrationUsable returns true when passkey logins are enabled and WebAuthn is usable from the request
-// origin, in which case users must be able to register WebAuthn credentials even when no access control rule or
-// elevation setting requires a second factor.
 func passkeyRegistrationUsable(ctx *middlewares.AutheliaCtx) bool {
 	if ctx.Configuration.WebAuthn.Disable || !ctx.Configuration.WebAuthn.EnablePasskeyLogin {
 		return false

@@ -1023,6 +1023,66 @@ describe("safe redirection", () => {
         expect(mocks.redirector).not.toHaveBeenCalled();
     });
 
+    it("stays on the portal to register a method when the target requires two factor", async () => {
+        mocks.redirectionURL = "https://admin.example.com/secret.html";
+        vi.mocked(checkSafeRedirection).mockResolvedValue({ ok: true } as any);
+        vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
+        vi.mocked(useConfiguration).mockReturnValue([
+            {
+                available_methods: new Set([1, 2]),
+                password_change_disabled: false,
+                password_reset_disabled: false,
+                recovery_codes_disabled: false,
+                second_factor_enabled: true,
+            },
+            vi.fn(),
+            false,
+            undefined,
+        ]);
+        vi.mocked(useUserInfoPOST).mockReturnValue([
+            { ...userInfo, has_totp: false, has_webauthn: false },
+            mocks.fetchUserInfo,
+            false,
+            undefined,
+        ]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenNthCalledWith(1, "/2fa/totp");
+        expect(checkSafeRedirection).not.toHaveBeenCalled();
+        expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
+    it("stays on the portal without a redirection URL when a method can be registered", async () => {
+        vi.mocked(useAutheliaState).mockReturnValue([oneFactor, mocks.fetchState, false, undefined]);
+        vi.mocked(useConfiguration).mockReturnValue([
+            {
+                available_methods: new Set([2]),
+                password_change_disabled: false,
+                password_reset_disabled: false,
+                recovery_codes_disabled: false,
+                second_factor_enabled: false,
+            },
+            vi.fn(),
+            false,
+            undefined,
+        ]);
+        vi.mocked(useUserInfoPOST).mockReturnValue([
+            { ...userInfo, has_totp: false, has_webauthn: false },
+            mocks.fetchUserInfo,
+            false,
+            undefined,
+        ]);
+
+        renderPortal();
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenNthCalledWith(1, "/authenticated", false);
+        expect(checkSafeRedirection).not.toHaveBeenCalled();
+        expect(mocks.redirector).not.toHaveBeenCalled();
+    });
+
     it("does not check safety without a redirection URL", async () => {
         vi.mocked(useAutheliaState).mockReturnValue([twoFactor, mocks.fetchState, false, undefined]);
 

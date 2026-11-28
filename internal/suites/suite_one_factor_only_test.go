@@ -8,9 +8,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -121,6 +123,32 @@ func (s *OneFactorOnlySuite) TestShouldNotRedirectAlreadyAuthenticatedUserToUnsa
 
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL(BaseDomain)))
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct")
+}
+
+func (s *OneFactorOnlySuite) TestShouldStayOnPortalWhenAMethodCanBeRegistered() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
+	s.verifyIsHome(s.T(), s.Context(ctx))
+
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
+	require.NoError(s.T(), s.doMarkDocument(s.Context(ctx), "portalDocument"))
+
+	s.verifyIsAuthenticatedPage(s.T(), s.Context(ctx))
+
+	s.doOpenSettings(s.T(), s.Context(ctx))
+	s.doOpenSettingsMenuClickTwoFactor(s.T(), s.Context(ctx))
+	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "webauthn-credential-add")
+
+	marked, ok := s.isMarkedDocument(s.Context(ctx), "portalDocument")
+	require.True(s.T(), ok)
+	require.True(s.T(), marked)
+	require.True(s.T(), strings.HasPrefix(s.pageURL(s.Context(ctx)), GetLoginBaseURL(BaseDomain)))
 }
 
 func TestOneFactorOnlySuite(t *testing.T) {

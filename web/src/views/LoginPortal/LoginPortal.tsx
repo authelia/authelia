@@ -135,7 +135,6 @@ const LoginPortal = function (props: Props) {
     const linkProvider = location.pathname === IndexRoute ? undefined : linkProviderParam;
     const linkPage = location.pathname === ExternalIdentityLinkRoute && !!linkProvider;
 
-    // One factor is enough when nothing can require a second factor, or when no second factor method is usable.
     const secondFactorNotRequired =
         configuration !== undefined &&
         (!configuration.second_factor_enabled || configuration.available_methods.size === 0);

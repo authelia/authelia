@@ -173,6 +173,39 @@ func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() 
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-method")
 }
 
+func (s *StandaloneWebDriverSuite) TestShouldStayOnPortalToRegisterDeviceWhenTargetRequiresTwoFactor() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	username := "john"
+	password := "password"
+
+	provider, err := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+	require.NoError(s.T(), err)
+
+	require.NoError(s.T(), provider.DeleteTOTPConfiguration(ctx, username))
+
+	s.doVisitLoginPage(s.T(), s.Context(ctx), BaseDomain, fmt.Sprintf("%s/secret.html", AdminBaseURL))
+	require.NoError(s.T(), s.doMarkDocument(s.Context(ctx), "portalDocument"))
+
+	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), username, password, false)
+
+	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
+	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
+
+	marked, ok := s.isMarkedDocument(s.Context(ctx), "portalDocument")
+	require.True(s.T(), ok)
+	require.True(s.T(), marked)
+	require.True(s.T(), strings.HasPrefix(s.pageURL(s.Context(ctx)), GetLoginBaseURL(BaseDomain)))
+
+	s.doOpenSettingsAndRegisterTOTP(s.T(), s.Context(ctx), username)
+	s.doLogout(s.T(), s.Context(ctx))
+}
+
 type StandaloneSuite struct {
 	*BaseSuite
 }
