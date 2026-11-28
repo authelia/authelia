@@ -22,7 +22,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -191,7 +190,7 @@ func TestOpenIDConnectUserinfoExtra(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, rwu.Code)
 
-		assert.Equal(t, middlewares.ContentTypeApplicationJWT, rwu.Header().Get(fasthttp.HeaderContentType))
+		assert.Equal(t, "application/jwt", rwu.Header().Get(fasthttp.HeaderContentType))
 		assert.Equal(t, "no-store", rwu.Header().Get(fasthttp.HeaderCacheControl))
 
 		parts := strings.Split(rwu.Body.String(), ".")

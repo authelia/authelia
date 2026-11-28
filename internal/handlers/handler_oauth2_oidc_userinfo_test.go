@@ -52,7 +52,7 @@ func TestOpenIDConnectUserinfo(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, rw.Code)
 		assert.Equal(t, "Bearer", rw.Header().Get(fasthttp.HeaderWWWAuthenticate))
-		assert.Equal(t, "invalid_token", getTestOAuth2ErrorResponse(t, rw)["error"])
+		assert.Empty(t, rw.Body.Bytes())
 
 		AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), regexpUserInfoFailed, nil)
 	})
@@ -153,7 +153,7 @@ func TestOpenIDConnectUserinfoAccessTokenURIQueryParameter(t *testing.T) {
 			"ShouldIgnoreTokenInQueryByDefault",
 			false,
 			http.StatusUnauthorized,
-			"invalid_token",
+			"",
 		},
 		{
 			"ShouldReadTokenInQueryWhenEnabled",
@@ -182,7 +182,13 @@ func TestOpenIDConnectUserinfoAccessTokenURIQueryParameter(t *testing.T) {
 			OpenIDConnectUserinfo(mock.Ctx, rw, r)
 
 			assert.Equal(t, tc.status, rw.Code)
-			assert.Equal(t, tc.expected, getTestOAuth2ErrorResponse(t, rw)["error"])
+
+			if tc.expected == "" {
+				assert.Equal(t, "Bearer", rw.Header().Get(fasthttp.HeaderWWWAuthenticate))
+				assert.Empty(t, rw.Body.Bytes())
+			} else {
+				assert.Equal(t, tc.expected, getTestOAuth2ErrorResponse(t, rw)["error"])
+			}
 		})
 	}
 }

@@ -10,7 +10,7 @@ toolchain go1.27.4
 
 require (
 	authelia.com/provider/jose v0.2.1
-	authelia.com/provider/oauth2 v0.4.6-0.20261124234205-4207ce103dfe
+	authelia.com/provider/oauth2 v0.4.6-0.20261128050231-0eaf12f8a95e
 	cel.dev/cel-go v0.33.4
 	github.com/asaskevich/govalidator/v12 v12.0.0
 	github.com/authelia/jsonschema v0.1.7

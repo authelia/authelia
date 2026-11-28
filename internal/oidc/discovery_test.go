@@ -55,7 +55,7 @@ func TestOpenIDConnectProviderMetadata(t *testing.T) {
 	issued := []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256}
 
 	assert.Equal(t, issued, metadata.IDTokenSigningAlgValuesSupported)
-	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone}, metadata.UserinfoSigningAlgValuesSupported)
+	assert.Equal(t, issued, metadata.UserinfoSigningAlgValuesSupported)
 
 	require.NotNil(t, metadata.RFC9701JWTIntrospectionResponseMetadata)
 	assert.Equal(t, issued, metadata.IntrospectionSigningAlgValuesSupported)

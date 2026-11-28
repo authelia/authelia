@@ -108,7 +108,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 	log.Debug("Device Authorization Request is processing the User Authorization Flow")
 
-	if flowID, err = uuid.Parse(requester.GetRequestForm().Get(oidc.FormParameterFlowID)); err != nil {
+	if flowID, err = uuid.Parse(r.Form.Get(oidc.FormParameterFlowID)); err != nil {
 		log.
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
 			Error("Device Authorization Request failed with error to parse the flow ID during the User Authorization Flow")
